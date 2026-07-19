@@ -28,7 +28,9 @@
       --ink: #2c2c2c;
       --muted: #666666;
       --line: #e0e0e0;
+      --line-strong: #d0d0d0;
       --bg: #fafafa;
+      --surface: #ffffff;
       --surface-2: rgba(0,0,0,0.04);
       --max: 880px;
       --nav-max: 1080px;
@@ -44,7 +46,9 @@
       --ink: #e0e0e0;
       --muted: #a0a0a0;
       --line: #3a3a4a;
+      --line-strong: #4a4a5a;
       --bg: #222228;
+      --surface: #2a2a32;
       --surface-2: rgba(255,255,255,0.04);
       --highlight: #ff4d4f;
       --btn-bg: #d0d0d0;
@@ -59,7 +63,9 @@
         --ink: #e0e0e0;
         --muted: #a0a0a0;
         --line: #3a3a4a;
+        --line-strong: #4a4a5a;
         --bg: #222228;
+        --surface: #2a2a32;
         --surface-2: rgba(255,255,255,0.04);
         --highlight: #ff4d4f;
         --btn-bg: #d0d0d0;
@@ -265,7 +271,13 @@
 
     .teaser figure { margin: 0; }
     .teaser img, .teaser canvas { width: 100%; border: 1px solid var(--line); border-radius: 10px; display: block; }
-    .teaser figcaption { color: var(--muted); font-size: .92rem; text-align: center; margin-top: 6px; }
+    figcaption {
+      text-align: center;
+      margin-top: 13px;
+      font-family: 'Noto Sans', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      font-size: 11.5px;
+      color: var(--muted);
+    }
     .placeholder {
       width: 100%; aspect-ratio: 16 / 8; border: 2px dashed var(--line); border-radius: 10px;
       display: flex; align-items: center; justify-content: center; text-align: center;
@@ -348,8 +360,6 @@
     figure.fig .img-container .img-placeholder .icon svg { width: 22px; height: 22px; }
     figure.fig .img-container .img-placeholder .filename { font-size: .85rem; font-family: monospace; }
     figure.fig .img-container .img-placeholder .label { font-size: .8rem; }
-    figure.fig figcaption { color: var(--muted); font-size: .92rem; text-align: center; margin-top: 12px; line-height: 1.5; }
-
     .accordion { border: 1px solid var(--line); border-radius: 12px; overflow: hidden; margin-top: 16px; }
     .accordion-item { border-bottom: 1px solid var(--line); }
     .accordion-item:last-child { border-bottom: none; }
@@ -468,13 +478,14 @@
     .problem-card .ghost-number {
       position: absolute;
       right: -6px;
-      bottom: -18px;
+      bottom: -9px;
       z-index: 0;
-      color: color-mix(in srgb, var(--accent) 8%, transparent);
-      font-size: 6.8rem;
+      color: color-mix(in srgb, var(--bg) 80%, transparent);
+      font-size: 5rem;
       line-height: 1;
-      font-weight: 950;
+      font-weight: 900;
       pointer-events: none;
+      z-index: 0;
     }
     .problem-card h3 {
       font-size: 1rem;
@@ -684,18 +695,6 @@
       .transform-cards {
         grid-template-columns: 1fr;
       }
-    }
-    
-    .problem-card .ghost-number {
-      position: absolute;
-      right: 0;
-      bottom: 0;
-      color: var(--bg);
-      font-size: 5rem;
-      font-weight: 900;
-      line-height: 1;
-      pointer-events: none;
-      z-index: 0;
     }
 
 
@@ -1675,7 +1674,1506 @@
       nav.top ul { display: none; }
       nav.top .brand { font-size: .9rem; }
     }
+
+    .wide { width: 100%; margin-left: 0; margin-right: 0; }
+
+    :root {
+      --frozen-bg: #eef1f6;
+      --frozen-ink: #42597e;
+      --frozen-line: #cdd8e8;
+    }
+
+    [data-theme="dark"] {
+      --frozen-bg: #161b23;
+      --frozen-ink: #98a8c4;
+      --frozen-line: #2b3340;
+    }
+
+    #method .method-modes {
+      display: flex;
+      justify-content: center;
+      margin: 0 0 18px;
+    }
+
+    #method .seg {
+      display: inline-flex;
+      gap: 3px;
+      padding: 3px;
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      background: var(--surface);
+      box-shadow: 0 2px 10px -6px rgba(0,0,0,.1);
+    }
+
+    #method .seg button {
+      min-height: 34px;
+      padding: 0 16px;
+      border: 0;
+      border-radius: 999px;
+      color: var(--muted);
+      background: transparent;
+      cursor: pointer;
+      font-size: .8rem;
+      font-weight: 600;
+      transition: color .18s ease, background .18s ease, box-shadow .18s ease;
+      font-family: 'Noto Sans', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    }
+
+    #method .seg button:hover {
+      color: var(--ink);
+      background: var(--surface-2);
+    }
+
+    #method .seg button:focus-visible {
+      outline: 2px solid var(--accent);
+      outline-offset: 2px;
+    }
+
+    #method .seg button[aria-selected="true"] {
+      color: #fff;
+      background: var(--accent);
+      box-shadow: 0 4px 14px -6px var(--accent);
+    }
+
+    #method {
+      max-width: none;
+    }
+
+    #method > p.method-lead,
+    #method > .method-modes {
+      max-width: var(--max);
+      margin: 0 auto;
+      padding: 0 22px;
+    }
+
+    #method .method-grid {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) minmax(0, 420px);
+      gap: 40px;
+      align-items: start;
+      margin-top: 8px;
+      justify-content: center;
+      padding: 0 22px;
+    }
+
+    #method .method-grid[hidden] { display: none; }
+
+    #method .method-grid.has-child {
+      grid-template-columns: minmax(0, 1fr) minmax(0, 320px) minmax(0, 280px);
+    }
+
+    #method .mdiagram {
+      display: flex;
+      flex-direction: column;
+      gap: 0;
+      margin: 0;
+      transform: translateX(0);
+      transition: transform 0.4s ease;
+    }
+
+    #method .method-grid.has-child .mdiagram {
+      transform: translateX(-10px);
+    }
+
+    #method .mbranches {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 18px;
+      position: relative;
+    }
+
+    #method .mbranch {
+      display: flex;
+      flex-direction: column;
+      gap: 0;
+    }
+
+    #method .mbranch:nth-child(2) {
+      display: grid;
+      grid-template-rows: repeat(5, auto);
+      gap: 0;
+      align-items: center;
+    }
+
+    #method .mbranch:nth-child(2) #mblock-cnn {
+      grid-row: 1;
+    }
+
+    #method .mbranch:nth-child(2) #mblock-params {
+      grid-row: 3;
+    }
+
+    #method .mcurves {
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+      z-index: 1;
+    }
+
+    #method .mcurve-x {
+      position: absolute;
+      color: var(--muted);
+    }
+
+    #method .mcurve-x svg {
+      width: 100%;
+      height: auto;
+    }
+
+    #method .mbranch-cap {
+      font-family: 'Noto Sans', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      font-size: 9.5px;
+      letter-spacing: .04em;
+      color: var(--muted);
+      text-align: center;
+      margin: 0 0 8px;
+    }
+
+    #method .mtrunk {
+      display: flex;
+      flex-direction: column;
+      gap: 0;
+    }
+
+    #method .mnode {
+      position: relative;
+      appearance: none;
+      text-align: left;
+      cursor: pointer;
+      width: 100%;
+      border: 1px solid var(--line);
+      background: var(--surface);
+      border-radius: 11px;
+      padding: 11px 14px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      transition: border-color .16s ease, box-shadow .16s ease, transform .16s ease;
+    }
+
+    #method .mnode:hover {
+      transform: translateY(-1px);
+      border-color: var(--line-strong);
+    }
+
+    #method .mnode[aria-selected="true"] {
+      border-color: var(--accent);
+      box-shadow: 0 12px 28px -22px rgba(0,0,0,.5);
+    }
+
+    #method .mnode.dashed {
+      border-style: dashed;
+    }
+
+    #method .mnode.dashed[aria-selected="true"] {
+      border-style: dashed;
+      border-color: var(--accent);
+    }
+
+    #method .mnode-label {
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--ink);
+      letter-spacing: -.01em;
+      line-height: 1.25;
+    }
+
+    #method .mnode[aria-selected="true"] .mnode-label {
+      color: var(--accent);
+    }
+
+    #method .mtag {
+      font-family: 'Noto Sans', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      font-size: 9.5px;
+      padding: 2px 7px;
+      border-radius: 5px;
+      white-space: nowrap;
+      border: 1px solid var(--line);
+      flex: none;
+    }
+
+    #method .mtag.frozen {
+      background: var(--frozen-bg);
+      color: var(--frozen-ink);
+      border-color: var(--frozen-line);
+    }
+
+    #method .mtag.trained {
+      background: var(--accent-soft);
+      color: var(--accent);
+      border-color: color-mix(in srgb, var(--accent) 30%, transparent);
+    }
+
+    #method .mtag.neutral {
+      background: var(--surface-2);
+      color: var(--muted);
+    }
+
+    #method .mconn {
+      height: 20px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--muted);
+    }
+
+    #method .mconn svg {
+      width: 18px;
+      height: 18px;
+    }
+
+    #method .mdetail {
+      position: sticky;
+      top: 84px;
+      border: 1px solid var(--line);
+      border-radius: 16px;
+      background: var(--surface);
+      padding: 20px 22px 20px;
+      min-height: 260px;
+      transform: translateX(0);
+      transition: transform 0.4s ease;
+    }
+
+    #method .method-grid.has-child .mdetail {
+      transform: translateX(-15px);
+    }
+
+    #method .md-tag {
+      display: inline-block;
+      font-family: 'Noto Sans', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      font-size: 11px;
+      padding: 3px 10px;
+      border-radius: 6px;
+      margin-bottom: 10px;
+      border: 1px solid var(--line);
+      background: var(--surface-2);
+      color: var(--muted);
+    }
+
+    #method .md-tag.frozen {
+      background: var(--frozen-bg);
+      color: var(--frozen-ink);
+      border-color: var(--frozen-line);
+    }
+
+    #method .md-tag.trained {
+      background: var(--accent-soft);
+      color: var(--accent);
+      border-color: color-mix(in srgb, var(--accent) 30%, transparent);
+    }
+
+    #method .md-tag.neutral {
+      background: var(--surface-2);
+      color: var(--muted);
+    }
+
+    #method .md-title {
+      font-size: 1.22rem;
+      font-weight: 700;
+      letter-spacing: -.02em;
+      margin: 0 0 9px;
+      color: var(--ink);
+    }
+
+    #method .md-eq {
+      font-family: 'Noto Sans', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      font-size: 13.5px;
+      color: var(--accent);
+      background: var(--surface-2);
+      border: 1px solid var(--line);
+      border-radius: 9px;
+      padding: 9px 12px;
+      margin: 0 0 11px;
+      overflow-x: auto;
+      white-space: nowrap;
+    }
+
+    #method .md-text {
+      font-size: 15px;
+      color: var(--muted);
+      line-height: 1.62;
+      margin: 0;
+    }
+
+    #method .md-media {
+      margin: 0 0 12px;
+      text-align: center;
+    }
+
+    #method .md-media:empty { display: none; }
+
+    #method .md-shot {
+      max-width: 100%;
+      max-height: 122px;
+      width: auto;
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      background: var(--surface-2);
+      display: inline-block;
+    }
+
+    #method .md-index {
+      display: flex;
+      justify-content: space-between;
+      gap: 14px;
+      align-items: center;
+      margin-bottom: 12px;
+      color: var(--muted);
+      font-size: .67rem;
+      font-weight: 700;
+      letter-spacing: .07em;
+      text-transform: uppercase;
+    }
+
+    kbd {
+      padding: 2px 6px;
+      border: 1px solid var(--muted);
+      border-bottom-width: 2px;
+      border-radius: 5px;
+      color: var(--muted);
+      background: var(--bg);
+      font-family: inherit;
+      font-size: .7rem;
+    }
+    kbd.thin {
+      padding-inline: 4.5px;
+    }
+
+    #method .md-step {
+      font-size: .68rem;
+      color: var(--muted);
+      font-weight: 600;
+      letter-spacing: .04em;
+    }
+
+    #method .md-simple-visual {
+      display: flex;
+      flex-wrap: wrap;
+      width: min(100%, 310px);
+      min-height: 155px;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      margin: 0 auto 12px;
+    }
+
+    #method .md-simple-node {
+      display: grid;
+      min-width: 112px;
+      min-height: 62px;
+      padding: 9px;
+      place-items: center;
+      border: 1.5px solid color-mix(in srgb, var(--ink) 72%, transparent);
+      border-radius: 10px;
+      color: var(--ink);
+      background: var(--bg);
+      font-size: .75rem;
+      font-weight: 700;
+      line-height: 1.25;
+      text-align: center;
+      appearance: none;
+      cursor: pointer;
+      font-family: inherit;
+    }
+
+    #method .md-simple-node:hover {
+      border-color: var(--accent);
+      transform: translateY(-1px);
+    }
+
+    #method .md-simple-node[aria-selected="true"] {
+      border-color: var(--accent);
+      background: var(--accent-soft);
+    }
+
+    #method .md-simple-node.dashed { border-style: dashed; }
+    #method .md-simple-arrow { color: var(--muted); font-size: 1.15rem; }
+
+    #method .md-image-visual {
+      width: 100%;
+    }
+
+    #method .md-image-node {
+      display: flex;
+      min-width: 200px;
+      min-height: 140px;
+      padding: 0;
+      position: relative;
+      align-items: stretch;
+      justify-content: center;
+    }
+
+    #method .md-image-node img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      border-radius: 8px;
+    }
+
+    #method .md-image-label {
+      position: absolute;
+      bottom: 8px;
+      left: 8px;
+      right: 8px;
+      padding: 4px 8px;
+      background: rgba(0, 0, 0, 0.6);
+      color: white;
+      font-size: 11px;
+      font-weight: 600;
+      border-radius: 4px;
+      text-align: left;
+    }
+
+    #method .md-static-node {
+      cursor: default;
+    }
+
+    #method .md-static-node:hover {
+      transform: none;
+      border-color: color-mix(in srgb, var(--ink) 72%, transparent);
+    }
+
+    #method .md-param-visual {
+      display: grid;
+      width: 100%;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 8px;
+      margin-bottom: 12px;
+    }
+
+    #method .md-param-visual .md-simple-node { min-width: 0; min-height: 78px; }
+
+    #method .md-subflow {
+      display: flex;
+      width: min(100%, 300px);
+      flex-direction: column;
+      align-items: stretch;
+      gap: 7px;
+      margin: 0 auto 12px;
+    }
+
+    #method .msubnode {
+      display: flex;
+      width: 100%;
+      min-height: 52px;
+      padding: 8px 10px;
+      border: 1.5px solid color-mix(in srgb, var(--ink) 75%, transparent);
+      border-radius: 9px;
+      align-items: center;
+      justify-content: center;
+      color: var(--ink);
+      background: var(--bg);
+      cursor: pointer;
+      font-size: .76rem;
+      font-weight: 700;
+      line-height: 1.2;
+      text-align: center;
+      transition: border-color .14s ease, box-shadow .14s ease, transform .14s ease;
+      font-family: 'Noto Sans', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    }
+
+    #method .msubnode:hover { transform: translateY(-1px); }
+    #method .msubnode.image-node { border-style: dashed; }
+    #method .msubnode[aria-selected="true"] {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 2px color-mix(in srgb, var(--accent) 20%, transparent);
+    }
+
+    #method .msubconn {
+      display: grid;
+      height: 16px;
+      place-items: center;
+      color: var(--muted);
+    }
+
+    #method .msubconn svg { width: 16px; height: 16px; }
+
+    #method .md-child {
+      padding: 14px;
+      border: 1px solid var(--line);
+      border-left: 3px solid var(--accent);
+      border-radius: 0 12px 12px 0;
+      background: var(--surface-2);
+      opacity: 0;
+      transform: translateX(20px);
+      transition: all 0.4s ease;
+    }
+
+    #method .md-child:not([hidden]) {
+      opacity: 1;
+      transform: translateX(0);
+    }
+
+    #method .md-child.inverse-child { border-left-color: #3d8f58; }
+    [data-theme="dark"] #method .md-child.inverse-child { border-left-color: #72c78d; }
+
+    #method .md-child-kicker {
+      margin: 0 0 7px;
+      color: var(--muted);
+      font-size: .62rem;
+      font-weight: 700;
+      letter-spacing: .08em;
+      text-transform: uppercase;
+    }
+
+    #method .md-child-tag {
+      display: inline-block;
+      font-size: .68rem;
+      padding: 2px 7px;
+      border-radius: 5px;
+      margin-bottom: 8px;
+      border: 1px solid var(--line);
+      background: var(--surface-2);
+      color: var(--muted);
+      font-weight: 600;
+    }
+
+    #method .md-child-tag.forward {
+      background: var(--accent-soft);
+      color: var(--accent);
+      border-color: color-mix(in srgb, var(--accent) 30%, transparent);
+    }
+
+    #method .md-child-tag.inverse {
+      background: rgba(61,143,88,0.1);
+      color: #3d8f58;
+      border-color: rgba(61,143,88,0.3);
+    }
+    [data-theme="dark"] #method .md-child-tag.inverse {
+      background: rgba(114,199,141,0.1);
+      color: #72c78d;
+      border-color: rgba(114,199,141,0.3);
+    }
+
+    #method .md-child-title {
+      font-size: .9rem;
+      font-weight: 700;
+      margin: 0 0 7px;
+      color: var(--ink);
+    }
+
+    #method .md-child-eq {
+      font-size: .8rem;
+      color: var(--accent);
+      background: var(--surface-2);
+      border: 1px solid var(--line);
+      border-radius: 7px;
+      padding: 7px 10px;
+      margin: 0 0 8px;
+      overflow-x: auto;
+      white-space: nowrap;
+    }
+
+    #method .md-child-text {
+      font-size: .82rem;
+      color: var(--muted);
+      line-height: 1.55;
+      margin: 0;
+    }
+
+    #method .method-figure {
+      margin: 0;
+    }
+
+    #method .mfig-frame {
+      position: relative;
+      display: block;
+      appearance: none;
+      cursor: pointer;
+      background: #fff;
+      border: 1px solid var(--line-strong);
+      border-radius: 14px;
+      padding: 14px;
+      width: fit-content;
+      max-width: 100%;
+      margin: 8px auto 0px;
+      overflow: hidden;
+      transition: border-color .18s ease, box-shadow .18s ease, transform .18s ease;
+    }
+
+    #method .mfig-frame img {
+      display: block;
+      max-height: 560px;
+      width: auto;
+      max-width: 100%;
+      height: auto;
+      border-radius: 4px;
+    }
+
+    #method .mfig-frame:hover,
+    #method .mfig-frame:focus-visible {
+      border-color: var(--accent);
+      box-shadow: 0 20px 44px -26px color-mix(in srgb, var(--accent) 60%, transparent);
+      transform: translateY(-2px);
+      outline: none;
+    }
+
+    #method .mfig-cue {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 14px;
+      background: color-mix(in srgb, var(--accent) 13%, transparent);
+      opacity: 0;
+      transition: opacity .18s ease;
+      pointer-events: none;
+    }
+
+    #method .mfig-cue b {
+      display: inline-flex;
+      align-items: center;
+      gap: 9px;
+      font-family: 'Noto Sans', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      font-size: 12.5px;
+      font-weight: 600;
+      letter-spacing: .01em;
+      color: #fff;
+      background: var(--accent);
+      border-radius: 11px;
+      padding: 10px 17px;
+      box-shadow: 0 12px 30px -10px rgba(0,0,0,.5);
+      transform: translateY(6px);
+      transition: transform .18s ease;
+    }
+
+    #method .mfig-cue svg {
+      width: 15px;
+      height: 15px;
+      stroke: #fff;
+      fill: none;
+      stroke-width: 2;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+      flex: none;
+    }
+
+    #method .mfig-frame:hover .mfig-cue,
+    #method .mfig-frame:focus-visible .mfig-cue {
+      opacity: 1;
+    }
+
+    #method .mfig-frame:hover .mfig-cue b,
+    #method .mfig-frame:focus-visible .mfig-cue b {
+      transform: translateY(0);
+    }
+
+    @media (max-width: 980px) {
+      #method .method-grid { grid-template-columns: 1fr; }
+      #method .mdetail { position: static; }
+      #method .mcurves { display: none; }
+    }
+
+    @media (max-width: 660px) {
+      #method .method-modes { justify-content: stretch; }
+      #method .seg { width: 100%; }
+      #method .seg button { flex: 1; padding-inline: 9px; }
+      #method .mtag { display: none; }
+      #method .mfig-cue { left: 10px; right: 10px; justify-content: center; }
+    }
+  
+
+    :root {
+      --ia-inverse: var(--accent);
+      --ia-inverse-soft: var(--accent-soft);
+    }
+
+    #method .method-modes {
+      margin-top: 18px;
+      margin-bottom: 18px;
+    }
+
+    #method .seg {
+      display: inline-grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 4px;
+      padding: 4px;
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      background: var(--surface);
+      box-shadow: 0 8px 24px -20px rgba(0, 0, 0, .45);
+    }
+
+    #method .seg button {
+      min-height: 37px;
+      padding: 0 18px;
+      font-weight: 700;
+    }
+
+    #method .method-grid,
+    #method .method-grid.has-child {
+      width: min(1120px, calc(100vw - 40px));
+      display: grid;
+      grid-template-columns: minmax(0, 1.18fr) minmax(340px, .82fr) !important;
+      gap: 26px;
+      align-items: start;
+      margin: 18px 50% 28px;
+      padding: 0;
+      transform: translateX(-50%);
+      border: 0;
+      border-radius: 0;
+      background: transparent;
+      box-shadow: none;
+      overflow: visible;
+    }
+
+    #method .method-grid[hidden] {
+      display: none;
+    }
+
+    #method .method-grid:not([hidden]) {
+      animation: iaPanelIn .22s ease both;
+    }
+
+    @keyframes iaPanelIn {
+      from {
+        opacity: 0;
+        transform: translate(-50%, 6px);
+      }
+      to {
+        opacity: 1;
+        transform: translate(-50%, 0);
+      }
+    }
+
+    #method .mdiagram,
+    #method .method-grid.has-child .mdiagram {
+      min-width: 0;
+      margin: 0;
+      padding: 0;
+      transform: none !important;
+    }
+
+    #method .marchitecture-head {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 18px;
+      margin-bottom: 14px;
+      padding-bottom: 12px;
+      border-bottom: 1px solid var(--line);
+    }
+
+    #method .marchitecture-eyebrow {
+      margin: 0 0 3px;
+      color: var(--accent);
+      font-size: .63rem;
+      font-weight: 800;
+      letter-spacing: .09em;
+      text-transform: uppercase;
+    }
+
+    #method .marchitecture-title {
+      margin: 0;
+      color: var(--ink);
+      font-size: 1rem;
+      font-weight: 750;
+      letter-spacing: -.015em;
+    }
+
+    #method .mlegend {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: flex-end;
+      gap: 6px 10px;
+      color: var(--muted);
+      font-size: .66rem;
+      line-height: 1.25;
+    }
+
+    #method .mlegend-item {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      white-space: nowrap;
+    }
+
+    #method .mlegend-dot {
+      width: 8px;
+      height: 8px;
+      border: 1px solid var(--line-strong);
+      border-radius: 50%;
+      background: var(--surface-2);
+    }
+
+    #method .mlegend-dot.trained {
+      border-color: color-mix(in srgb, var(--accent) 38%, transparent);
+      background: var(--accent-soft);
+    }
+
+    #method .mlegend-dot.retrain {
+      border-color: var(--frozen-line);
+      background: var(--frozen-bg);
+    }
+
+    #method .mlegend-dot.image {
+      border-style: dashed;
+      background: transparent;
+    }
+
+    #method .mbranches {
+      position: relative;
+      display: grid;
+      grid-template-columns: minmax(310px, 1.08fr) minmax(250px, .92fr);
+      gap: 62px;
+      align-items: start;
+      min-width: 0;
+    }
+
+    #method .mbranch,
+    #method .mbranch.parameter-branch {
+      position: relative;
+      z-index: 2;
+      min-width: 0;
+      display: flex;
+      flex-direction: column;
+      gap: 0;
+      padding: 0;
+      border: 0;
+      border-radius: 0;
+      background: transparent !important;
+      box-shadow: none;
+    }
+
+    #method .mbranch-cap,
+    #method .mparameter-route {
+      display: none !important;
+    }
+
+    #method .mconnections {
+      position: absolute;
+      inset: 0;
+      z-index: 0;
+      width: 100%;
+      height: 100%;
+      overflow: visible;
+      pointer-events: none;
+      color: var(--muted);
+    }
+    #method .mconnections > path {
+      fill: none;
+      stroke: color-mix(in srgb, var(--muted) 70%, transparent);
+      stroke-width: 1.25;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+      vector-effect: non-scaling-stroke;
+    }
+    #method .mconnections path.dashed {
+      stroke-dasharray: 5 5;
+    }
+    #method #mArrowHead .m-arrow-head {
+      fill: none;
+      stroke: color-mix(in srgb, var(--muted) 70%, transparent);
+      stroke-width: 1.25;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+      vector-effect: non-scaling-stroke;
+    }
+
+    #method .mnode {
+      position: relative;
+      z-index: 2;
+      width: 100%;
+      min-height: 56px;
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto;
+      align-items: center;
+      gap: 10px;
+      padding: 11px 13px;
+      appearance: none;
+      border: 1px solid var(--line);
+      border-radius: 11px;
+      color: var(--ink);
+      background: var(--surface);
+      cursor: pointer;
+      font-family: inherit;
+      text-align: left;
+      transition:
+        border-color .16s ease,
+        background .16s ease,
+        box-shadow .16s ease,
+        transform .16s ease;
+    }
+
+    #method .mnode::before {
+      content: none !important;
+      display: none !important;
+    }
+
+    #method .mnode::after {
+      content: "";
+      position: absolute;
+      left: -1px;
+      top: 10px;
+      bottom: 10px;
+      width: 3px;
+      border-radius: 0 4px 4px 0;
+      background: transparent;
+      transition: background .16s ease;
+    }
+
+    #method .mnode:hover {
+      transform: translateY(-1px);
+      border-color: color-mix(in srgb, var(--accent) 38%, var(--line));
+      background: color-mix(in srgb, var(--accent) 2.5%, var(--surface));
+    }
+
+    #method .mnode:focus-visible {
+      outline: 2px solid var(--accent);
+      outline-offset: 2px;
+    }
+
+    #method .mnode[aria-selected="true"] {
+      border-color: var(--accent);
+      background: color-mix(in srgb, var(--accent) 8%, var(--surface));
+      box-shadow:
+        0 0 0 1px color-mix(in srgb, var(--accent) 12%, transparent),
+        0 14px 28px -24px color-mix(in srgb, var(--accent) 78%, transparent);
+    }
+
+    #method .mnode[aria-selected="true"]::after {
+      background: var(--accent);
+    }
+
+    #method .mnode.dashed {
+      border-style: dashed;
+    }
+
+    #method .mnode-label {
+      min-width: 0;
+      color: var(--ink);
+      font-size: .8rem;
+      font-weight: 700;
+      line-height: 1.3;
+    }
+
+    #method .mnode[aria-selected="true"] .mnode-label {
+      color: var(--accent);
+    }
+
+    #method .mtag {
+      min-height: 23px;
+      display: inline-flex;
+      align-items: center;
+      padding: 2px 7px;
+      border: 1px solid var(--line);
+      border-radius: 6px;
+      color: var(--muted);
+      background: var(--surface-2);
+      font-size: .58rem;
+      font-weight: 700;
+      white-space: nowrap;
+    }
+
+    #method .mtag.frozen {
+      color: var(--frozen-ink);
+      border-color: var(--frozen-line);
+      background: var(--frozen-bg);
+    }
+
+    #method .mtag.trained {
+      color: var(--accent);
+      border-color: color-mix(in srgb, var(--accent) 28%, transparent);
+      background: var(--accent-soft);
+    }
+
+    #method .mconn {
+      height: 24px;
+      display: grid;
+      place-items: center;
+      color: color-mix(in srgb, var(--muted) 75%, transparent);
+    }
+
+    #method .mconn svg {
+      width: 15px;
+      height: 15px;
+    }
+
+    #method .mflow-hint {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 14px;
+      margin-top: 14px;
+      padding-top: 12px;
+      border-top: 1px solid var(--line);
+      color: var(--muted);
+      font-size: .67rem;
+      line-height: 1.45;
+    }
+
+    .viewer-tip kbd {
+      min-width: 22px;
+      height: 22px;
+      display: inline-grid;
+      place-items: center;
+      font-weight: 700;
+      line-height: 1;
+      vertical-align: middle;
+    }
+
+    .viewer-tip kbd + kbd {
+      margin-left: 2px;
+    }
+
+    #method .mdetail,
+    #method .method-grid.has-child .mdetail {
+      position: sticky;
+      top: 74px;
+      min-width: 0;
+      min-height: 0;
+      height: var(--ia-detail-height, auto);
+      max-height: var(--ia-detail-height, none);
+      padding: 18px;
+      overflow-x: hidden;
+      overflow-y: auto;
+      overscroll-behavior: contain;
+      scrollbar-gutter: stable;
+      border: 1px solid var(--line);
+      border-radius: 16px;
+      background: var(--surface);
+      transform: none !important;
+    }
+
+    #method .mdetail::-webkit-scrollbar {
+      width: 8px;
+    }
+
+    #method .mdetail::-webkit-scrollbar-track {
+      background: transparent;
+    }
+
+    #method .mdetail::-webkit-scrollbar-thumb {
+      border: 2px solid transparent;
+      border-radius: 999px;
+      background: color-mix(in srgb, var(--muted) 38%, transparent);
+      background-clip: padding-box;
+    }
+
+    #method .mdetail {
+      scrollbar-width: thin;
+      scrollbar-color: color-mix(in srgb, var(--muted) 38%, transparent) transparent;
+    }
+
+    #method .mdetail.is-updating {
+      animation: iaDetailIn .18s ease both;
+    }
+
+    @keyframes iaDetailIn {
+      from {
+        opacity: .72;
+        transform: translateY(3px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    #method .mdetail-top {
+      margin-bottom: 15px;
+      padding-bottom: 13px;
+      border-bottom: 1px solid var(--line);
+    }
+
+    #method .md-index {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      margin-bottom: 9px;
+    }
+
+    #method .md-step-group {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    #method .md-stage {
+      color: var(--accent);
+    }
+
+    #method .md-progress {
+      height: 4px;
+      overflow: hidden;
+      border-radius: 999px;
+      background: var(--surface-2);
+    }
+
+    #method .md-progress span {
+      display: block;
+      width: 14.285%;
+      height: 100%;
+      border-radius: inherit;
+      background: var(--accent);
+      transition: width .22s ease;
+    }
+
+    #method .md-title {
+      margin: 0 0 9px;
+      color: var(--ink);
+      font-size: 1.18rem;
+      line-height: 1.25;
+    }
+
+    #method .md-text {
+      margin: 0;
+      color: var(--muted);
+      font-size: .86rem;
+      line-height: 1.68;
+      text-align: left;
+    }
+
+    #method .md-media {
+      margin: 16px 0 0;
+      padding-top: 14px;
+      border-top: 1px solid var(--line);
+      text-align: center;
+    }
+
+    #method .md-media:empty {
+      display: none;
+    }
+
+    #method .md-simple-visual {
+      width: min(100%, 300px);
+      min-height: 118px;
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      margin: 0 auto;
+    }
+
+    #method .md-simple-visual.vertical-flow {
+      width: min(100%, 250px);
+      min-height: 0;
+      flex-direction: column;
+      flex-wrap: nowrap;
+      align-items: stretch;
+    }
+
+    #method .md-simple-visual.vertical-flow .md-simple-node {
+      width: 100%;
+      min-width: 0;
+    }
+
+    #method .md-simple-node,
+    #method .msubnode {
+      appearance: none;
+      border: 1px solid var(--line-strong);
+      color: var(--ink);
+      background: var(--surface);
+      cursor: pointer;
+      font-family: inherit;
+      text-align: center;
+      transition:
+        border-color .15s ease,
+        background .15s ease,
+        box-shadow .15s ease,
+        transform .15s ease;
+    }
+
+    #method .md-simple-node {
+      min-width: 104px;
+      min-height: 58px;
+      display: grid;
+      place-items: center;
+      padding: 8px;
+      border-radius: 10px;
+      font-size: .67rem;
+      font-weight: 700;
+      line-height: 1.3;
+    }
+
+    #method .md-simple-node:hover,
+    #method .msubnode:hover {
+      transform: translateY(-1px);
+      border-color: var(--accent);
+    }
+
+    #method .md-simple-node:focus-visible,
+    #method .msubnode:focus-visible {
+      outline: 2px solid var(--accent);
+      outline-offset: 2px;
+    }
+
+    #method .md-simple-node[aria-selected="true"],
+    #method .msubnode[aria-selected="true"] {
+      border-color: var(--accent);
+      background: var(--accent-soft);
+      box-shadow: 0 0 0 2px color-mix(in srgb, var(--accent) 14%, transparent);
+    }
+
+    #method .md-simple-node.dashed,
+    #method .msubnode.image-node {
+      border-style: dashed;
+    }
+
+    #method .md-simple-arrow {
+      color: var(--muted);
+      font-size: 1rem;
+      line-height: 1;
+    }
+
+    #method .md-param-visual {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 7px;
+      width: 100%;
+      margin: 0;
+    }
+
+    #method .md-param-visual .md-simple-node {
+      min-width: 0;
+      min-height: 82px;
+    }
+
+    #method .md-subflow {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 0;
+      width: min(100%, 290px);
+      margin: 0 auto;
+    }
+
+    #method .msubnode {
+      width: 100%;
+      min-height: 48px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 8px 10px;
+      border-radius: 9px;
+      font-size: .68rem;
+      font-weight: 700;
+      line-height: 1.25;
+    }
+
+    #method .msubconn {
+      height: 15px;
+      display: grid;
+      place-items: center;
+      color: var(--muted);
+    }
+
+    #method .msubconn svg {
+      width: 14px;
+      height: 14px;
+    }
+
+    #method .md-child,
+    #method .md-child:not([hidden]),
+    #method .md-child.inverse-child {
+      margin-top: 14px;
+      padding: 13px 14px;
+      border: 1px solid color-mix(in srgb, var(--accent) 32%, var(--line));
+      border-left: 3px solid var(--accent);
+      border-radius: 0 11px 11px 0;
+      background: color-mix(in srgb, var(--accent) 7%, var(--surface));
+      opacity: 1;
+      transform: none;
+      animation: iaChildIn .2s ease both;
+    }
+
+    #method .md-child[hidden] {
+      display: none;
+    }
+
+    @keyframes iaChildIn {
+      from {
+        opacity: 0;
+        transform: translateY(5px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    #method .md-child-tag,
+    #method .md-child-tag.forward,
+    #method .md-child-tag.inverse {
+      color: var(--accent);
+      border-color: color-mix(in srgb, var(--accent) 30%, transparent);
+      background: var(--accent-soft);
+    }
+
+    #method .md-child-eq {
+      color: var(--accent);
+      border-color: color-mix(in srgb, var(--accent) 20%, var(--line));
+      background: color-mix(in srgb, var(--accent) 5%, var(--surface));
+    }
+
+    #method .md-actions {
+      display: flex;
+      justify-content: space-between;
+      gap: 10px;
+      margin-top: 16px;
+      padding-top: 14px;
+      border-top: 1px solid var(--line);
+    }
+
+    #method .md-nav-btn {
+      min-height: 34px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 7px;
+      padding: 0 13px;
+      border: 1px solid var(--line);
+      border-radius: 9px;
+      color: var(--ink);
+      background: var(--surface);
+      cursor: pointer;
+      font-family: inherit;
+      font-size: .68rem;
+      font-weight: 750;
+      transition:
+        border-color .15s ease,
+        color .15s ease,
+        background .15s ease,
+        transform .15s ease;
+    }
+
+    #method .md-nav-btn:hover:not(:disabled) {
+      color: var(--accent);
+      border-color: var(--accent);
+      background: var(--accent-soft);
+      transform: translateY(-1px);
+    }
+
+    #method .md-nav-btn:disabled {
+      opacity: .38;
+      cursor: not-allowed;
+    }
+
+    #method .md-nav-btn.primary {
+      color: #fff;
+      border-color: var(--accent);
+      background: var(--accent);
+    }
+
+    #method .md-nav-btn.primary:hover:not(:disabled) {
+      color: #fff;
+      background: color-mix(in srgb, var(--accent) 88%, #000);
+    }
+
+    @media (max-width: 1020px) {
+      #method .method-grid,
+      #method .method-grid.has-child {
+        width: min(760px, calc(100vw - 32px));
+        grid-template-columns: 1fr !important;
+        gap: 18px;
+      }
+
+      #method .mdetail,
+      #method .method-grid.has-child .mdetail {
+        position: static;
+        height: auto !important;
+        max-height: none !important;
+        overflow-y: visible;
+      }
+    }
+
+    @media (max-width: 700px) {
+      #method .method-grid,
+      #method .method-grid.has-child {
+        width: calc(100vw - 24px);
+      }
+
+      #method .marchitecture-head {
+        display: block;
+      }
+
+      #method .mlegend {
+        justify-content: flex-start;
+        margin-top: 9px;
+      }
+
+      #method .mbranches {
+        grid-template-columns: 1fr;
+        gap: 18px;
+      }
+
+      #method .mconnections {
+        display: none;
+      }
+
+      #method .mbranch.parameter-branch {
+        padding-top: 0 !important;
+      }
+
+      #method .mflow-hint {
+        align-items: flex-start;
+        flex-direction: column;
+      }
+
+      #method .seg {
+        width: 100%;
+      }
+
+      #method .seg button {
+        padding-inline: 9px;
+      }
+    }
+
+    @media (max-width: 460px) {
+      #method .mtag {
+        display: none;
+      }
+
+      #method .mnode {
+        grid-template-columns: 1fr;
+        padding-right: 10px;
+      }
+
+      #method .md-param-visual {
+        grid-template-columns: 1fr;
+      }
+
+      #method .md-actions {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+      }
+
+      #method .md-nav-btn {
+        width: 100%;
+      }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      #method *,
+      #method *::before,
+      #method *::after {
+        animation-duration: .01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: .01ms !important;
+      }
+    }
+
   </style>
+  <script>
+    MathJax = {
+      tex: {
+        inlineMath: [['\\(', '\\)']],
+        displayMath: [['\\[', '\\]']]
+      },
+      startup: {
+        ready: function() {
+          MathJax.startup.defaultReady();
+          if (typeof MathJax.typesetPromise === 'function') {
+            MathJax.typesetPromise();
+          }
+        }
+      }
+    };
+  </script>
+  <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
 </head>
 <body>
 
@@ -1753,7 +3251,7 @@
     <section class="teaser animate-on-scroll", style="padding: 15px 0;">
       <figure>
         <div class="img-container">
-          <img src="figures/main/Introduction.png" alt="Figure 1: Motivation. Direct brightening makes color shifts more visible. Baseline enhancement improves brightness but leaves color bias and saturation abnormalities. Our CAGE delivers more faithful color restoration." onload="this.style.display='block'; this.style.padding='4px'; this.nextElementSibling.style.display='none';" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex'; this.nextElementSibling.querySelector('.filename').textContent='Introduction.png'; this.nextElementSibling.querySelector('.label').textContent='Figure 1: Motivation. Direct brightening makes color shifts more visible. Baseline enhancement improves brightness but leaves color bias and saturation abnormalities. Our CAGE achieves faithful color restoration.';">
+          <img src="figures/main/Introduction.png" alt="Our motivation. Direct brightening makes color shifts more visible. Baseline enhancement improves brightness but leaves color bias and saturation abnormalities. Our CAGE delivers more faithful color restoration." onload="this.style.display='block'; this.style.padding='4px'; this.nextElementSibling.style.display='none';" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex'; this.nextElementSibling.querySelector('.filename').textContent='Introduction.png'; this.nextElementSibling.querySelector('.label').textContent='Our motivation. Direct brightening makes color shifts more visible. Baseline enhancement improves brightness but leaves color bias and saturation abnormalities. Our CAGE achieves faithful color restoration.';">
           <div class="img-placeholder" style="display:none;">
             <div class="icon">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
@@ -1767,7 +3265,7 @@
           </div>
         </div>
         <figcaption>
-          <strong>Figure 1: Motivation.</strong> <em>(a→b)</em> Direct brightening makes color shifts more visible. <em>(a→c)</em> Baseline enhancement improves brightness but leaves color bias and saturation abnormalities. <em>(a→d)</em> Our CAGE delivers more faithful color restoration.   
+          <strong>Our motivation.</strong> <em>(a→b)</em> Direct brightening makes color shifts more visible. <em>(a→c)</em> Baseline enhancement improves brightness but leaves color bias and saturation abnormalities. <em>(a→d)</em> Our CAGE delivers more faithful color restoration.   
         </figcaption>
       </figure>
     </section>
@@ -2001,28 +3499,9 @@
           </svg>
           Scroll over blank area or
           
-          <svg class="key-icon" viewBox="0 0 30 15" role="img" aria-label="Left and right arrow keys">
-            <!-- Left key -->
-            <rect class="keycap" x="1" y="2" width="12" height="12" rx="2.2"></rect>
-            <path class="key-stroke" d="M8 5.3L5.2 8L8 10.7"></path>
-            <path class="key-stroke" d="M5.6 8H9.8"></path>
-
-            <!-- Right key -->
-            <rect class="keycap" x="17" y="2" width="12" height="12" rx="2.2"></rect>
-            <path class="key-stroke" d="M22 5.3L24.8 8L22 10.7"></path>
-            <path class="key-stroke" d="M20.2 8H24.4"></path>
-          </svg>
+          <span><kbd>&lt;</kbd><kbd>&gt;</kbd></span>
           Arrow keys or
-          <svg class="key-icon" viewBox="0 0 42 15" role="img" aria-label="Number keys 1-9">
-            <rect class="keycap" x="1" y="2" width="12" height="12" rx="2"></rect>
-            <text class="key-text" x="6.5" y="10.5" font-size="9" text-anchor="middle">1</text>
-            
-            <rect class="keycap" x="15" y="2" width="12" height="12" rx="2"></rect>
-            <text class="key-text" x="20.5" y="10.5" font-size="9" text-anchor="middle">2</text>
-            
-            <rect class="keycap" x="29" y="2" width="12" height="12" rx="2"></rect>
-            <text class="key-text" x="34.5" y="10.5" font-size="9" text-anchor="middle">3</text>
-          </svg>
+          <span><kbd>1</kbd><kbd>2</kbd><kbd>3</kbd></span>
           Number keys to <strong>switch</strong>
         </span>
       </div>
@@ -2047,7 +3526,7 @@
         </div>
         <div class="problem-card">
           <div class="card-index">03 · Output</div>
-          <h3>Chromatic Distortion</h3>
+          <h3>Chromatic distortion</h3>
           <p>Content-dependent chromatic amplification produces global color bias, under-saturation in some regions and over-saturation in others.</p>
           <div class="ghost-number">03</div>
         </div>
@@ -2059,9 +3538,9 @@
       <p>
         We realize that <strong>decoupling lightness from chrominance alone is insufficient</strong>. A good color space can reorganize distorted colors, but it cannot determine <em>how</em> the embedded color bias should be corrected. The key insight is that we need to <strong>actively suppress the bias before enhancement</strong> and <strong>rectify saturation after enhancement</strong>. The CIELab color space provides a coherent basis for organizing color shifts, but symmetric transforms preserve the disturbance. What we need is an <strong>adaptive, non-symmetric transform</strong> that can correct bias in a content-aware manner.
       </p>
-    </section> -->
+    </section>
 
-    <!-- <section class="animate-on-scroll">
+    <section class="animate-on-scroll">
       <h2>Our Approach</h2>
       <p>
         We propose <strong>CAGE</strong>, a cylindrical color correction framework that achieves color-faithful low-light image enhancement through two key innovations:
@@ -2079,41 +3558,158 @@
       <h2>Method Overview</h2>
 
       <p class="method-lead">
-        <strong>CAGE</strong> wraps a low-light image enhancement backbone
-        with image-adaptive forward and inverse color transforms.
+        <strong>CAGE</strong> integrates a low-light image enhancement backbone with the forward and inverse transforms of AdaCCT. The two transforms map images between RGB and AdaLAB while regulating the chromatic distribution before and after backbone enhancement.
       </p>
 
-      <figure class="fig" style="margin: 6px 0 24px;">
-        <div class="img-container">
-          <img
-            src="figures/main/Methodology - CAGE.png"
-            alt="Figure 2: Overview of CAGE. A lightweight CNN predicts image-adaptive cylindrical parameters. The input passes through the forward transform, the low-light image enhancement backbone, and the inverse transform."
-            onload="this.style.display='block'; this.style.padding='4px'; this.nextElementSibling.style.display='none';"
-            onerror="this.style.display='none'; this.nextElementSibling.style.display='flex'; this.nextElementSibling.querySelector('.filename').textContent='Methodology - CAGE.png'; this.nextElementSibling.querySelector('.label').textContent='Figure 2: Overview of CAGE with AdaCCT built on the AdaLAB space.';"
-          >
+      <div class="method-modes">
+        <div class="seg" id="methodSeg" role="tablist" aria-label="How to view the CAGE method">
+          <button role="tab" id="mode-figure" aria-controls="methodFigure" aria-selected="true" tabindex="0">Full Pipeline</button>
+          <button role="tab" id="mode-interactive" aria-controls="methodInteractive" aria-selected="false" tabindex="-1">Interactive Architecture</button>
+        </div>
+      </div>
 
-          <div class="img-placeholder" style="display:none;">
-            <div class="icon">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
-                <rect x="3" y="3" width="18" height="18" rx="2"></rect>
-                <circle cx="9" cy="9" r="2"></circle>
-                <path d="M21 15l-5-5L5 21"></path>
-              </svg>
+      <div class="method-grid" id="methodInteractive" hidden>
+        <div class="mdiagram" id="mflow" role="tablist" aria-label="CAGE pipeline blocks">
+          <div class="marchitecture-head">
+            <div>
+              <p class="marchitecture-eyebrow">Interactive model map</p>
+              <h3 class="marchitecture-title">CAGE processing architecture</h3>
+            </div>
+            <!-- <div class="mlegend" aria-label="Architecture legend">
+              <span class="mlegend-item"><span class="mlegend-dot trained"></span>Adaptive transform</span>
+              <span class="mlegend-item"><span class="mlegend-dot backbone"></span>Enhancement backbone</span>
+              <span class="mlegend-item"><span class="mlegend-dot image"></span>Image or representation</span>
+            </div> -->
+          </div>
+
+          <div class="mbranches">
+            <svg class="mconnections" id="mconnections" aria-hidden="true">
+              <defs>
+                <!-- <marker id="mArrowHead" markerWidth="7" markerHeight="7" refX="6.1" refY="3.5" orient="auto" markerUnits="strokeWidth">
+                  <path d="M0,0 L7,3.5 L0,7 Z"></path>
+                </marker> -->
+                <marker id="mArrowHead" viewBox="0 0 24 24" markerWidth="16" markerHeight="16" refX="8" refY="8" orient="auto" markerUnits="userSpaceOnUse" overflow="visible" >
+                  <path class="m-arrow-head" d="M2 2 L8 8 L2 14"></path>
+                </marker>
+              </defs>
+              <path id="mcurveInputCnn" marker-end="url(#mArrowHead)"></path>
+              <path id="mcurveParamsForward" marker-end="url(#mArrowHead)"></path>
+              <path id="mcurveParamsInverse" marker-end="url(#mArrowHead)"></path>
+            </svg>
+
+            <div class="mbranch main-branch">
+              <button type="button" class="mnode dashed" id="mblock-input" role="tab" aria-selected="true" tabindex="0" data-key="input">
+                <span class="mnode-label">Input Low-light Image</span>
+                <span class="mtag neutral">image</span>
+              </button>
+              <div class="mconn" aria-hidden="true">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M12 5v14M6 13l6 6 6-6"></path>
+                </svg>
+              </div>
+
+              <button type="button" class="mnode" id="mblock-forward" role="tab" aria-selected="false" tabindex="-1" data-key="forward">
+                <span class="mnode-label">Forward Transform</span>
+                <span class="mtag trained">RGB → AdaLAB \(\ \cdot\ \) \(G\)</span>
+              </button>
+              <div class="mconn" aria-hidden="true">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M12 5v14M6 13l6 6 6-6"></path>
+                </svg>
+              </div>
+
+              <button type="button" class="mnode" id="mblock-backbone" role="tab" aria-selected="false" tabindex="-1" data-key="backbone">
+                <span class="mnode-label">Low-light Image Enhancement Backbone</span>
+                <span class="mtag frozen">\(F_\theta\)</span>
+              </button>
+              <div class="mconn" aria-hidden="true">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M12 5v14M6 13l6 6 6-6"></path>
+                </svg>
+              </div>
+
+              <button type="button" class="mnode" id="mblock-inverse" role="tab" aria-selected="false" tabindex="-1" data-key="inverse">
+                <span class="mnode-label">Inverse Transform</span>
+                <span class="mtag trained">AdaLAB → RGB \(\ \cdot\ \) \(G^{-1}\)</span>
+              </button>
+              <div class="mconn" aria-hidden="true">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M12 5v14M6 13l6 6 6-6"></path>
+                </svg>
+              </div>
+
+              <button type="button" class="mnode dashed" id="mblock-output" role="tab" aria-selected="false" tabindex="-1" data-key="output">
+                <span class="mnode-label">Output Enhanced Image</span>
+                <span class="mtag neutral">image</span>
+              </button>
             </div>
 
-            <div class="filename"></div>
-            <div class="label"></div>
+            <div class="mbranch parameter-branch">
+              <button type="button" class="mnode" id="mblock-cnn" role="tab" aria-selected="false" tabindex="-1" data-key="cnn">
+                <span class="mnode-label">Lightweight CNN Backbone</span>
+                <span class="mtag trained">128 × 128</span>
+              </button>
+              <div class="mconn" aria-hidden="true">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M12 5v14M6 13l6 6 6-6"></path>
+                </svg>
+              </div>
+
+              <button type="button" class="mnode dashed" id="mblock-params" role="tab" aria-selected="false" tabindex="-1" data-key="params">
+                <span class="mnode-label">Image-adaptive Cylindrical Parameters</span>
+                <span class="mtag neutral">cylindrical</span>
+              </button>
+            </div>
+          </div>
+
+          <div class="mflow-hint">
+            <span>Select a block to inspect its operation and equation.</span>
+            <span><kbd>&lt;</kbd> <kbd>&gt;</kbd> to navigate.</span>
           </div>
         </div>
 
-        <figcaption>
-          <strong>Figure 2: Overview of CAGE.</strong>
-          Image-adaptive cylindrical parameters control color debiasing
-          before enhancement and saturation rectification after enhancement.
-        </figcaption>
+        <aside class="mdetail" id="mdetail" role="tabpanel" tabindex="0" aria-labelledby="mblock-input" aria-live="polite">
+          <div class="mdetail-top" style="display: none;">
+            <div class="md-index">
+              <span class="md-step-group"><span id="mdStep">1 / 7</span><span class="md-stage" id="mdStage">Input</span></span>
+              <span><kbd>Home</kbd> <kbd>End</kbd></span>
+            </div>
+            <div class="md-progress" aria-hidden="true"><span id="mdProgressBar"></span></div>
+          </div>
+
+          <span class="md-tag neutral" id="mdTag">image</span>
+          <h3 class="md-title" id="mdTitle">Input Low-light Image</h3>
+          <p class="md-eq" id="mdEq">\( x \in \mathbb{R}^{3 \times H \times W} \)</p>
+          <p class="md-text" id="mdText">The low-light input image is captured under insufficient illumination. It contains embedded color bias due to the camera hardware and in-camera processing.</p>
+
+          <div class="md-media" id="mdMedia"></div>
+
+        <div class="md-child" id="mdChild" hidden>
+          <!-- <p class="md-child-kicker">Selected sub-block</p> -->
+          <span class="md-child-tag" id="mdChildTag">image</span>
+          <h4 class="md-child-title" id="mdChildTitle">Input Low-light Image (RGB space)</h4>
+          <p class="md-child-eq" id="mdChildEq">\( x \in \mathbb{R}^{3 \times H \times W} \)</p>
+          <p class="md-child-text" id="mdChildText">The RGB low-light image enters the forward transform before chromatic correction.</p>
+        </div>
+
+          <div class="md-actions" style="display: none;">
+            <button type="button" class="md-nav-btn" id="mdPrev" aria-label="Previous architecture block">&lt; Previous</button>
+            <button type="button" class="md-nav-btn primary" id="mdNext" aria-label="Next architecture block">Next &gt;</button>
+          </div>
+        </aside>
+      </div>
+
+      <figure class="method-figure" id="methodFigure">
+        <button type="button" class="mfig-frame" id="mfigOpen" aria-label="Explore the interactive architecture, a guided block-by-block walkthrough of this figure">
+          <img src="figures/main/Methodology - CAGE.png" loading="lazy" alt="CAGE architecture: a lightweight CNN predicts image-adaptive cylindrical parameters, while the input passes through the forward transform, low-light image enhancement backbone, and inverse transform to produce the enhanced image.">
+          <span class="mfig-cue" aria-hidden="true">
+            <b><svg viewBox="0 0 24 24"><path d="M9 3H5a2 2 0 0 0-2 2v4"></path><path d="M15 3h4a2 2 0 0 1 2 2v4"></path><path d="M9 21H5a2 2 0 0 1-2-2v-4"></path><path d="M15 21h4a2 2 0 0 0 2-2v-4"></path></svg>Explore the interactive architecture</b>
+          </span>
+        </button>
+        <figcaption>Click the figure to step through each block interactively.</figcaption>
       </figure>
 
-      <div class="parameter-strip">
+      <!-- <div class="parameter-strip">
         <div class="parameter-item">
           <strong>Hue Shift</strong>
           <span>Models the direction and strength of coherent color bias.</span>
@@ -2128,11 +3724,11 @@
           <strong>Lightness Vertices</strong>
           <span>Adapt both operations to the non-uniform lightness distribution.</span>
         </div>
-      </div>
+      </div> -->
 
-      <p class="method-note compact">
+      <!-- <p class="method-note compact">
         These parameters match the cylindrical structure of LAB through directional shift, radial scaling, and lightness-aware sampling. Compared with a dense LUT, this parameterization is more compact and enables global interaction across lightness vertices.
-      </p>
+      </p> -->
 
       <h3>
         AdaCCT: Correct Before Enhancement, Rectify After Enhancement
@@ -2142,9 +3738,9 @@
         <div class="img-container">
           <img
             src="figures/main/Methodology - AdaCCT.png"
-            alt="Figure 4: Pipeline of AdaCCT. The forward transform converts RGB to LAB, applies chromatic debiasing and chroma scaling, and constructs AdaLAB. The inverse transform reverts chroma scaling, applies out-of-gamut lightness compensation, and converts LAB back to RGB."
+            alt="Pipeline of AdaCCT. The forward transform converts RGB to LAB, applies chromatic debiasing and chroma scaling, and constructs AdaLAB. The inverse transform reverts chroma scaling, applies out-of-gamut lightness compensation, and converts LAB back to RGB."
             onload="this.style.display='block'; this.style.padding='4px'; this.nextElementSibling.style.display='none';"
-            onerror="this.style.display='none'; this.nextElementSibling.style.display='flex'; this.nextElementSibling.querySelector('.filename').textContent='Methodology - AdaCCT.png'; this.nextElementSibling.querySelector('.label').textContent='Figure 4: Forward and inverse transforms of AdaCCT.';"
+            onerror="this.style.display='none'; this.nextElementSibling.style.display='flex'; this.nextElementSibling.querySelector('.filename').textContent='Methodology - AdaCCT.png'; this.nextElementSibling.querySelector('.label').textContent='Forward and inverse transforms of AdaCCT.';"
           >
 
           <div class="img-placeholder" style="display:none;">
@@ -2162,35 +3758,31 @@
         </div>
 
         <figcaption>
-          <strong>Figure 4: Forward and inverse transforms of AdaCCT.</strong>
+          <strong>Pipeline of AdaCCT.</strong> The forward transform converts RGB to LAB, applies chromatic debiasing and chroma scaling, and constructs AdaLAB. The inverse transform reverts chroma scaling, applies out-of-gamut lightness compensation, and converts LAB back to RGB.
         </figcaption>
       </figure>
 
-      <ol class="transform-flow">
+      <!-- <ol class="transform-flow">
         <li>
           <strong>Chromatic Debiasing</strong>
           <span>Shifts biased chroma toward a corrected distribution.</span>
-          <!-- <div class="ghost-number">01</div> -->
         </li>
 
         <li>
           <strong>Apply Chroma Scaling</strong>
           <span>Constructs a more consistent AdaLAB representation.</span>
-          <!-- <div class="ghost-number">02</div> -->
         </li>
 
         <li>
           <strong>Revert Chroma Scaling</strong>
           <span>Maps the enhanced representation back to base LAB.</span>
-          <!-- <div class="ghost-number">03</div> -->
         </li>
 
         <li>
           <strong>Lightness Compensation</strong>
           <span>Converts out-of-gamut saturation surplus into lightness gain.</span>
-          <!-- <div class="ghost-number">04</div> -->
         </li>
-      </ol>
+      </ol> -->
     </section>
 
     <!-- <section class="animate-on-scroll">
@@ -2225,7 +3817,7 @@
 
       <figure class="fig">
         <div class="img-container">
-          <img src="figures/main/Motivation - color shift patterns.png" alt="Figure 4: Visualization of low-light color shift patterns in different color spaces." onload="this.style.display='block'; this.style.padding='4px'; this.nextElementSibling.style.display='none';" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex'; this.nextElementSibling.querySelector('.filename').textContent='Motivation - color shift patterns.png'; this.nextElementSibling.querySelector('.label').textContent='Figure 4: Visualization of low-light color shift patterns in different color spaces.';">
+          <img src="figures/main/Motivation - color shift patterns.png" alt="Visualization of low-light color shift patterns in different color spaces." onload="this.style.display='block'; this.style.padding='4px'; this.nextElementSibling.style.display='none';" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex'; this.nextElementSibling.querySelector('.filename').textContent='Motivation - color shift patterns.png'; this.nextElementSibling.querySelector('.label').textContent='Visualization of low-light color shift patterns in different color spaces.';">
           <div class="img-placeholder" style="display:none;">
             <div class="icon">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
@@ -2239,13 +3831,13 @@
           </div>
         </div>
         <figcaption>
-          <strong>Figure 4: Visualization of low-light color shift patterns</strong> in different color spaces.
+          <strong>Visualization of low-light color shift patterns</strong> in different color spaces.
         </figcaption>
       </figure>
 
       <figure class="fig">
         <div class="img-container">
-          <img src="figures/main/Motivation - gamut handling.png" alt="Figure 5: Comparison of out-of-gamut handling strategies." onload="this.style.display='block'; this.style.padding='4px'; this.nextElementSibling.style.display='none';" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex'; this.nextElementSibling.querySelector('.filename').textContent='Motivation - gamut handling.png'; this.nextElementSibling.querySelector('.label').textContent='Figure 5: Comparison of out-of-gamut handling strategies.';">
+          <img src="figures/main/Motivation - gamut handling.png" alt="Comparison of out-of-gamut handling strategies." onload="this.style.display='block'; this.style.padding='4px'; this.nextElementSibling.style.display='none';" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex'; this.nextElementSibling.querySelector('.filename').textContent='Motivation - gamut handling.png'; this.nextElementSibling.querySelector('.label').textContent='Comparison of out-of-gamut handling strategies.';">
           <div class="img-placeholder" style="display:none;">
             <div class="icon">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
@@ -2259,13 +3851,13 @@
           </div>
         </div>
         <figcaption>
-          <strong>Figure 5: Comparison of out-of-gamut handling strategies.</strong>
+          <strong>Comparison of out-of-gamut handling strategies.</strong>
         </figcaption>
       </figure>
 
       <figure class="fig">
         <div class="img-container">
-          <img src="figures/main/Experiment - main results.png" alt="Figure 6: Qualitative comparison showing reduced color distortion." onload="this.style.display='block'; this.style.padding='4px'; this.nextElementSibling.style.display='none';" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex'; this.nextElementSibling.querySelector('.filename').textContent='Experiment - main results.png'; this.nextElementSibling.querySelector('.label').textContent='Figure 6: Qualitative comparison showing reduced color distortion.';">
+          <img src="figures/main/Experiment - main results.png" alt="Qualitative comparison showing reduced color distortion." onload="this.style.display='block'; this.style.padding='4px'; this.nextElementSibling.style.display='none';" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex'; this.nextElementSibling.querySelector('.filename').textContent='Experiment - main results.png'; this.nextElementSibling.querySelector('.label').textContent='Qualitative comparison showing reduced color distortion.';">
           <div class="img-placeholder" style="display:none;">
             <div class="icon">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
@@ -2279,7 +3871,7 @@
           </div>
         </div>
         <figcaption>
-          <strong>Figure 6: Qualitative comparison showing reduced color distortion.</strong>
+          <strong>Qualitative comparison showing reduced color distortion.</strong>
         </figcaption>
       </figure>
     </section> -->
@@ -2287,7 +3879,7 @@
     <section id="results" class="animate-on-scroll">
       <h2>Qualitative Results</h2>
       <p>
-        Comprehensive qualitative comparisons across paired and unpaired datasets, demonstrating CAGE's superior color restoration capability.
+        Qualitative comparisons on paired and unpaired datasets show reduced global color bias, more stable local saturation, and more natural chromatic transitions.
       </p>
 
       <div class="accordion">
@@ -2304,7 +3896,7 @@
             <div class="accordion-content-inner">
               <figure class="fig" style="margin: 6px 0 24px;">
                 <div class="img-container">
-                  <img src="figures/supp/Supplementary - paired - LOLv1.png" alt="Figure 7: Paired comparison on LOLv1 dataset. CAGE achieves more faithful color restoration with reduced color bias." onload="this.style.display='block'; this.style.padding='4px'; this.nextElementSibling.style.display='none';" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex'; this.nextElementSibling.querySelector('.filename').textContent='Supplementary - paired - LOLv1.png'; this.nextElementSibling.querySelector('.label').textContent='Figure 7: Paired comparison on LOLv1 dataset. CAGE achieves more faithful color restoration with reduced color bias.';">
+                  <img src="figures/supp/Supplementary - paired - LOLv1.png" alt="Paired comparison on LOLv1 dataset. CAGE achieves more faithful color restoration with reduced color bias." onload="this.style.display='block'; this.style.padding='4px'; this.nextElementSibling.style.display='none';" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex'; this.nextElementSibling.querySelector('.filename').textContent='Supplementary - paired - LOLv1.png'; this.nextElementSibling.querySelector('.label').textContent='Paired comparison on LOLv1 dataset. CAGE achieves more faithful color restoration with reduced color bias.';">
                   <div class="img-placeholder" style="display:none;">
                     <div class="icon">
                       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
@@ -2318,12 +3910,12 @@
                   </div>
                 </div>
                 <figcaption>
-                  <strong>Figure 7: Paired comparison on LOLv1 dataset.</strong> CAGE achieves more faithful color restoration with reduced color bias.
+                  <strong>Paired comparison on LOLv1 dataset.</strong> CAGE achieves more faithful color restoration with reduced color bias.
                 </figcaption>
               </figure>
               <figure class="fig" style="margin: 6px 0 24px;">
                 <div class="img-container">
-                  <img src="figures/supp/Supplementary - paired - LOLv2-real.png" alt="Figure 8: Paired comparison on LOLv2-real dataset. Real-world low-light images with challenging color shifts." onload="this.style.display='block'; this.style.padding='4px'; this.nextElementSibling.style.display='none';" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex'; this.nextElementSibling.querySelector('.filename').textContent='Supplementary - paired - LOLv2-real.png'; this.nextElementSibling.querySelector('.label').textContent='Figure 8: Paired comparison on LOLv2-real dataset. Real-world low-light images with challenging color shifts.';">
+                  <img src="figures/supp/Supplementary - paired - LOLv2-real.png" alt="Paired comparison on LOLv2-real dataset. Real-world low-light images with challenging color shifts." onload="this.style.display='block'; this.style.padding='4px'; this.nextElementSibling.style.display='none';" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex'; this.nextElementSibling.querySelector('.filename').textContent='Supplementary - paired - LOLv2-real.png'; this.nextElementSibling.querySelector('.label').textContent='Paired comparison on LOLv2-real dataset. Real-world low-light images with challenging color shifts.';">
                   <div class="img-placeholder" style="display:none;">
                     <div class="icon">
                       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
@@ -2337,12 +3929,12 @@
                   </div>
                 </div>
                 <figcaption>
-                  <strong>Figure 8: Paired comparison on LOLv2-real dataset.</strong> Real-world low-light images with challenging color shifts.
+                  <strong>Paired comparison on LOLv2-real dataset.</strong> Real-world low-light images with challenging color shifts.
                 </figcaption>
               </figure>
               <figure class="fig" style="margin: 6px 0 24px;">
                 <div class="img-container">
-                  <img src="figures/supp/Supplementary - paired - LOLv2-syn.png" alt="Figure 9: Paired comparison on LOLv2-synthetic dataset. Synthetic low-light images with controlled color distortion." onload="this.style.display='block'; this.style.padding='4px'; this.nextElementSibling.style.display='none';" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex'; this.nextElementSibling.querySelector('.filename').textContent='Supplementary - paired - LOLv2-syn.png'; this.nextElementSibling.querySelector('.label').textContent='Figure 9: Paired comparison on LOLv2-synthetic dataset. Synthetic low-light images with controlled color distortion.';">
+                  <img src="figures/supp/Supplementary - paired - LOLv2-syn.png" alt="Paired comparison on LOLv2-synthetic dataset. Synthetic low-light images with controlled color distortion." onload="this.style.display='block'; this.style.padding='4px'; this.nextElementSibling.style.display='none';" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex'; this.nextElementSibling.querySelector('.filename').textContent='Supplementary - paired - LOLv2-syn.png'; this.nextElementSibling.querySelector('.label').textContent='Paired comparison on LOLv2-synthetic dataset. Synthetic low-light images with controlled color distortion.';">
                   <div class="img-placeholder" style="display:none;">
                     <div class="icon">
                       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
@@ -2356,12 +3948,12 @@
                   </div>
                 </div>
                 <figcaption>
-                  <strong>Figure 9: Paired comparison on LOLv2-synthetic dataset.</strong> Synthetic low-light images with controlled color distortion.
+                  <strong>Paired comparison on LOLv2-synthetic dataset.</strong> Synthetic low-light images with controlled color distortion.
                 </figcaption>
               </figure>
               <figure class="fig" style="margin: 6px 0 24px;">
                 <div class="img-container">
-                  <img src="figures/supp/Supplementary - paired - SDSD+SID.png" alt="Figure 10: Paired comparison on SDSD & SID datasets. Additional real-world low-light benchmarks." onload="this.style.display='block'; this.style.padding='4px'; this.nextElementSibling.style.display='none';" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex'; this.nextElementSibling.querySelector('.filename').textContent='Supplementary - paired - SDSD+SID.png'; this.nextElementSibling.querySelector('.label').textContent='Figure 10: Paired comparison on SDSD & SID datasets. Additional real-world low-light benchmarks.';">
+                  <img src="figures/supp/Supplementary - paired - SDSD+SID.png" alt="Paired comparison on SDSD & SID datasets. Additional real-world low-light benchmarks." onload="this.style.display='block'; this.style.padding='4px'; this.nextElementSibling.style.display='none';" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex'; this.nextElementSibling.querySelector('.filename').textContent='Supplementary - paired - SDSD+SID.png'; this.nextElementSibling.querySelector('.label').textContent='Paired comparison on SDSD & SID datasets. Additional real-world low-light benchmarks.';">
                   <div class="img-placeholder" style="display:none;">
                     <div class="icon">
                       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
@@ -2375,7 +3967,7 @@
                   </div>
                 </div>
                 <figcaption>
-                  <strong>Figure 10: Paired comparison on SDSD & SID datasets.</strong> Additional real-world low-light benchmarks.
+                  <strong>Paired comparison on SDSD & SID datasets.</strong> Additional real-world low-light benchmarks.
                 </figcaption>
               </figure>
             </div>
@@ -2391,7 +3983,7 @@
             <div class="accordion-content-inner">
               <figure class="fig" style="margin: 6px 0 24px;">
                 <div class="img-container">
-                  <img src="figures/supp/Supplementary - unpaired - all.png" alt="Figure 11: Unpaired comparison on various datasets. CAGE demonstrates robust performance without ground-truth supervision." onload="this.style.display='block'; this.style.padding='4px'; this.nextElementSibling.style.display='none';" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex'; this.nextElementSibling.querySelector('.filename').textContent='Supplementary - unpaired - all.png'; this.nextElementSibling.querySelector('.label').textContent='Figure 11: Unpaired comparison on various datasets. CAGE demonstrates robust performance without ground-truth supervision.';">
+                  <img src="figures/supp/Supplementary - unpaired - all.png" alt="Unpaired comparison on real-world images. CAGE produces more faithful colors and more balanced saturation across varied low-light scenes." onload="this.style.display='block'; this.style.padding='4px'; this.nextElementSibling.style.display='none';" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex'; this.nextElementSibling.querySelector('.filename').textContent='Supplementary - unpaired - all.png'; this.nextElementSibling.querySelector('.label').textContent='Unpaired comparison on real-world images. CAGE produces more faithful colors and more balanced saturation across varied low-light scenes.';">
                   <div class="img-placeholder" style="display:none;">
                     <div class="icon">
                       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
@@ -2405,7 +3997,7 @@
                   </div>
                 </div>
                 <figcaption>
-                  <strong>Figure 11: Unpaired comparison on various datasets.</strong> CAGE demonstrates robust performance without ground-truth supervision.
+                  <strong>Unpaired comparison on real-world images.</strong> CAGE produces more faithful colors and more balanced saturation across varied low-light scenes.
                 </figcaption>
               </figure>
             </div>
@@ -2421,7 +4013,7 @@
             <div class="accordion-content-inner">
               <figure class="fig" style="margin: 6px 0 24px;">
                 <div class="img-container">
-                  <img src="figures/supp/Supplementary - framework integration.png" alt="Figure 12: Framework integration visualization. CAGE can be seamlessly integrated with different enhancement backbones." onload="this.style.display='block'; this.style.padding='4px'; this.nextElementSibling.style.display='none';" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex'; this.nextElementSibling.querySelector('.filename').textContent='Supplementary - framework integration.png'; this.nextElementSibling.querySelector('.label').textContent='Figure 12: Framework integration visualization. CAGE can be seamlessly integrated with different enhancement backbones.';">
+                  <img src="figures/supp/Supplementary - framework integration.png" alt="Framework integration visualization. CAGE can be seamlessly integrated with different enhancement backbones." onload="this.style.display='block'; this.style.padding='4px'; this.nextElementSibling.style.display='none';" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex'; this.nextElementSibling.querySelector('.filename').textContent='Supplementary - framework integration.png'; this.nextElementSibling.querySelector('.label').textContent='Framework integration visualization. CAGE can be seamlessly integrated with different enhancement backbones.';">
                   <div class="img-placeholder" style="display:none;">
                     <div class="icon">
                       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
@@ -2435,7 +4027,7 @@
                   </div>
                 </div>
                 <figcaption>
-                  <strong>Figure 12: Framework integration visualization.</strong> CAGE can be seamlessly integrated with different enhancement backbones.
+                  <strong>Framework integration visualization.</strong> CAGE can be seamlessly integrated with different enhancement backbones.
                 </figcaption>
               </figure>
             </div>
@@ -2451,7 +4043,7 @@
             <div class="accordion-content-inner">
               <figure class="fig" style="margin: 6px 0 24px;">
                 <div class="img-container">
-                  <img src="figures/supp/Ablation - intervals number p.png" alt="Figure 13: Ablation study on interval number. Analysis of the impact of different interval configurations." onload="this.style.display='block'; this.style.padding='4px'; this.nextElementSibling.style.display='none';" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex'; this.nextElementSibling.querySelector('.filename').textContent='Ablation - intervals number p.png'; this.nextElementSibling.querySelector('.label').textContent='Figure 13: Ablation study on interval number. Analysis of the impact of different interval configurations.';">
+                  <img src="figures/supp/Ablation - intervals number p.png" alt="Ablation study on interval number. Analysis of the impact of different interval configurations." onload="this.style.display='block'; this.style.padding='4px'; this.nextElementSibling.style.display='none';" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex'; this.nextElementSibling.querySelector('.filename').textContent='Ablation - intervals number p.png'; this.nextElementSibling.querySelector('.label').textContent='Ablation study on interval number. Analysis of the impact of different interval configurations.';">
                   <div class="img-placeholder" style="display:none;">
                     <div class="icon">
                       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
@@ -2465,7 +4057,7 @@
                   </div>
                 </div>
                 <figcaption>
-                  <strong>Figure 13: Ablation study on interval number.</strong> Analysis of the impact of different interval configurations.
+                  <strong>Ablation study on interval number.</strong> Analysis of the impact of different interval configurations.
                 </figcaption>
               </figure>
             </div>
@@ -2481,7 +4073,7 @@
             <div class="accordion-content-inner">
               <figure class="fig" style="margin: 6px 0 24px;">
                 <div class="img-container">
-                  <img src="figures/supp/UserStudy.png" alt="Figure 14: User study results. Human preference evaluation showing CAGE's superior visual quality." onload="this.style.display='block'; this.style.padding='4px'; this.nextElementSibling.style.display='none';" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex'; this.nextElementSibling.querySelector('.filename').textContent='UserStudy.png'; this.nextElementSibling.querySelector('.label').textContent='Figure 14: User study results. Human preference evaluation showing CAGE\'s superior visual quality.';">
+                  <img src="figures/supp/UserStudy.png" alt="User study results. Human preference evaluation of the visual quality of enhanced images." onload="this.style.display='block'; this.style.padding='4px'; this.nextElementSibling.style.display='none';" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex'; this.nextElementSibling.querySelector('.filename').textContent='UserStudy.png'; this.nextElementSibling.querySelector('.label').textContent='User study results. Human preference evaluation showing CAGE\'s superior visual quality.';">
                   <div class="img-placeholder" style="display:none;">
                     <div class="icon">
                       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
@@ -2495,7 +4087,7 @@
                   </div>
                 </div>
                 <figcaption>
-                  <strong>Figure 14: User study results.</strong> Human preference evaluation showing CAGE's superior visual quality.
+                  <strong>User study results.</strong> Human preference evaluation of the visual quality of enhanced images.
                 </figcaption>
               </figure>
             </div>
@@ -2529,7 +4121,7 @@
             and structural recovery.
           </caption>
           <thead>
-            <tr><th>Method</th><th>LOLv1</th><th>LOLv2-real</th><th>LOLv2-syn</th></tr>
+            <tr><th>Method</th><th>LOLv1</th><th>LOLv2-real</th><th>LOLv2-synthetic</th></tr>
           </thead>
           <tbody>
             <tr><td><a href="http://bmvc2018.org/contents/papers/0451.pdf" target="_blank"></a>RetinexNet</a></td><td>17.56 / 0.645</td><td>17.68 / 0.642</td><td>15.61 / 0.449</td></tr>
@@ -2615,17 +4207,17 @@
         <div class="takeaway" style="--takeaway-flex: 7;">
           <!-- <div class="num">01 · Target</div> -->
           <h3>Handling Embedded Color Bias</h3>
-          <p>CAGE specifically targets and suppresses the embedded color bias that arises from low signal-to-noise ratio and camera hardware limitations in low-light imaging, achieving more faithful color restoration.</p>
+          <p>CAGE explicitly suppresses the color bias embedded during low-light image formation before backbone enhancement and rectifies saturation abnormality after enhancement.</p>
         </div>
         <div class="takeaway" style="--takeaway-flex: 6;">
           <!-- <div class="num">02 · Performance</div> -->
           <h3>Minimal Tradeoff, Max Gain</h3>
-          <p>CAGE introduces only 0.07M Params. and less than 0.01G FLOPs, while providing up to +2.21 dB PSNR improvement on the evaluated standard benchmarks.</p>
+          <p>CAGE adds 0.07M parameters and less than 0.01G FLOPs, while providing up to +2.21 dB PSNR on the evaluated standard benchmarks.</p>
         </div>
         <div class="takeaway" style="--takeaway-flex: 6;">
           <!-- <div class="num">03 · Compatibility</div> -->
-          <h3>Backbones Compatibility</h3>
-          <p>CAGE is naturally a plug-and-play framework that seamlessly integrates with existing low-light enhancement backbones without requiring architectural changes or retraining.</p>
+          <h3>Backbone Compatibility</h3>
+          <p>CAGE surrounds rather than replaces the enhancement backbone that seamlessly integrates with existing low-light enhancement backbones without requiring architectural changes.</p>
         </div>
       </div>
     </section>
@@ -2633,9 +4225,8 @@
     <section id="bibtex" class="animate-on-scroll">
       <h2>BibTeX</h2>
       <p>
-        For more details and additional interesting results, check out the
-        <a href="https://github.com/Yangzhichen763/CAGE/tree/main" target="_blank" rel="noopener">paper</a>. If you find it useful,
-        please cite:
+        For the implementation and project materials, visit the
+        <a href="https://github.com/Yangzhichen763/CAGE" target="_blank" rel="noopener">project repository</a>. If you find the work useful, please cite:
       </p>
       <div class="bibtex-box">
         <pre>@inproceedings{yang2026cage,
@@ -2677,8 +4268,12 @@
             href="https://haofeixu.github.io/pointdit/"
             target="_blank"
             rel="noopener"
-          >PointDiT</a>
-          and
+          >PointDiT</a>,
+          <a
+            href="https://alaradirik.github.io/reasonx/"
+            target="_blank"
+            rel="noopener"
+          >ReasonX</a>, and
           <a
             href="https://yingfan-bot.github.io/lotus/"
             target="_blank"
@@ -2898,7 +4493,7 @@
       window.addEventListener('scroll', updateStickyHeader);
       window.addEventListener('resize', updateStickyHeader);
 
-      // initArena();
+      initArena();
     });
 
     let arenaData = [];
@@ -3071,10 +4666,10 @@
       if (!data || !Array.isArray(data)) return data;
       return data.map(item => ({
         ...item,
-        input: item.input.replace('/images/', '/'),
+        input: item.input.replace(/\.examples\/images\//g, 'examples/').replace('/images/', '/'),
         outputs: item.outputs.map(output => ({
           ...output,
-          src: output.src.replace('/images/', '/')
+          src: output.src.replace(/\.examples\/images\//g, 'examples/').replace('/images/', '/')
         }))
       }));
     }
@@ -3089,30 +4684,30 @@
           const text = await file.text();
           arenaData = cleanArenaPaths(JSON.parse(text));
           updateArenaLinkUI(true);
-          console.log('Loaded from file:', arenaData.length);
+          console.log('Loaded from linked file:', arenaData.length);
           shuffleArenaData();
           currentRound = 0;
           return;
         } catch (e) {
-          console.error('Failed to read arena_data.json:', e);
+          console.error('Failed to read linked arena_data.json:', e);
           if (e.name === 'NotFoundError') {
             await clearArenaFileHandle();
           }
         }
       }
       try {
-        const stored = localStorage.getItem('cage_arena_submissions');
-        if (stored) {
-          arenaData = cleanArenaPaths(JSON.parse(stored));
-          console.log('Loaded from localStorage:', arenaData.length);
+        const response = await fetch('datas/arena_data.json');
+        if (response.ok) {
+          const text = await response.text();
+          arenaData = cleanArenaPaths(JSON.parse(text));
+          console.log('Loaded from datas/arena_data.json:', arenaData.length);
         } else {
-          arenaData = [...ARENA_DATA_DEFAULT];
-          console.log('Using default data:', arenaData.length);
+          throw new Error('HTTP ' + response.status);
         }
       } catch (error) {
-        console.error('Failed to load arena data:', error);
+        console.error('Failed to load datas/arena_data.json:', error);
         arenaData = [...ARENA_DATA_DEFAULT];
-        console.log('Using default data (error):', arenaData.length);
+        console.log('Using default data:', arenaData.length);
       }
       shuffleArenaData();
       currentRound = 0;
@@ -3759,7 +5354,7 @@
       
       const isCorrect = selectedCard.dataset.isCAGE === 'true';
       const originalIndex = selectedCard.dataset.originalIndex;
-      const roundData = isRandomMode && currentRandomData ? currentRandomData : arenaData[currentRound];
+      const roundData = isRandomMode && currentRandomData ? currentRandomData : shuffledArenaData[currentRound];
       const outputData = roundData ? roundData.outputs[originalIndex] : null;
       const methodName = outputData ? outputData.src.split('/')[1] : 'unknown';
       
@@ -4418,6 +6013,682 @@
     }
 
     document.addEventListener('DOMContentLoaded', initArena);
+
+    (function() {
+      const methodRoot = document.getElementById('method');
+      if (!methodRoot) return;
+
+      const mainData = {
+        'input': {
+          tag: 'Image',
+          title: 'Input Low-light Image',
+          equation: '\\( x \\in \\mathbb{R}^{3 \\times H \\times W} \\)',
+          text: 'The RGB input is captured under low illumination. Low signal-to-noise ratio, camera hardware limitations, and automatic in-camera processing can embed a chromatic disturbance in the observed image.',
+          tone: '',
+          visual: 'input'
+        },
+        'forward': {
+          tag: 'Operation',
+          title: 'Forward Transform',
+          equation: '\\( \\hat{x}_l = G(x) \\)',
+          text: 'The forward transform maps the input from RGB to AdaLAB through RGB-to-LAB conversion, hue-directional chromatic debiasing, and lightness-aware chroma scaling. The transform suppresses embedded color bias before backbone enhancement.',
+          tone: 'forward',
+          visual: 'forward',
+          defaultChild: 'f-debias'
+        },
+        'backbone': {
+          tag: 'Network',
+          title: 'Low-light Image Enhancement Backbone',
+          equation: '\\( x_h = F_\\theta(\\hat{x}_l) \\)',
+          text: 'The enhancement backbone restores visibility and structures in the AdaLAB space. CAGE changes the representation entering and leaving the backbone without replacing the backbone architecture.',
+          tone: '',
+          visual: 'backbone'
+        },
+        'inverse': {
+          tag: 'Operation',
+          title: 'Inverse Transform',
+          equation: '\\( \\hat{y} = G^{-1}(x_h) \\)',
+          text: 'The inverse transform reverts the lightness-aware chroma scaling, converts out-of-gamut chroma surplus into lightness compensation, and converts the final valid LAB representation back to RGB.',
+          tone: 'inverse',
+          visual: 'inverse',
+          defaultChild: 'i-revert'
+        },
+        'output': {
+          tag: 'Image',
+          title: 'Output Enhanced Image',
+          equation: '\\( \\hat{y} \\in \\mathbb{R}^{3 \\times H \\times W} \\)',
+          text: 'The output is the final enhanced RGB image after color debiasing, backbone enhancement, gamut harmonization, and inverse color-space mapping.',
+          tone: '',
+          visual: 'output'
+        },
+        'cnn': {
+          tag: 'Network',
+          title: 'Lightweight CNN Backbone',
+          equation: '\\( z = H(x_{\\downarrow 128}) \\)',
+          text: 'The input is bilinearly downsampled to 128 by 128. A lightweight CNN extracts a compact representation, which is used by the lightness-interval predictor and hue-shift-direction predictor.',
+          tone: '',
+          visual: 'cnn'
+        },
+        'params': {
+          tag: 'Parameter',
+          title: 'Image-adaptive Cylindrical Parameters',
+          equation: '\\( \\{v_k\\}_{k=0}^{p},\\ \\{c_k\\}_{k=0}^{p},\\ d,\\ \\{m_k\\}_{k=0}^{p} \\)',
+          text: 'The lightness intervals and shared hue-shift direction are predicted from z. The chroma-scaling intensities and hue-shift magnitudes are obtained from learned scalar values through global interaction across lightness vertices. The lightness vertices and chroma-scaling intensities are reused by the inverse transform, while the hue-shift parameters drive forward chromatic debiasing.',
+          tone: '',
+          visual: 'params'
+        }
+      };
+
+      const childData = {
+        'f-input': {
+          title: 'Input Low-light Image (RGB space)',
+          tag: 'Image',
+          equation: '\\( x \\in \\mathbb{R}^{3 \\times H \\times W} \\)',
+          text: 'The RGB low-light image is first converted to LAB and separated into the lightness map l_l and chrominance map u_l.',
+          tone: 'forward'
+        },
+        'f-debias': {
+          title: 'Hue-directional Chromatic Debiasing',
+          tag: 'Operation',
+          equation: '\\( \\begin{aligned} d_l &= \\operatorname{Interp}\\!\\left(l_l;\\{v_k\\}_{k=0}^{p},\\{d_k\\}_{k=0}^{p}\\right), \\\\ s_l &= \\frac{\\delta_2-\\delta_1}{2}\\frac{u_l\\cdot d_l}{\\lVert u_l\\rVert_2\\lVert d_l\\rVert_2}+\\frac{\\delta_1+\\delta_2}{2}, \\\\ \\tilde{u}_l &= u_l-s_l d_l. \\end{aligned} \\)',
+          text: 'Vertex-wise hue-shift vectors are interpolated according to the input lightness. A similarity-aware weight accounts for the boundary effect of color bias, and the weighted offset shifts the chrominance map toward a corrected distribution.',
+          tone: 'forward'
+        },
+        'f-scale': {
+          title: 'Apply Chroma-Scaling Intensity',
+          tag: 'Operation',
+          equation: '\\( \\begin{aligned} c_l &= \\operatorname{Interp}\\!\\left(l_l;\\{v_k\\}_{k=0}^{p},\\{c_k\\}_{k=0}^{p}\\right), \\\\ \\hat{u}_l &= c_l\\tilde{u}_l. \\end{aligned} \\)',
+          text: 'The chroma-scaling intensities are interpolated from the lightness sensitivity vertices and applied to the debiased chrominance map. The operation aligns chromatic ranges across lightness levels and constructs the AdaLAB representation.',
+          tone: 'forward'
+        },
+        'f-output': {
+          title: 'Input Low-light Image (AdaLAB space)',
+          tag: 'Image',
+          equation: '\\( \\hat{x}_l=[l_l;\\hat{u}_l] \\)',
+          text: 'The original lightness map and reorganized chrominance map are concatenated into the AdaLAB representation used by the enhancement backbone.',
+          tone: 'forward'
+        },
+        'i-input': {
+          title: 'Enhanced Image (AdaLAB space)',
+          tag: 'Image',
+          equation: '\\( x_h=[\\hat{l}_h;\\hat{u}_h] \\)',
+          text: 'The enhancement backbone produces an enhanced lightness map and an enhanced chrominance map in AdaLAB space.',
+          tone: 'inverse'
+        },
+        'i-revert': {
+          title: 'Revert Chroma-Scaling Intensity',
+          tag: 'Operation',
+          equation: '\\( \\begin{aligned} c_h &= \\operatorname{Interp}\\!\\left(\\hat{l}_h;\\{v_k\\}_{k=0}^{p},\\{c_k\\}_{k=0}^{p}\\right), \\\\ \\tilde{u}_h &= \\frac{\\hat{u}_h}{c_h+\\epsilon},\\qquad \\epsilon=10^{-12}. \\end{aligned} \\)',
+          text: 'The shared chroma-scaling intensities are interpolated according to the enhanced lightness map. Dividing the enhanced chrominance by the resulting scaling map returns the representation to the base LAB chroma scale.',
+          tone: 'inverse'
+        },
+        'i-gamut': {
+          title: 'Out-of-Gamut Lightness Compensation',
+          tag: 'Operation',
+          equation: '\\( \\begin{aligned} u_c &= \\operatorname{GamutClipping}(\\tilde{u}_h,\\hat{l}_h), \\\\ l_h &= \\hat{l}_h+\\gamma\\lVert u_c-\\tilde{u}_h\\rVert_2,\\qquad \\gamma=1.0, \\\\ u_h &= \\operatorname{GamutClipping}(u_c,l_h). \\end{aligned} \\)',
+          text: 'The recovered chroma is first projected to the valid gamut. The removed chroma magnitude becomes a proportional lightness gain, after which a second gamut projection ensures a valid reconstruction.',
+          tone: 'inverse'
+        },
+        'i-output': {
+          title: 'Output Enhanced Image (RGB space)',
+          tag: 'Image',
+          equation: '\\( \\hat{y}_h=[\\alpha_l l_h;\\alpha_c u_h]\\ \\xrightarrow{\\mathrm{LAB\\ to\\ RGB}}\\ \\hat{y} \\)',
+          text: 'The customized lightness and chroma channels form the final valid LAB map. Inverse color-space mapping converts this map to the enhanced RGB image.',
+          tone: 'inverse'
+        }
+      };
+
+      const nodeList = ['input', 'cnn', 'params', 'forward', 'backbone', 'inverse', 'output'].map(function(key) {
+        return methodRoot.querySelector('.mnode[data-key="' + key + '"]');
+      }).filter(Boolean);
+      const detail = document.getElementById('mdetail');
+      const detailMedia = document.getElementById('mdMedia');
+      const detailStep = document.getElementById('mdStep');
+      const detailTag = document.getElementById('mdTag');
+      const detailTitle = document.getElementById('mdTitle');
+      const detailEq = document.getElementById('mdEq');
+      const detailText = document.getElementById('mdText');
+      const childPanel = document.getElementById('mdChild');
+      const childTag = document.getElementById('mdChildTag');
+      const childTitle = document.getElementById('mdChildTitle');
+      const childEq = document.getElementById('mdChildEq');
+      const childText = document.getElementById('mdChildText');
+      const interactive = document.getElementById('methodInteractive');
+      const figure = document.getElementById('methodFigure');
+      const modeButtons = Array.from(methodRoot.querySelectorAll('#methodSeg [role="tab"]'));
+
+      function arrowMarkup() {
+        return '<div class="msubconn" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 4v15M7 14l5 5 5-5"></path></svg></div>';
+      }
+
+      function subNodeMarkup(key, label, imageNode, selected) {
+        return '<button type="button" class="msubnode' + (imageNode ? ' image-node' : '') + '" data-subkey="' + key + '" aria-selected="' + String(selected) + '">' + label + '</button>';
+      }
+
+      function buildSubflow(kind, selectedKey) {
+        if (kind === 'forward') {
+          return '<div class="md-subflow" aria-label="Forward transform sub-blocks">' +
+            subNodeMarkup('f-input', 'Input Low-light Image (RGB space)', true, selectedKey === 'f-input') + arrowMarkup() +
+            subNodeMarkup('f-debias', 'Hue-directional Chromatic Debiasing', false, selectedKey === 'f-debias') + arrowMarkup() +
+            subNodeMarkup('f-scale', 'Apply Chroma-Scaling Intensity', false, selectedKey === 'f-scale') + arrowMarkup() +
+            subNodeMarkup('f-output', 'Low-light Representation (AdaLAB space)', true, selectedKey === 'f-output') +
+            '</div>';
+        }
+        return '<div class="md-subflow" aria-label="Inverse transform sub-blocks">' +
+          subNodeMarkup('i-input', 'Enhanced Representation (AdaLAB space)', true, selectedKey === 'i-input') + arrowMarkup() +
+          subNodeMarkup('i-revert', 'Revert Chroma-Scaling Intensity', false, selectedKey === 'i-revert') + arrowMarkup() +
+          subNodeMarkup('i-gamut', 'Out-of-Gamut Lightness Compensation', false, selectedKey === 'i-gamut') + arrowMarkup() +
+          subNodeMarkup('i-output', 'Output Enhanced Image (RGB space)', true, selectedKey === 'i-output') +
+          '</div>';
+      }
+
+      function buildSimpleVisual(kind) {
+        if (kind === 'params') {
+          return '<div class="md-param-visual">' +
+            '<button type="button" class="md-simple-node dashed" data-simple-key="param-v">Lightness Sensitivity Vertices<br>\\( \\{v_k\\} \\)</button>' +
+            '<button type="button" class="md-simple-node dashed" data-simple-key="param-d">Hue-shift Direction and Magnitude<br>\\( \\{d_k\\} \\)</button>' +
+            '<button type="button" class="md-simple-node dashed" data-simple-key="param-c">Chroma-Scaling Intensity<br>\\( \\{c_k\\} \\)</button>' +
+            '</div>';
+        }
+        if (kind === 'cnn') {
+          return '<div class="md-simple-visual vertical-flow"><button type="button" class="md-simple-node dashed" data-simple-key="cnn-input">Downsampled Input<br>128 × 128</button><span class="md-simple-arrow">↓</span><button type="button" class="md-simple-node" data-simple-key="cnn-core">Lightweight CNN<br>Compact vector z</button><span class="md-simple-arrow">↓</span><button type="button" class="md-simple-node dashed" data-simple-key="cnn-output">Interval and Direction Predictors</button></div>';
+        }
+        if (kind === 'backbone') {
+          return '<div class="md-simple-visual vertical-flow"><button type="button" class="md-simple-node dashed" data-simple-key="backbone-input">AdaLAB Input</button><span class="md-simple-arrow">↓</span><button type="button" class="md-simple-node" data-simple-key="backbone-core">LLIE Backbone</button><span class="md-simple-arrow">↓</span><button type="button" class="md-simple-node dashed" data-simple-key="backbone-output">AdaLAB Output</button></div>';
+        }
+        if (kind === 'input') {
+          return '<div class="md-simple-visual md-image-visual"><div class="md-simple-node dashed md-image-node md-static-node"><img src="figures/example_input_00049.png" alt="Input Low-light Image" loading="lazy"><span class="md-image-label">Input Low-light Image</span></div></div>';
+        }
+        if (kind === 'output') {
+          return '<div class="md-simple-visual md-image-visual"><div class="md-simple-node dashed md-image-node md-static-node"><img src="figures/example_output_00049.png" alt="Output Enhanced Image" loading="lazy"><span class="md-image-label">Output Enhanced Image</span></div></div>';
+        }
+        return '<div class="md-simple-visual"><button type="button" class="md-simple-node dashed" data-simple-key="single-' + kind + '">' + kind + '</button></div>';
+      }
+
+      function selectChild(key) {
+        const item = childData[key];
+        if (!item) return;
+        detailMedia.querySelectorAll('.msubnode').forEach(function(node) {
+          node.setAttribute('aria-selected', String(node.dataset.subkey === key));
+        });
+        childPanel.hidden = false;
+        childPanel.className = 'md-child' + (item.tone === 'inverse' ? ' inverse-child' : '');
+        childTag.className = 'md-child-tag ' + item.tone;
+        childTag.textContent = item.tag;
+        childTitle.textContent = item.title;
+        childEq.innerHTML = item.equation;
+        childText.textContent = item.text;
+        interactive.classList.add('has-child');
+        if (window.MathJax && typeof MathJax.typeset === 'function') {
+          MathJax.typeset();
+        }
+      }
+
+      const simpleChildData = {
+        'param-v': {
+          title: 'Lightness Sensitivity Vertices',
+          tag: 'Parameter',
+          equation: '\\( \\tilde{v}_k=\\frac{\\exp(\\hat{v}_k)}{\\sum_{j=1}^{p}\\exp(\\hat{v}_j)},\\quad v_0=0,\\quad v_k=v_{k-1}+\\tilde{v}_k \\)',
+          text: 'A linear predictor outputs p interval logits. Softmax normalization and cumulative summation convert them into p plus 1 monotonically increasing lightness sampling vertices.',
+          tone: 'forward'
+        },
+        'param-d': {
+          title: 'Hue-shift Direction and Magnitude',
+          tag: 'Parameter',
+          equation: '\\( d=\\phi_d(z),\\quad m_k=\\sum_{j=0}^{p}\\hat{m}_j e^{-\\tau|j-k|},\\quad d_k=m_k d \\)',
+          text: 'The predictor outputs one shared two-dimensional hue-shift direction. Learned magnitude values interact globally across lightness vertices and scale the shared direction at each vertex.',
+          tone: 'forward'
+        },
+        'param-c': {
+          title: 'Chroma-Scaling Intensity',
+          tag: 'Parameter',
+          equation: '\\( \\tilde{c}_k=\\sum_{j=0}^{p}\\hat{c}_j e^{-\\tau|j-k|},\\quad c_k=\\operatorname{softplus}(\\tilde{c}_k+1) \\)',
+          text: 'Learned scalar values interact across all lightness vertices through an exponentially decaying index-distance weight. Softplus keeps the final scaling values positive and the additive constant moves them toward unit scaling.',
+          tone: 'forward'
+        },
+        'cnn-input': {
+          title: 'Downsampled Input',
+          tag: 'Image',
+          equation: '\\( x_{\\downarrow 128}\\in\\mathbb{R}^{3\\times128\\times128} \\)',
+          text: 'The low-light input is bilinearly downsampled to 128 by 128 before parameter prediction.',
+          tone: 'forward'
+        },
+        'cnn-core': {
+          title: 'Lightweight CNN Backbone',
+          tag: 'Network',
+          equation: '\\( z=H(x_{\\downarrow 128}),\\quad z\\in\\mathbb{R}^{D} \\)',
+          text: 'The lightweight CNN extracts a compact vector representation z with limited computational overhead.',
+          tone: 'forward'
+        },
+        'cnn-output': {
+          title: 'Prediction Heads',
+          tag: 'Operation',
+          equation: '\\( \\{\\hat{v}_k\\}_{k=1}^{p}\\ \\text{and}\\ d=\\phi_d(z) \\)',
+          text: 'A lightness-interval predictor outputs interval logits, and a hue-shift-direction predictor outputs the shared two-dimensional direction. Chroma intensity and hue magnitude originate from learned scalar values rather than direct CNN outputs.',
+          tone: 'forward'
+        },
+        'backbone-input': {
+          title: 'AdaLAB Input',
+          tag: 'Image',
+          equation: '\\( \\hat{x}_l \\)',
+          text: 'The forward transform supplies the corrected AdaLAB representation to the retained enhancement backbone.',
+          tone: 'forward'
+        },
+        'backbone-core': {
+          title: 'LLIE Backbone',
+          tag: 'Network',
+          equation: '\\( F_\\theta(\\cdot) \\)',
+          text: 'The retained low-light image enhancement backbone restores visibility and structures in AdaLAB space.',
+          tone: 'forward'
+        },
+        'backbone-output': {
+          title: 'Enhanced AdaLAB Representation',
+          tag: 'Image',
+          equation: '\\( x_h=F_\\theta(\\hat{x}_l) \\)',
+          text: 'The enhanced AdaLAB representation is passed to the inverse transform for chroma-scale reversion, gamut harmonization, and RGB reconstruction.',
+          tone: 'inverse'
+        },
+        'single-input': {
+          title: 'Input Low-light Image',
+          tag: 'Image',
+          equation: '\\( x\\in\\mathbb{R}^{3\\times H\\times W} \\)',
+          text: 'The RGB input is the low-light observation before transformation and enhancement.',
+          tone: 'forward'
+        },
+        'single-output': {
+          title: 'Output Enhanced Image',
+          tag: 'Image',
+          equation: '\\( \\hat{y}\\in\\mathbb{R}^{3\\times H\\times W} \\)',
+          text: 'The final RGB output is reconstructed after the inverse transform.',
+          tone: 'inverse'
+        }
+      };
+
+      function selectSimpleChild(key) {
+        const item = simpleChildData[key];
+        if (!item) return;
+        detailMedia.querySelectorAll('[data-simple-key]').forEach(function(node) {
+          node.setAttribute('aria-selected', String(node.dataset.simpleKey === key));
+        });
+        childPanel.hidden = false;
+        childPanel.className = 'md-child' + (item.tone === 'inverse' ? ' inverse-child' : '');
+        childTag.className = 'md-child-tag ' + item.tone;
+        childTag.textContent = item.tag;
+        childTitle.textContent = item.title;
+        childEq.innerHTML = item.equation;
+        childText.textContent = item.text;
+        interactive.classList.add('has-child');
+        if (window.MathJax && typeof MathJax.typeset === 'function') {
+          MathJax.typeset();
+        }
+      }
+
+      function bindSubflow() {
+        detailMedia.querySelectorAll('.msubnode').forEach(function(node) {
+          node.addEventListener('click', function() { selectChild(node.dataset.subkey); });
+          node.addEventListener('keydown', function(event) {
+            if (!['ArrowDown', 'ArrowUp', 'Home', 'End'].includes(event.key)) return;
+            const children = Array.from(detailMedia.querySelectorAll('.msubnode'));
+            const current = children.indexOf(node);
+            let next = current;
+            if (event.key === 'ArrowDown') next = (current + 1) % children.length;
+            if (event.key === 'ArrowUp') next = (current - 1 + children.length) % children.length;
+            if (event.key === 'Home') next = 0;
+            if (event.key === 'End') next = children.length - 1;
+            event.preventDefault();
+            children[next].focus();
+            selectChild(children[next].dataset.subkey);
+          });
+        });
+      }
+
+      function bindSimpleVisual() {
+        detailMedia.querySelectorAll('[data-simple-key]').forEach(function(node) {
+          node.addEventListener('click', function() { selectSimpleChild(node.dataset.simpleKey); });
+          node.addEventListener('keydown', function(event) {
+            if (!['ArrowDown', 'ArrowUp', 'Home', 'End', 'ArrowLeft', 'ArrowRight'].includes(event.key)) return;
+            const children = Array.from(detailMedia.querySelectorAll('[data-simple-key]'));
+            const current = children.indexOf(node);
+            let next = current;
+            if (event.key === 'ArrowDown' || event.key === 'ArrowRight') next = (current + 1) % children.length;
+            if (event.key === 'ArrowUp' || event.key === 'ArrowLeft') next = (current - 1 + children.length) % children.length;
+            if (event.key === 'Home') next = 0;
+            if (event.key === 'End') next = children.length - 1;
+            event.preventDefault();
+            children[next].focus();
+            selectSimpleChild(children[next].dataset.simpleKey);
+          });
+        });
+      }
+
+      function selectNode(node, moveFocus) {
+        const item = mainData[node.dataset.key];
+        if (!item) return;
+
+        nodeList.forEach(function(candidate) {
+          const active = candidate === node;
+          candidate.setAttribute('aria-selected', String(active));
+          candidate.tabIndex = active ? 0 : -1;
+        });
+
+        detail.setAttribute('aria-labelledby', node.id);
+        detailStep.textContent = (nodeList.indexOf(node) + 1) + ' / ' + nodeList.length;
+        detailTag.className = 'md-tag' + (item.tone ? ' ' + item.tone : '');
+        detailTag.textContent = item.tag;
+        detailTitle.textContent = item.title;
+        detailEq.innerHTML = item.equation;
+        detailText.textContent = item.text;
+
+        if (item.visual === 'forward' || item.visual === 'inverse') {
+          const childKey = item.defaultChild;
+          detailMedia.innerHTML = buildSubflow(item.visual, childKey);
+          bindSubflow();
+          selectChild(childKey);
+        } else {
+          detailMedia.innerHTML = buildSimpleVisual(item.visual);
+          bindSimpleVisual();
+          childPanel.hidden = true;
+          interactive.classList.remove('has-child');
+        }
+
+        detail.scrollTop = 0;
+        if (moveFocus) node.focus({ preventScroll: true });
+        if (window.MathJax && typeof MathJax.typeset === 'function') {
+          MathJax.typeset();
+        }
+      }
+
+      nodeList.forEach(function(node) {
+        node.addEventListener('click', function() { selectNode(node, false); });
+        node.addEventListener('keydown', function(event) {
+          if (!['ArrowDown', 'ArrowRight', 'ArrowUp', 'ArrowLeft', 'Home', 'End'].includes(event.key)) return;
+          const current = nodeList.indexOf(node);
+          let next = current;
+          if (event.key === 'ArrowDown' || event.key === 'ArrowRight') next = (current + 1) % nodeList.length;
+          if (event.key === 'ArrowUp' || event.key === 'ArrowLeft') next = (current - 1 + nodeList.length) % nodeList.length;
+          if (event.key === 'Home') next = 0;
+          if (event.key === 'End') next = nodeList.length - 1;
+          event.preventDefault();
+          selectNode(nodeList[next], true);
+        });
+      });
+
+      function setMode(mode) {
+        const showInteractive = mode === 'interactive';
+        interactive.hidden = !showInteractive;
+        figure.hidden = showInteractive;
+        modeButtons.forEach(function(button) {
+          const active = button.id === 'mode-' + mode;
+          button.setAttribute('aria-selected', String(active));
+          button.tabIndex = active ? 0 : -1;
+        });
+      }
+
+      modeButtons.forEach(function(button) {
+        button.addEventListener('click', function() { setMode(button.id.replace('mode-', '')); });
+        button.addEventListener('keydown', function(event) {
+          if (!['ArrowLeft', 'ArrowRight', 'Home', 'End'].includes(event.key)) return;
+          const index = modeButtons.indexOf(button);
+          let next = index;
+          if (event.key === 'ArrowRight') next = (index + 1) % modeButtons.length;
+          if (event.key === 'ArrowLeft') next = (index - 1 + modeButtons.length) % modeButtons.length;
+          if (event.key === 'Home') next = 0;
+          if (event.key === 'End') next = modeButtons.length - 1;
+          event.preventDefault();
+          setMode(modeButtons[next].id.replace('mode-', ''));
+          modeButtons[next].focus();
+        });
+      });
+
+      document.getElementById('mfigOpen').addEventListener('click', function() {
+        setMode('interactive');
+        setTimeout(function() {
+          const inputNode = document.getElementById('mblock-input');
+          selectNode(inputNode);
+          inputNode.focus();
+        }, 100);
+      });
+
+      selectNode(document.getElementById('mblock-input'));
+    })();
+  </script>
+
+
+
+
+  <script>
+    (function refineInteractiveArchitecture() {
+      const method = document.getElementById('method');
+      const interactive = document.getElementById('methodInteractive');
+      const diagram = document.getElementById('mflow');
+      const branches = diagram ? diagram.querySelector('.mbranches') : null;
+      const mainBranch = diagram ? diagram.querySelector('.main-branch') : null;
+      const parameterBranch = diagram ? diagram.querySelector('.parameter-branch') : null;
+      const detail = document.getElementById('mdetail');
+      const nodes = method ? Array.from(method.querySelectorAll('.mnode[role="tab"]')) : [];
+      const stage = document.getElementById('mdStage');
+      const progress = document.getElementById('mdProgressBar');
+      const previous = document.getElementById('mdPrev');
+      const next = document.getElementById('mdNext');
+
+      const input = document.getElementById('mblock-input');
+      const forward = document.getElementById('mblock-forward');
+      const inverse = document.getElementById('mblock-inverse');
+      const cnn = document.getElementById('mblock-cnn');
+      const params = document.getElementById('mblock-params');
+
+      const inputCnnPath = document.getElementById('mcurveInputCnn');
+      const paramsForwardPath = document.getElementById('mcurveParamsForward');
+      const paramsInversePath = document.getElementById('mcurveParamsInverse');
+
+      if (!method || !interactive || !diagram || !branches || !mainBranch ||
+          !parameterBranch || !detail || nodes.length === 0) {
+        return;
+      }
+
+      nodes.forEach(function(node) {
+        node.removeAttribute('data-step');
+      });
+
+      const stageLabels = {
+        input: 'Input',
+        forward: 'Forward',
+        backbone: 'Backbone',
+        inverse: 'Inverse',
+        output: 'Output',
+        cnn: 'Predictor',
+        params: 'Parameters'
+      };
+
+      function activeIndex() {
+        return nodes.findIndex(function(node) {
+          return node.getAttribute('aria-selected') === 'true';
+        });
+      }
+
+      function syncDetailState() {
+        const index = activeIndex();
+        if (index < 0) return;
+
+        const node = nodes[index];
+        if (stage) {
+          stage.textContent = stageLabels[node.dataset.key] || node.dataset.key;
+        }
+        if (progress) {
+          progress.style.width = (((index + 1) / nodes.length) * 100) + '%';
+        }
+        if (previous) {
+          previous.disabled = index === 0;
+        }
+        if (next) {
+          next.disabled = index === nodes.length - 1;
+        }
+
+        detail.classList.remove('is-updating');
+        void detail.offsetWidth;
+        detail.classList.add('is-updating');
+
+        requestAnimationFrame(function() {
+          syncDetailHeight();
+        });
+      }
+
+      function point(element, horizontal, vertical) {
+        const rect = element.getBoundingClientRect();
+        const rootRect = branches.getBoundingClientRect();
+
+        let x = rect.left - rootRect.left;
+        let y = rect.top - rootRect.top;
+
+        if (horizontal === 'center') x += rect.width / 2;
+        if (horizontal === 'right') x += rect.width;
+        if (vertical === 'center') y += rect.height / 2;
+        if (vertical === 'bottom') y += rect.height;
+
+        return { x: x, y: y };
+      }
+
+      function curve(start, end, mode) {
+        if (mode === 'input-cnn') {
+          const dx = Math.max(40, (end.x - start.x) * 0.8);
+          const dy = Math.max(28, (end.y - start.y) * 0.8);
+          return 'M ' + start.x + ' ' + start.y +
+            ' C ' + (start.x + dx) + ' ' + start.y +
+            ', ' + end.x + ' ' + (end.y - dy) +
+            ', ' + end.x + ' ' + end.y;
+        }
+
+        const direction = end.y < start.y ? -1 : 1;
+        const spread = Math.max(46, Math.abs(end.y - start.y) * .54);
+        return 'M ' + start.x + ' ' + start.y +
+          ' C ' + (start.x - 48) + ' ' + start.y +
+          ', ' + (end.x + 48) + ' ' + (end.y + direction * spread * .18) +
+          ', ' + end.x + ' ' + end.y;
+      }
+
+      function alignParameterBranch() {
+        if (window.matchMedia('(max-width: 700px)').matches) {
+          parameterBranch.style.paddingTop = '0px';
+          return;
+        }
+
+        const branchRect = branches.getBoundingClientRect();
+        const forwardRect = forward.getBoundingClientRect();
+        parameterBranch.style.paddingTop =
+          Math.max(0, forwardRect.top - branchRect.top) + 'px';
+      }
+
+      function drawConnections() {
+        if (interactive.hidden || window.matchMedia('(max-width: 700px)').matches) {
+          return;
+        }
+
+        alignParameterBranch();
+
+        requestAnimationFrame(function() {
+          const inputStart = offsetPoint(point(input, 'right', 'center'), 10, 0);
+          const cnnEnd = offsetPoint(point(cnn, 'center', 'top'), 0, -10);
+          const paramsStart = offsetPoint(point(params, 'left', 'center'), -10, 0);
+          const forwardEnd = offsetPoint(point(forward, 'right', 'center'), 10, 0);
+          const inverseEnd = offsetPoint(point(inverse, 'right', 'center'), 10, 0);
+
+          inputCnnPath.setAttribute('d', curve(inputStart, cnnEnd, 'input-cnn'));
+          paramsForwardPath.setAttribute('d', curve(paramsStart, forwardEnd, 'parameter'));
+          paramsInversePath.setAttribute('d', curve(paramsStart, inverseEnd, 'parameter'));
+        });
+      }
+
+      function offsetPoint(p, dx = 0, dy = 0) {
+        return {
+          x: p.x + dx,
+          y: p.y + dy,
+        };
+      }
+
+      function syncDetailHeight() {
+        if (interactive.hidden) return;
+
+        if (window.matchMedia('(max-width: 1020px)').matches) {
+          interactive.style.removeProperty('--ia-detail-height');
+          return;
+        }
+
+        const height = Math.ceil(diagram.getBoundingClientRect().height);
+        if (height > 0) {
+          interactive.style.setProperty('--ia-detail-height', height + 'px');
+      }
+      }
+
+      if (previous) {
+      previous.addEventListener('click', function() {
+          const index = activeIndex();
+        if (index > 0) {
+          nodes[index - 1].click();
+          nodes[index - 1].focus({ preventScroll: true });
+        }
+      });
+      }
+
+      if (next) {
+      next.addEventListener('click', function() {
+          const index = activeIndex();
+        if (index >= 0 && index < nodes.length - 1) {
+          nodes[index + 1].click();
+          nodes[index + 1].focus({ preventScroll: true });
+        }
+      });
+      }
+
+      const nodeObserver = new MutationObserver(function() {
+        syncDetailState();
+      });
+
+      nodes.forEach(function(node) {
+        nodeObserver.observe(node, {
+          attributes: true,
+          attributeFilter: ['aria-selected']
+        });
+      });
+
+      const modeObserver = new MutationObserver(function() {
+        if (!interactive.hidden) {
+          requestAnimationFrame(function() {
+            drawConnections();
+            syncDetailHeight();
+          });
+        }
+      });
+
+      modeObserver.observe(interactive, {
+        attributes: true,
+        attributeFilter: ['hidden']
+      });
+
+      const resizeObserver = new ResizeObserver(function() {
+        drawConnections();
+        syncDetailHeight();
+      });
+
+      resizeObserver.observe(diagram);
+      resizeObserver.observe(mainBranch);
+      resizeObserver.observe(parameterBranch);
+
+      window.addEventListener('resize', function() {
+        drawConnections();
+        syncDetailHeight();
+      });
+
+      window.addEventListener('load', function() {
+        drawConnections();
+        syncDetailHeight();
+      });
+
+      syncDetailState();
+      requestAnimationFrame(function() {
+        drawConnections();
+        syncDetailHeight();
+      });
+    })();
   </script>
 
 </body>
