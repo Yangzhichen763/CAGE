@@ -1,0 +1,4422 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>CAGE · Color-faithful Low-light Image Enhancement</title>
+  <meta name="description" content="CAGE: a cylindrical color correction framework with adaptive color debiasing and gamut-harmonized saturation rectification for color-faithful low-light image enhancement.">
+
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="https://yangzhichen763.github.io/CAGE/">
+  <meta property="og:title" content="CAGE: Color-faithful Low-light Image Enhancement">
+  <meta property="og:description" content="CAGE: a cylindrical color correction framework with adaptive color debiasing and gamut-harmonized saturation rectification for color-faithful low-light image enhancement.">
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css?family=Google+Sans:400,500,600,700|Noto+Sans:400,600,700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/jpswalsh/academicons@1/css/academicons.min.css">
+  <link rel="icon" href="figures/AdaLAB.ico" type="image/x-icon">
+  <link rel="shortcut icon" href="figures/AdaLAB.ico" type="image/x-icon">
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/js/all.min.js"></script>
+
+  <style>
+    :root {
+      --accent: #1a56db;
+      --accent-soft: #e8f0fe;
+      --accent-dark: #c2c2c9;
+      --ink: #2c2c2c;
+      --muted: #666666;
+      --line: #e0e0e0;
+      --bg: #fafafa;
+      --surface-2: rgba(0,0,0,0.04);
+      --max: 880px;
+      --nav-max: 1080px;
+      --highlight: #1a56db;
+      --btn-bg: #2c2c2c;
+      --btn-text: #ffffff;
+      --shadow: rgba(0, 0, 0, 0.1);
+    }
+    [data-theme="dark"] {
+      --accent: #ff4d4f;
+      --accent-soft: #3a1518;
+      --accent-dark: #c9c3c2;
+      --ink: #e0e0e0;
+      --muted: #a0a0a0;
+      --line: #3a3a4a;
+      --bg: #222228;
+      --surface-2: rgba(255,255,255,0.04);
+      --highlight: #ff4d4f;
+      --btn-bg: #d0d0d0;
+      --btn-text: #222228;
+      --shadow: rgba(0, 0, 0, 0.3);
+    }
+    @media (prefers-color-scheme: dark) {
+      :root:not([data-theme="light"]) {
+        --accent: #ff4d4f;
+        --accent-soft: #3a1518;
+        --accent-dark: #c9c3c2;
+        --ink: #e0e0e0;
+        --muted: #a0a0a0;
+        --line: #3a3a4a;
+        --bg: #222228;
+        --surface-2: rgba(255,255,255,0.04);
+        --highlight: #ff4d4f;
+        --btn-bg: #d0d0d0;
+        --btn-text: #222228;
+        --shadow: rgba(0, 0, 0, 0.3);
+      }
+    }
+    * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; scroll-padding-top: 50px; }
+    body {
+      margin: 0;
+      color: var(--ink);
+      background: var(--bg);
+      font-family: 'Noto Sans', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      line-height: 1.6;
+      font-size: 15px;
+    }
+    a { color: var(--accent); text-decoration: none; }
+    a:hover { text-decoration: underline; }
+    .wrap { max-width: var(--max); margin: 0 auto; padding: 0 22px; }
+
+    nav.top {
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      background: color-mix(in srgb, var(--bg) 90%, transparent);
+      backdrop-filter: blur(20px) saturate(180%);
+      -webkit-backdrop-filter: blur(20px) saturate(180%);
+      border-bottom: 1px solid rgba(0,0,0,0.08);
+      padding: 8px 22px;
+      font-size: .88rem;
+      transition: all 0.4s ease;
+    }
+    [data-theme="dark"] nav.top {
+      border-bottom: 1px solid rgba(255,255,255,0.08);
+    }
+    nav.top .wrap {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      max-width: var(--nav-max);
+    }
+    nav.top .brand {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-weight: 700;
+      font-size: .95rem;
+      color: var(--ink);
+      text-decoration: none;
+    }
+    nav.top .brand:hover {
+      color: var(--accent);
+    }
+    nav.top .brand-icon {
+      width: 28px;
+      height: 28px;
+      background: none;
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--accent);
+    }
+    nav.top .brand-icon svg,
+    nav.top .brand-icon img {
+      width: 24px;
+      height: 24px;
+      fill: var(--bg);
+      object-fit: contain;
+    }
+    nav.top ul {
+      list-style: none;
+      margin: 0;
+      padding: 0;
+      display: flex;
+      gap: 24px;
+    }
+    nav.top ul li a {
+      color: var(--muted);
+      font-weight: 500;
+      transition: all 0.25s ease;
+      text-decoration: none;
+      position: relative;
+      padding: 6px 0;
+    }
+    nav.top ul li a::after {
+      content: '';
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      width: 0;
+      height: 2px;
+      background: var(--accent);
+      border-radius: 1px;
+      transition: width 0.25s ease;
+    }
+    nav.top ul li a:hover {
+      color: var(--accent);
+    }
+    nav.top ul li a:hover::after {
+      width: 100%;
+    }
+    nav.top ul li a.active {
+      color: var(--accent);
+      font-weight: 600;
+    }
+    nav.top ul li a.active::after {
+      width: 100%;
+    }
+    .venue-badge {
+      background: var(--accent);
+      color: var(--bg);
+      padding: 4px 12px;
+      border-radius: 4px;
+      font-weight: 600;
+      font-size: .85rem;
+      letter-spacing: .05em;
+    }
+    .nav-divider {
+      width: 1px;
+      height: 20px;
+      background: var(--line);
+    }
+    .theme-toggle {
+      background: transparent;
+      border: none;
+      color: var(--muted);
+      width: 34px;
+      height: 34px;
+      border-radius: 7px;
+      cursor: pointer;
+      display: grid;
+      place-items: center;
+      transition: color 0.18s ease, background 0.18s ease;
+    }
+    .theme-toggle:hover {
+      color: var(--ink);
+      background: var(--surface-2);
+    }
+    .theme-toggle svg {
+      width: 17px;
+      height: 17px;
+    }
+    .theme-toggle .sun { display: none; }
+    [data-theme="dark"] .theme-toggle .sun { display: block; }
+    [data-theme="dark"] .theme-toggle .moon { display: none; }
+
+    header.hero {
+      text-align: center;
+      padding: 34px 22px 20px;
+      border-bottom: 1px solid var(--line);
+      background: linear-gradient(180deg, color-mix(in srgb, var(--accent) 5%, var(--bg)), var(--bg) 78%);
+      transition: background 0.4s ease;
+    }
+    .venue {
+      display: inline-block;
+      font-size: 13px;
+      letter-spacing: .14em;
+      text-transform: uppercase;
+      color: var(--accent);
+      margin-bottom: 5px;
+      font-weight: 700;
+    }
+    h1.title {
+      font-family: 'Google Sans', 'Noto Sans', -apple-system, "Segoe UI", Roboto, sans-serif;
+      font-size: 2.2rem;
+      line-height: 1.25;
+      margin: 0 auto 12px;
+      max-width: 1000px;
+      font-weight: 700;
+      letter-spacing: -.01em;
+    }
+    .authors { font-size: 1.08rem; margin: 6px 0 4px; }
+    .authors a { color: var(--ink); text-decoration: none; transition: color 0.2s; }
+    .authors a:hover { color: var(--accent); opacity: 0.8; }
+    .affil { color: var(--muted); font-size: .96rem; margin-bottom: 14px; }
+    .affil sup { color: var(--muted); }
+
+    .buttons { display: flex; flex-wrap: wrap; gap: 12px; justify-content: center; margin-top: 10px; }
+    .btn {
+      display: inline-flex; align-items: center; gap: 8px;
+      background: var(--btn-bg); color: var(--btn-text);
+      padding: 11px 20px; border-radius: 40px;
+      font-size: .96rem; font-weight: 600;
+      transition: transform .08s ease, background .15s ease, box-shadow .15s ease;
+      box-shadow: 0 2px 8px var(--shadow);
+    }
+    .btn:hover { background: var(--accent); color: var(--bg); text-decoration: none; transform: translateY(-1px); box-shadow: 0 4px 16px var(--shadow); }
+    .btn:hover svg, .btn:hover i { color: var(--bg); fill: var(--bg); }
+    .btn svg { width: 18px; height: 18px; fill: currentColor; }
+    .btn i { color: var(--btn-text); }
+
+    section { padding: 24px 0; border-bottom: 1px solid var(--line); }
+    section:last-of-type { border-bottom: none; }
+    h2 {
+      font-family: 'Google Sans', 'Noto Sans', -apple-system, sans-serif; font-size: 1.2rem; margin: 0 0 18px; font-weight: 700; letter-spacing: -.01em;
+    }
+    h3 { font-family: 'Google Sans', 'Noto Sans', -apple-system, sans-serif; font-size: 1rem; font-weight: 700; margin: 28px 0 10px; }
+    h2::before { content: ""; display: inline-block; width: 26px; height: 4px;
+      background: var(--accent); border-radius: 3px; vertical-align: middle; margin-right: 12px; }
+    p { margin: 0 0 16px; text-align: justify; hyphens: auto; word-spacing: normal; word-break: break-word; overflow-wrap: break-word; }
+
+    .teaser figure { margin: 0; }
+    .teaser img, .teaser canvas { width: 100%; border: 1px solid var(--line); border-radius: 10px; display: block; }
+    .teaser figcaption { color: var(--muted); font-size: .92rem; text-align: center; margin-top: 6px; }
+    .placeholder {
+      width: 100%; aspect-ratio: 16 / 8; border: 2px dashed var(--line); border-radius: 10px;
+      display: flex; align-items: center; justify-content: center; text-align: center;
+      color: var(--muted); font-size: .95rem; padding: 20px; background: #fafafa;
+    }
+
+    .img-placeholder {
+      background: var(--surface-2);
+      padding: 18px;
+      border-radius: 12px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+
+      position: relative;
+      overflow: hidden;
+      border: 1px solid var(--line);
+
+      gap: 7px;
+    }
+    .img-placeholder::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background-image: 
+        radial-gradient(circle at 1px 1px, var(--line) 1px, transparent 0);
+      background-size: 16px 16px;
+      opacity: 0.8;
+    }
+    .img-placeholder > div {
+      position: relative;
+      z-index: 1;
+      display: center;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+    }
+    .img-placeholder .icon {
+      width: 30px;
+      height: 30px;
+      /* background: var(--bg); */
+
+      display: grid;
+      place-items: center;
+      /* justify-content: center; */
+
+      border: 1px dashed var(--line-strong);
+      border-radius: 8px;
+      color: var(--ink);
+      margin-bottom: 2px;
+    }
+    .img-placeholder .icon svg {
+      width: 16px;
+      height: 16px;
+    }
+    .img-placeholder .filename {
+      color: var(--muted);
+      font-size: .85rem;
+      font-family: 'SFMono-Regular', Consolas, monospace;
+      text-align: center;
+    }
+    .img-placeholder .label {
+      color: var(--muted);
+      font-size: .8rem;
+      text-align: center;
+    }
+
+    section.tldr { border-bottom: none; padding-bottom: 8px; }
+    .tldr-box { background: var(--accent-soft); border-radius: 12px; padding: 20px 24px; }
+    .tldr-box h2 { margin: 0 0 8px; }
+    .tldr-box h2::before { background: var(--accent-dark); }
+    .tldr-box p { margin: 0; }
+
+    figure.fig { margin: 8px 0 0; }
+    figure.fig .img-container { border: 1px solid var(--line); border-radius: 10px; background: var(--bg); display: flex; align-items: center; justify-content: center; min-height: 200px; }
+    figure.fig .img-container img { width: 100%; height: auto; border-radius: 6px; display: block; }
+    figure.fig .img-container .img-placeholder { width: 100%; height: 100%; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px; color: var(--muted); }
+    figure.fig .img-container .img-placeholder .icon { width: 44px; height: 44px; border-radius: 10px; background: var(--surface-2); display: flex; align-items: center; justify-content: center; }
+    figure.fig .img-container .img-placeholder .icon svg { width: 22px; height: 22px; }
+    figure.fig .img-container .img-placeholder .filename { font-size: .85rem; font-family: monospace; }
+    figure.fig .img-container .img-placeholder .label { font-size: .8rem; }
+    figure.fig figcaption { color: var(--muted); font-size: .92rem; text-align: center; margin-top: 12px; line-height: 1.5; }
+
+    .accordion { border: 1px solid var(--line); border-radius: 12px; overflow: hidden; margin-top: 16px; }
+    .accordion-item { border-bottom: 1px solid var(--line); }
+    .accordion-item:last-child { border-bottom: none; }
+    .accordion-header { display: flex; justify-content: space-between; align-items: center; padding: 16px 20px; background: var(--surface-2); cursor: pointer; transition: background 0.3s ease; }
+    .accordion-header:hover { background: var(--accent-soft); }
+    .accordion-header h3 { margin: 0; font-size: 1rem; font-weight: 600; color: var(--ink); }
+    .accordion-icon { font-size: .8rem; color: var(--muted); transition: transform 0.3s ease; }
+    .accordion-header.active .accordion-icon { transform: rotate(180deg); }
+    .accordion-content { max-height: 0; overflow: hidden; transition: max-height 0.4s ease; background: var(--bg); }
+    .accordion-content.open { max-height: 5000px; }
+    .accordion-content-inner { padding: 16px 20px; }
+    .accordion-sticky-header {
+      position: fixed;
+      top: 56px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 100%;
+      max-width: var(--nav-max);
+      z-index: 90;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 12px 20px;
+      background: color-mix(in srgb, var(--surface-2) 95%, transparent);
+      backdrop-filter: blur(20px) saturate(180%);
+      border-bottom: 1px solid var(--line);
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.3s ease;
+    }
+    .accordion-sticky-header.visible {
+      opacity: 1;
+      pointer-events: auto;
+    }
+    .accordion-sticky-header h3 {
+      margin: 0;
+      font-size: 1rem;
+      font-weight: 600;
+      color: var(--ink);
+    }
+    .accordion-sticky-header .accordion-icon {
+      font-size: .8rem;
+      color: var(--muted);
+      transition: transform 0.3s ease;
+    }
+
+    .table-wrap { overflow-x: auto; }
+    table.results { width: 100%; border-collapse: collapse; font-size: .95rem; }
+    table.results th, table.results td { padding: 6px 12px; text-align: center; border-bottom: 1px solid var(--line); white-space: nowrap; }
+    table.results th:first-child, table.results td:first-child { text-align: left; }
+    table.results thead th { border-bottom: 2px solid var(--ink); font-weight: 700; }
+    table.results tbody tr.mine { background: var(--accent-soft); }
+    table.results tbody tr.mine td { font-weight: 700; }
+    table.results tbody tr.upper td { color: var(--muted); }
+    table.results.acc tbody tr.upper td { border-bottom: 2px dashed #b9b9b9; }
+    table.results tbody tr.dashed-top td { border-top: 2px dashed #b9b9b9; }
+    table.results caption { caption-side: bottom; color: var(--muted); font-size: .85rem; margin-top: 12px; text-align: left; line-height: 1.5; }
+    table.results td:first-child a { color: var(--ink); }
+    table.results td:first-child a:hover { color: var(--accent); }
+
+    .takeaways-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 18px; margin-top: 8px; }
+    .takeaways-grid.custom-width { display: flex; gap: 18px; }
+    .problem-cards { display: grid; grid-template-columns: repeat(3, 1fr); gap: 18px; margin-top: 16px; }
+    .tldr {
+      background: var(--accent-soft);
+      border-radius: 14px;
+      padding: 24px 24px 18px 24px;
+      margin: 12px 0;
+      border-left: 4px solid var(--accent);
+    }
+    .highlight { color: var(--accent); font-weight: 600; }
+    .tldr h2 {
+      font-size: 1.1rem;
+      font-weight: 700;
+      color: var(--accent);
+      margin: 0 0 12px;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+    .tldr p {
+      font-size: .95rem;
+      color: var(--ink);
+      margin: 0;
+      line-height: 1.6;
+      text-align: justify;
+      hyphens: auto;
+      word-spacing: normal;
+      word-break: break-word;
+      overflow-wrap: break-word;
+    }
+    .problem-card {
+      background: var(--surface-2);
+      border-radius: 14px;
+      padding: 24px;
+      border: 1px solid var(--line);
+      transition: all 0.3s ease;
+      position: relative;
+      overflow: hidden;
+    }
+    .problem-card:hover {
+      background: var(--accent-soft);
+      border-color: var(--accent);
+      transform: translateY(-2px);
+      box-shadow: 0 12px 30px rgba(0, 0, 0, 0.08), 0 2px 8px rgba(0, 0, 0, 0.04);
+    }
+    .problem-card .card-index {
+      color: var(--accent);
+      font-weight: 700;
+      font-size: .75rem;
+      text-transform: uppercase;
+      letter-spacing: .06em;
+      margin-bottom: 10px;
+      position: relative;
+      z-index: 1;
+    }
+    .problem-card .ghost-number {
+      position: absolute;
+      right: -6px;
+      bottom: -18px;
+      z-index: 0;
+      color: color-mix(in srgb, var(--accent) 8%, transparent);
+      font-size: 6.8rem;
+      line-height: 1;
+      font-weight: 950;
+      pointer-events: none;
+    }
+    .problem-card h3 {
+      font-size: 1rem;
+      font-weight: 700;
+      margin: 0 0 10px;
+      color: var(--ink);
+      position: relative;
+      z-index: 1;
+    }
+    .problem-card p {
+      font-size: .9rem;
+      color: var(--muted);
+      margin: 0;
+      line-height: 1.6;
+      text-align: justify;
+      hyphens: auto;
+      word-spacing: normal;
+      word-break: break-word;
+      overflow-wrap: break-word;
+      position: relative;
+      z-index: 1;
+    }
+    .takeaway { 
+      background: var(--surface-2); 
+      border-radius: 14px; 
+      padding: 24px 20px; 
+      position: relative;
+      transition: all 0.3s ease;
+      cursor: pointer;
+      border: 1px solid transparent;
+      flex: var(--takeaway-flex, 1);
+    }
+    .takeaway:hover { 
+      background: var(--accent-soft);
+      transform: translateY(-2px);
+      box-shadow: 0 8px 24px rgba(0,0,0,0.08);
+      border-color: var(--line);
+    }
+    .takeaway .num { 
+      font-size: .85rem; 
+      font-weight: 700; 
+      color: var(--accent); 
+      margin-bottom: 10px;
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+    }
+    .takeaway h3 { 
+      font-size: 1rem; 
+      font-weight: 700; 
+      margin: 0 0 8px; 
+      color: var(--ink);
+    }
+    .takeaway p { 
+      font-size: .92rem; 
+      color: var(--muted); 
+      margin: 0;
+      line-height: 1.6;
+      text-align: justify;
+      hyphens: auto;
+      word-spacing: normal;
+      word-break: break-word;
+      overflow-wrap: break-word;
+    }
+
+
+    .method-lead {
+      margin: 0 0 16px;
+      color: var(--muted);
+      font-size: 1rem;
+    }
+
+    .parameter-strip {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 12px;
+      margin: 18px 0 14px;
+    }
+
+    .parameter-item {
+      padding: 15px 16px;
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      background: var(--surface-2);
+    }
+
+    .parameter-item strong {
+      display: block;
+      margin-bottom: 5px;
+      color: var(--ink);
+      font-size: .9rem;
+    }
+
+    .parameter-item span {
+      display: block;
+      color: var(--muted);
+      font-size: .82rem;
+      line-height: 1.45;
+    }
+
+    .method-note.compact {
+      margin: 0 0 26px;
+      padding: 12px 15px;
+      border-left: 3px solid var(--accent);
+      border-radius: 0 9px 9px 0;
+      color: var(--muted);
+      background: var(--accent-soft);
+      font-size: .84rem;
+      line-height: 1.5;
+    }
+
+    .transform-flow {
+      counter-reset: transform-step;
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 12px;
+      margin: 18px 0 0;
+      padding: 0;
+      list-style: none;
+    }
+
+    .transform-flow li {
+      position: relative;
+      isolation: isolate;
+      overflow: hidden;
+
+      padding: 15px 14px;
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      background: var(--surface-2);
+    }
+
+    .transform-flow li > strong,
+    .transform-flow li > span {
+      position: relative;
+      z-index: 2;
+    }
+
+    /* .transform-flow li::before {
+      content: counter(transform-step);
+      position: absolute;
+      top: 13px;
+      left: 14px;
+      width: 21px;
+      height: 21px;
+      display: grid;
+      place-items: center;
+      border-radius: 50%;
+      color: var(--bg);
+      background: var(--accent);
+      font-size: .7rem;
+      font-weight: 700;
+    } */
+
+    .transform-flow strong {
+      display: block;
+      margin-bottom: 5px;
+      color: var(--ink);
+      font-size: .85rem;
+    }
+
+    .transform-flow span {
+      display: block;
+      color: var(--muted);
+      font-size: .78rem;
+      line-height: 1.45;
+      hyphens: auto;
+      -webkit-hyphens: auto;
+      -ms-hyphens: auto;
+      text-align: justify;
+      z-index: 1;
+    }
+    
+    .transform-flow .ghost-number {
+      position: absolute;
+      right: -6px;
+      bottom: -12px;
+      z-index: 0;
+
+      color: color-mix(
+        in srgb,
+        var(--accent) 8%,
+        transparent
+      );
+
+      font-size: 5rem;
+      font-weight: 900;
+      line-height: 1;
+
+      pointer-events: none;
+      user-select: none;
+    }
+
+    .transform-cards {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 18px;
+      margin-top: 16px;
+    }
+
+    @media (max-width: 900px) {
+      .transform-cards {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+    }
+
+    @media (max-width: 560px) {
+      .transform-cards {
+        grid-template-columns: 1fr;
+      }
+    }
+    
+    .problem-card .ghost-number {
+      position: absolute;
+      right: 0;
+      bottom: 0;
+      color: var(--bg);
+      font-size: 5rem;
+      font-weight: 900;
+      line-height: 1;
+      pointer-events: none;
+      z-index: 0;
+    }
+
+
+    @media (max-width: 720px) {
+      .parameter-strip {
+        grid-template-columns: 1fr;
+      }
+
+      .transform-flow {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+    }
+
+    @media (max-width: 460px) {
+      .transform-flow {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    ol.ingredients { padding-left: 0; list-style: none; counter-reset: ing; margin: 0; }
+    ol.ingredients li { counter-increment: ing; position: relative; padding: 12px 0 12px 46px; border-top: 1px solid var(--line); }
+    ol.ingredients li:first-child { border-top: none; }
+    ol.ingredients li::before {
+      content: counter(ing); position: absolute; left: 0; top: 12px;
+      width: 30px; height: 30px; border-radius: 50%; background: var(--ink); color: var(--bg);
+      display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: .95rem;
+    }
+
+    ul.models { list-style: none; margin: 0; padding: 0; }
+    ul.models li { padding: 9px 0; border-top: 1px solid var(--line); }
+    ul.models li:first-child { border-top: none; }
+
+    pre {
+      background: #1a1a1a; color: #f2f2f2; padding: 20px; border-radius: 10px;
+      overflow-x: auto; font-size: .86rem; line-height: 1.55;
+      font-family: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, monospace;
+    }
+
+    .copy-btn {
+      display: none;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      position: absolute;
+      top: 10px;
+      right: 10px;
+      padding: 8px 16px;
+      background: #e0e0e0;
+      border: 1px solid #ccc;
+      border-radius: 6px;
+      color: #333;
+      font-size: 0.85rem;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+    .bibtex-box { position: relative; }
+    .bibtex-box:hover .copy-btn { display: flex; }
+
+    .arena-container {
+      max-width: 1000px;
+      margin: 0 auto;
+      padding: 20px 0;
+    }
+    .arena-main-panel {
+      display: flex;
+      align-items: flex-start;
+      gap: 0;
+      width: 100%;
+      justify-content: center;
+    }
+    .arena-input-section {
+      flex: 0 0 auto;
+      padding-right: 24px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+    .arena-divider {
+      width: 2px;
+      background: var(--line);
+      margin: 0 12px;
+      flex-shrink: 0;
+      align-self: stretch;
+    }
+    .arena-output-section {
+      flex: 0 0 auto;
+      padding-left: 24px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+    .arena-label {
+      font-size: .95rem;
+      font-weight: 600;
+      color: var(--ink);
+      margin-bottom: 12px;
+      letter-spacing: 0.05em;
+      text-align: center;
+    }
+    .arena-image-box {
+      padding: 4px;
+      background: var(--bg);
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      max-width: 220px;
+      width: 220px;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      position: relative;
+      aspect-ratio: 4/3;
+    }
+    .arena-image-box:hover {
+      border-color: var(--accent);
+      box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+    }
+    .arena-image-box img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      border-radius: 10px;
+      display: block;
+    }
+    .arena-image-box .img-placeholder,
+    .arena-card .img-placeholder {
+      position: absolute;
+      top: 0px;
+      left: 0px;
+      right: 0px;
+      bottom: 0px;
+      border-radius: 10px;
+      background: var(--surface-2);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      color: var(--muted);
+      z-index: 1;
+    }
+    .arena-image-box .img-placeholder .icon,
+    .arena-card .img-placeholder .icon {
+      width: 30px;
+      height: 30px;
+      /* background: var(--bg); */
+
+      display: grid;
+      place-items: center;
+      /* justify-content: center; */
+
+      border: 1px dashed var(--line-strong);
+      border-radius: 8px;
+      color: var(--ink);
+      margin-bottom: 2px;
+    }
+    .arena-image-box .img-placeholder .icon svg,
+    .arena-image-box .img-placeholder .icon i,
+    .arena-card .img-placeholder .icon svg,
+    .arena-card .img-placeholder .icon i {
+      width: 16px;
+      height: 16px;
+    }
+    .arena-image-box .img-placeholder .filename,
+    .arena-card .img-placeholder .filename {
+      font-size: .85rem;
+      font-family: 'SFMono-Regular', Consolas, monospace;
+      text-align: center;
+      white-space: nowrap;
+    }
+    .arena-image-box .img-placeholder .label,
+    .arena-card .img-placeholder .label {
+      font-size: .8rem;
+      text-align: center;
+    }
+    .arena-grid {
+      display: flex;
+      flex-direction: row;
+      gap: 16px;
+      width: 100%;
+      align-items: flex-start;
+    }
+    .arena-card {
+      position: relative;
+      width: 220px;
+      padding: 4px;
+      background: var(--bg);
+      border: 2px solid var(--line);
+      border-radius: 12px;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      overflow: hidden;
+      aspect-ratio: 4/3;
+    }
+    .arena-card:hover {
+      border-color: var(--accent);
+      transform: translateY(-4px);
+      box-shadow: 0 8px 24px rgba(0,0,0,0.1);
+    }
+    .arena-card.selected {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.2);
+    }
+    .arena-card.correct {
+      border-color: #ffd700;
+      box-shadow: 0 0 0 3px rgba(255, 215, 0, 0.3);
+    }
+    .arena-card.selected.correct {
+      border-color: #ffd700;
+      box-shadow: 0 0 0 4px rgba(255, 215, 0, 0.4);
+    }
+    .arena-card-index {
+      position: absolute;
+      top: 8px;
+      left: 8px;
+      width: 28px;
+      height: 28px;
+      background: var(--bg);
+      color: var(--muted);
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1rem;
+      font-weight: 700;
+      z-index: 2;
+    }
+    .arena-card.correct .arena-card-index {
+      background: #ffd700;
+      color: #333;
+    }
+    .arena-card img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      border-radius: 10px;
+      display: block;
+    }
+
+    .arena-tip {
+      text-align: center;
+      margin: 16px 0;
+      font-size: .95rem;
+      line-height: 1.6;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 16px;
+      flex-wrap: wrap;
+    }
+    .arena-tip > span,
+    .viewer-tip > span {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      line-height: 1;
+      white-space: nowrap;
+    }
+    .mouse-icon {
+      width: 20px;
+      height: 20px;
+      display: block;
+      flex: 0 0 20px;
+      padding: 0;
+      margin: 0;
+      border: 0;
+      border-radius: 0;
+      background: transparent;
+      vertical-align: middle;
+      overflow: visible;
+    }
+    .mouse-body {
+      fill: none;
+      stroke: var(--muted);
+      stroke-width: 1.45;
+    }
+    .mouse-body.fill {
+      fill: var(--bg);
+      stroke: none;
+    }
+    .mouse-button {
+      fill: transparent;
+    }
+    .mouse-button.active {
+      fill: var(--accent);
+    }
+    .mouse-wheel {
+      fill: var(--line);
+    }
+    .mouse-wheel.active {
+      fill: var(--accent);
+    }
+    .scroll-mark {
+      fill: var(--ink);
+    }
+
+    .key-icon,
+    .cursor-click-icon {
+      height: 16px;
+      flex: 0 0 auto;
+      display: inline-block;
+      vertical-align: middle;
+    }
+    .keycap {
+      fill: var(--bg);
+      stroke: var(--muted);
+      stroke-width: 1.45;
+    }
+    .key-stroke {
+      fill: none;
+      stroke: var(--muted);
+      stroke-width: 1.45;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+    }
+    .key-text {
+      fill: var(--muted);
+      font-family: monospace;
+      font-weight: bold;
+      stroke-width: 1.45;
+    }
+    .cursor-fill {
+      fill: var(--bg);
+      stroke: var(--muted);
+      stroke-width: 1.45;
+      stroke-linejoin: round;
+    }
+    .click-rays {
+      fill: none;
+      stroke: var(--muted);
+      stroke-width: 1.45;
+      stroke-linecap: round;
+    }
+
+    .arena-feedback-row {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 16px;
+      margin: 20px 0;
+    }
+    .arena-feedback {
+      text-align: center;
+      font-size: 1.1rem;
+      font-weight: 600;
+      min-height: 40px;
+      flex: 1;
+    }
+    .arena-feedback.correct {
+      color: #22c55e;
+    }
+    .arena-feedback.wrong {
+      color: #ef4444;
+    }
+    .arena-next-btn {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 12px 30px;
+      background: var(--accent);
+      color: var(--bg);
+      border: none;
+      border-radius: 40px;
+      font-size: 1rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .arena-next-btn:hover {
+      background: var(--accent);
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+    }
+    .arena-next-btn svg {
+      width: 18px;
+      height: 18px;
+    }
+    .arena-controls {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 20px;
+      margin: 16px 0;
+    }
+    .arena-vote-chart {
+      margin-top: 24px;
+      padding: 16px;
+      background: var(--surface-2);
+      border-radius: 12px;
+      position: relative;
+    }
+    .vote-chart-title {
+      font-size: 0.95rem;
+      font-weight: 600;
+      color: var(--ink);
+      margin-bottom: 8px;
+      text-align: center;
+    }
+    .vote-chart-legend {
+      display: flex;
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 4px;
+      position: absolute;
+      top: 16px;
+      left: 16px;
+      z-index: 10;
+      padding: 6px 10px;
+      background: none;
+      backdrop-filter: blur(8px);
+      border-radius: 6px;
+    }
+    .legend-item {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 0.85rem;
+      color: var(--muted);
+    }
+    .legend-color {
+      width: 12px;
+      height: 12px;
+      border-radius: 3px;
+      background: var(--line);
+    }
+    .legend-color.cage {
+      background: var(--accent);
+    }
+    .legend-text {
+      font-weight: 500;
+    }
+    .vote-chart-bars {
+      display: flex;
+      align-items: flex-end;
+      justify-content: center;
+      gap: 8px;
+      height: 160px;
+      padding: 0 16px 10px;
+    }
+    .vote-bar-item {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 2px;
+      flex: 1;
+      max-width: 80px;
+      height: 100%;
+    }
+    .vote-bar-group {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 2px;
+      flex: 1;
+      justify-content: flex-end;
+    }
+    .vote-bar {
+      width: 40px;
+      background: var(--line);
+      border-radius: 6px 6px 0 0;
+      transition: height 0.5s ease;
+    }
+    .vote-bar.cage {
+      background: var(--accent);
+    }
+    .vote-label {
+      font-size: 0.65rem;
+      color: var(--muted);
+      text-align: center;
+      white-space: normal;
+      word-wrap: break-word;
+      max-width: 60px;
+      line-height: 1.4;
+      display: flex;
+      align-items: flex-start;
+      justify-content: center;
+      height: 36px;
+    }
+    .vote-count {
+      font-size: 0.8rem;
+      font-weight: 600;
+      color: var(--ink);
+    }
+    .arena-controls-left {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+    }
+    .arena-toggle {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      cursor: pointer;
+      font-size: 0.9rem;
+      font-weight: 500;
+      color: var(--ink);
+    }
+    .arena-toggle input[type="checkbox"] {
+      display: none;
+    }
+    .toggle-slider {
+      width: 44px;
+      height: 24px;
+      background: var(--line);
+      border-radius: 12px;
+      position: relative;
+      transition: background 0.3s ease;
+    }
+    .toggle-slider::after {
+      content: '';
+      position: absolute;
+      top: 2px;
+      left: 2px;
+      width: 20px;
+      height: 20px;
+      background: var(--bg);
+      border-radius: 50%;
+      transition: transform 0.3s ease;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+    }
+    .arena-toggle input[type="checkbox"]:checked + .toggle-slider {
+      background: var(--accent);
+    }
+    .arena-toggle input[type="checkbox"]:checked + .toggle-slider::after {
+      transform: translateX(20px);
+    }
+    .arena-submit-btn {
+      padding: 10px 24px;
+      background: var(--btn-bg);
+      color: var(--btn-text);
+      border: none;
+      border-radius: 20px;
+      font-size: 0.9rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      box-shadow: 0 2px 8px var(--shadow);
+    }
+    .arena-submit-btn:hover {
+      background: var(--accent);
+      color: var(--bg);
+      transform: translateY(-1px);
+      box-shadow: 0 4px 16px var(--shadow);
+    }
+    .arena-link-btn {
+      padding: 8px 14px;
+      background: transparent;
+      color: var(--ink);
+      border: 1px solid var(--line);
+      border-radius: 20px;
+      font-size: 0.85rem;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .arena-link-btn:hover {
+      border-color: var(--accent);
+      color: var(--accent);
+    }
+    .arena-link-btn.linked {
+      border-color: var(--accent);
+      color: var(--accent);
+    }
+    .arena-link-btn .link-status-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: var(--line);
+      transition: background 0.3s ease;
+    }
+    .arena-link-btn.linked .link-status-dot {
+      background: var(--accent);
+    }
+    .collapsible-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      cursor: pointer;
+      padding: 8px 0;
+      transition: all 0.3s ease;
+    }
+    .collapsible-header:hover {
+      opacity: 0.8;
+    }
+    .collapsible-icon {
+      transition: transform 0.3s ease;
+      font-size: 0.8rem;
+    }
+    .collapsible-header.expanded .collapsible-icon {
+      transform: rotate(180deg);
+    }
+    .collapsible-content {
+      max-height: 0;
+      overflow: hidden;
+      transition: max-height 0.3s ease;
+    }
+    .collapsible-content.open {
+      max-height: 500px;
+    }
+    #acknowledgement .page-credit {
+      margin: 16px 0 0;
+      color: var(--muted);
+      font-size: .88rem;
+      text-align: left;
+    }
+
+    .arena-compare-slider {
+      margin: 20px 0;
+      padding: 20px;
+      background: var(--surface-2);
+      border-radius: 12px;
+      text-align: center;
+    }
+    .compare-container {
+      position: relative;
+      max-width: 600px;
+      margin: 0 auto;
+      border-radius: 10px;
+      overflow: hidden;
+      border: 1px solid var(--line);
+    }
+    .compare-container img {
+      width: 100%;
+      display: block;
+    }
+    .compare-base {
+      position: relative;
+      z-index: 1;
+    }
+    .compare-target {
+      position: absolute;
+      top: 0;
+      left: 0;
+      z-index: 2;
+      clip-path: inset(0 50% 0 0);
+    }
+    .compare-divider {
+      position: absolute;
+      top: 0;
+      left: 50%;
+      width: 0px;
+      height: 100%;
+      border: 0px solid var(--accent);
+      background: var(--accent);
+      z-index: 3;
+      transform: translateX(-50%);
+      cursor: ew-resize;
+    }
+    .compare-divider::before, .compare-divider::after {
+      content: '';
+      position: absolute;
+      top: 50%;
+      transform: translateY(-50%);
+      width: 0px;
+      height: 100%;
+      border: 0px solid var(--accent);
+      border-radius: 50%;
+      background: var(--bg);
+    }
+    .compare-divider::before {
+      left: -8px;
+    }
+    .compare-divider::after {
+      right: -8px;
+    }
+    .compare-slider {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      opacity: 0;
+      cursor: ew-resize;
+      z-index: 4;
+    }
+    .compare-hint {
+      position: absolute;
+      bottom: 10px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: rgba(0,0,0,0.6);
+      color: var(--bg);
+      padding: 6px 12px;
+      border-radius: 20px;
+      font-size: 0.8rem;
+      z-index: 5;
+    }
+    .compare-close {
+      margin-top: 12px;
+      padding: 8px 20px;
+      background: transparent;
+      color: var(--muted);
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 0.9rem;
+      transition: all 0.3s ease;
+    }
+    .compare-close:hover {
+      background: var(--surface-2);
+      color: var(--ink);
+    }
+    .arena-image-viewer {
+      position: fixed !important;
+      top: 0 !important;
+      left: 0 !important;
+      right: 0 !important;
+      width: 100vw !important;
+      height: 100vh !important;
+      z-index: 9999 !important;
+      display: none !important;
+      align-items: center !important;
+      justify-content: center !important;
+      overflow: hidden !important;
+      background: rgba(250, 250, 250, 0.85) !important;
+      backdrop-filter: blur(20px) saturate(180%) !important;
+      -webkit-backdrop-filter: blur(20px) saturate(180%) !important;
+      cursor: zoom-out;
+    }
+    [data-theme="dark"] .arena-image-viewer {
+      background: rgba(34, 34, 40, 0.85) !important;
+    }
+    .arena-image-viewer.active {
+      display: flex !important;
+    }
+    .viewer-image {
+      max-width: 92vw !important;
+      max-height: calc(100% - 60px) !important;
+      width: auto !important;
+      height: auto !important;
+      object-fit: contain !important;
+      transform-origin: center center;
+      cursor: grab;
+      user-select: none;
+      -webkit-user-drag: none;
+    }
+    .viewer-image.is-dragging {
+      cursor: grabbing;
+    }
+    .viewer-index, .viewer-tip {
+      position: absolute;
+      left: 50%;
+      transform: translateX(-50%);
+      color: var(--ink);
+      z-index: 10000;
+    }
+    .viewer-index {
+      top: 20px;
+      padding: 6px 12px;
+      border-radius: 999px;
+      background: rgba(0,0,0,0.1);
+    }
+    .viewer-tip {
+      bottom: 20px;
+      padding: 8px 14px;
+      border-radius: 8px;
+      background: rgba(0,0,0,0.1);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+    .fireworks-canvas {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      pointer-events: none;
+      z-index: 9999;
+    }
+    .arena-card.comparison-base, .arena-image-box.comparison-base {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.15);
+    }
+    .arena-compare-wrapper {
+      position: relative;
+      display: block;
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      border-radius: 10px;
+    }
+    .arena-compare-wrapper .slider-container {
+      position: relative;
+      width: 100%;
+      height: 100%;
+      background: var(--bg);
+      overflow: hidden;
+      border-radius: 6px;
+    }
+    .arena-compare-wrapper .img {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      display: block;
+      object-fit: cover;
+      object-position: center;
+      border-radius: 0;
+      user-select: none;
+      -webkit-user-drag: none;
+    }
+    .arena-compare-wrapper .foreground-img {
+      width: 100%;
+      border-right: 0;
+      clip-path: inset(0 50% 0 0);
+    }
+    .arena-compare-wrapper .compare-divider {
+      position: absolute;
+      top: 0;
+      left: 50%;
+      width: 16px;
+      height: 100%;
+      transform: translateX(-50%);
+      background: transparent;
+      cursor: ew-resize;
+      z-index: 12;
+      touch-action: none;
+    }
+    .arena-compare-wrapper .compare-divider::before {
+      content: none;
+      /* content: '';
+      position: absolute;
+      top: 0;
+      bottom: 0;
+      left: 50%;
+      width: 2px;
+      transform: translateX(-50%);
+      background: var(--accent);
+      border-radius: 0; */
+    }
+    .arena-compare-wrapper .compare-divider::after {
+      content: none;
+    }
+    .arena-compare-wrapper .slider {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      margin: 0;
+      opacity: 0;
+      pointer-events: none;
+      z-index: 11;
+    }
+    .arena-compare-wrapper .slider::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      appearance: none;
+      width: 0;
+      height: 0;
+      opacity: 0;
+      border: 0;
+      background: transparent;
+    }
+    .arena-compare-wrapper .slider::-moz-range-thumb {
+      width: 0;
+      height: 0;
+      opacity: 0;
+      border: 0;
+      background: transparent;
+    }
+    .arena-compare-wrapper .slider-button {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      width: 24px;
+      height: 24px;
+      border-radius: 50%;
+      background: var(--accent);
+      transform: translate(-50%, -50%);
+      cursor: ew-resize;
+      z-index: 13;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border: 2px solid white;
+      box-shadow: 0 2px 4px rgba(59, 130, 246, 0.3);
+    }
+    .arena-compare-wrapper .slider-button::before,
+    .arena-compare-wrapper .slider-button::after {
+      content: "";
+      width: 4px;
+      height: 4px;
+      border: solid white;
+      border-width: 0 2px 2px 0;
+      position: absolute;
+    }
+    .arena-compare-wrapper .slider-button::before {
+      transform: rotate(-45deg);
+      left: 10px;
+    }
+    .arena-compare-wrapper .slider-button::after {
+      transform: rotate(135deg);
+      right: 10px;
+    }
+    .arena-card.comparison-active {
+      cursor: default;
+    }
+    .arena-card.comparison-active:hover {
+      transform: none;
+    }
+    .copy-btn:hover { background: #d0d0d0; }
+
+    footer { color: var(--muted); font-size: .88rem; padding: 30px 22px 46px; }
+    footer > * { text-align: center; max-width: var(--max); margin: 0 auto 10px; }
+    footer a { color: var(--muted); text-decoration: underline; }
+
+    .loading-spinner {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 40px;
+    }
+    .loading-spinner i {
+      font-size: 2rem;
+      color: var(--accent);
+      animation: spin 1s linear infinite;
+    }
+    @keyframes spin {
+      from { transform: rotate(0deg); }
+      to { transform: rotate(360deg); }
+    }
+
+    @keyframes fadeInUp {
+      from {
+        opacity: 0;
+        transform: translateY(30px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    .animate-on-scroll {
+      opacity: 0;
+      transform: translateY(30px);
+      transition: opacity 0.6s ease, transform 0.6s ease;
+    }
+
+    .animate-on-scroll.visible {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    .hero-title {
+      animation: fadeInUp 0.8s ease forwards;
+    }
+    .hero-authors {
+      animation: fadeInUp 0.8s ease 0.1s forwards;
+      opacity: 0;
+    }
+    .hero-venue {
+      animation: fadeInUp 0.8s ease 0.15s forwards;
+      opacity: 0;
+    }
+    .hero-buttons {
+      animation: fadeInUp 0.8s ease 0.2s forwards;
+      opacity: 0;
+    }
+
+    @media (max-width: 640px) {
+      h1.title { font-size: 1.9rem; }
+      body { font-size: 15px; }
+      .takeaways-grid { grid-template-columns: 1fr; }
+      .takeaways-grid.custom-width { flex-direction: column; }
+      .problem-cards { grid-template-columns: 1fr; }
+      nav.top ul { display: none; }
+      nav.top .brand { font-size: .9rem; }
+    }
+  </style>
+</head>
+<body>
+
+  <nav class="top">
+    <div class="wrap">
+      <a href="#" class="brand">
+        <div class="brand-icon">
+          <img src="figures/AdaLAB.ico" alt="CAGE" />
+        </div>
+        CAGE
+      </a>
+      <div style="display: flex; align-items: center; gap: 20px;">
+        <ul>
+          <li><a href="#problem">Problem</a></li>
+          <li><a href="#gallery">Gallery</a></li>
+          <li><a href="#method">Method</a></li>
+          <li><a href="#results">Results</a></li>
+          <li><a href="#takeaways">Takeaways</a></li>
+        </ul>
+        <span class="nav-divider"></span>
+        <button id="theme-toggle" class="theme-toggle" aria-label="Toggle theme">
+          <svg class="moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M21 12.8A9 9 0 1 1 11.2 3 7 7 0 0 0 21 12.8z"></path>
+          </svg>
+          <svg class="sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <circle cx="12" cy="12" r="4"></circle>
+            <path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"></path>
+          </svg>
+        </button>
+      </div>
+    </div>
+  </nav>
+
+  <header class="hero">
+    <h1 class="title hero-title">Towards Color-faithful Low-light Image Enhancement via <span style="color:var(--highlight)">Adaptive Color Debiasing</span> and Saturation Rectification</h1>
+    <div class="authors hero-authors">
+        <a href="#" target="_blank" rel="noopener">Zhichen Yang</a>,
+        <a href="#" target="_blank" rel="noopener">Rui Xu</a>,
+        <a href="#" target="_blank" rel="noopener">Yuzhen Niu<sup>∗</sup></a>,
+        <a href="#" target="_blank" rel="noopener">Fusheng Li</a>,
+        <a href="#" target="_blank" rel="noopener">Hui Da</a>,
+        <a href="#" target="_blank" rel="noopener">Ri Cheng</a>
+      </div>
+      <div class="venue hero-venue" style="font-weight: bold;">ACM MM 2026</div>
+    <div class="affil hero-authors">Fuzhou University, Fujian, China</div>
+
+    <div class="buttons hero-buttons">
+      <a class="btn" href="#" target="_blank" rel="noopener">
+        <i class="ai ai-arxiv"></i>
+        arXiv
+      </a>
+      <a class="btn" href="#" target="_blank" rel="noopener">
+        <i class="fas fa-file-pdf"></i>
+        Paper (ACM MM 2026)
+      </a>
+      <a class="btn" href="https://github.com/Yangzhichen763/CAGE" target="_blank" rel="noopener">
+        <i class="fab fa-github"></i>
+        Code
+      </a>
+      <a class="btn" href="#bibtex">
+        BibTeX
+      </a>
+    </div>
+  </header>
+
+  <div class="wrap">
+
+    <div class="tldr">
+      <h2>TL;DR</h2>
+      <p>
+        Eliminate interference of <strong>embedded color bias</strong> throughout enhancement via <strong>reorganizing color space</strong>, delivering up to <strong>+2.21dB</strong> PSNR gain with only <strong>0.07M extra Params. and less than 0.01G FLOPs</strong>.
+      </p>
+    </div>
+
+    <section class="teaser animate-on-scroll", style="padding: 15px 0;">
+      <figure>
+        <div class="img-container">
+          <img src="figures/main/Introduction.png" alt="Figure 1: Motivation. Direct brightening makes color shifts more visible. Baseline enhancement improves brightness but leaves color bias and saturation abnormalities. Our CAGE delivers more faithful color restoration." onload="this.style.display='block'; this.style.padding='4px'; this.nextElementSibling.style.display='none';" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex'; this.nextElementSibling.querySelector('.filename').textContent='Introduction.png'; this.nextElementSibling.querySelector('.label').textContent='Figure 1: Motivation. Direct brightening makes color shifts more visible. Baseline enhancement improves brightness but leaves color bias and saturation abnormalities. Our CAGE achieves faithful color restoration.';">
+          <div class="img-placeholder" style="display:none;">
+            <div class="icon">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+                <rect x="3" y="3" width="18" height="18" rx="2"></rect>
+                <circle cx="9" cy="9" r="2"></circle>
+                <path d="M21 15l-5-5L5 21"></path>
+              </svg>
+            </div>
+            <div class="filename"></div>
+            <div class="label"></div>
+          </div>
+        </div>
+        <figcaption>
+          <strong>Figure 1: Motivation.</strong> <em>(a→b)</em> Direct brightening makes color shifts more visible. <em>(a→c)</em> Baseline enhancement improves brightness but leaves color bias and saturation abnormalities. <em>(a→d)</em> Our CAGE delivers more faithful color restoration.   
+        </figcaption>
+      </figure>
+    </section>
+
+    <section id="gallery" class="animate-on-scroll">
+      <h2>Image Arena</h2>
+      
+      <p>
+        Explore the enhanced results and choose the image that <strong>looks best</strong> and <strong>color-faithful</strong>.
+      </p>
+
+      <div class="arena-container">
+        <div class="arena-main-panel">
+          <div class="arena-input-section">
+            <div class="arena-label">Low-light / GT-mean Enlightened Input</div>
+            <div class="arena-image-box" id="arena-input-box">
+              <img id="arena-input-img" src="" alt="input" onerror="showInputPlaceholder(this)" onload="hideInputPlaceholder(this)">
+              <div class="img-placeholder" id="arena-input-placeholder" style="display:none;">
+                <!-- <div class="icon"><i class="fas fa-image"></i></div> -->
+                <div class="icon">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+                    <rect x="3" y="3" width="18" height="18" rx="2"></rect>
+                    <circle cx="9" cy="9" r="2"></circle>
+                    <path d="M21 15l-5-5L5 21"></path>
+                  </svg>
+                </div>
+                <div class="filename">input.png</div>
+                <div class="label">Low-light image</div>
+              </div>
+            </div>
+          </div>
+          <div class="arena-divider"></div>
+          <div class="arena-output-section">
+            <div class="arena-label">Enhanced Results</div>
+            <div class="arena-grid" id="arena-grid">
+              <div class="arena-card" data-index="0">
+                <div class="arena-card-index">A</div>
+                <img src="" class="arena-img" data-index="0" onerror="showCardPlaceholder(this)" onload="hideCardPlaceholder(this)">
+                <div class="img-placeholder" style="display:none;">
+                  <!-- <div class="icon"><i class="fas fa-image"></i></div> -->
+                  <div class="icon">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+                      <rect x="3" y="3" width="18" height="18" rx="2"></rect>
+                      <circle cx="9" cy="9" r="2"></circle>
+                      <path d="M21 15l-5-5L5 21"></path>
+                    </svg>
+                  </div>
+                  <div class="filename">output_A.png</div>
+                  <div class="label">Enhanced image A</div>
+                </div>
+              </div>
+              <div class="arena-card" data-index="1">
+                <div class="arena-card-index">B</div>
+                <img src="" class="arena-img" data-index="1" onerror="showCardPlaceholder(this)" onload="hideCardPlaceholder(this)">
+                <div class="img-placeholder" style="display:none;">
+                  <!-- <div class="icon"><i class="fas fa-image"></i></div> -->
+                  <div class="icon">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+                      <rect x="3" y="3" width="18" height="18" rx="2"></rect>
+                      <circle cx="9" cy="9" r="2"></circle>
+                      <path d="M21 15l-5-5L5 21"></path>
+                    </svg>
+                  </div>
+                  <div class="filename">output_B.png</div>
+                  <div class="label">Enhanced image B</div>
+                </div>
+              </div>
+              <div class="arena-card" data-index="2">
+                <div class="arena-card-index">C</div>
+                <img src="" class="arena-img" data-index="2" onerror="showCardPlaceholder(this)" onload="hideCardPlaceholder(this)">
+                <div class="img-placeholder" style="display:none;">
+                  <!-- <div class="icon"><i class="fas fa-image"></i></div> -->
+                  <div class="icon">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+                      <rect x="3" y="3" width="18" height="18" rx="2"></rect>
+                      <circle cx="9" cy="9" r="2"></circle>
+                      <path d="M21 15l-5-5L5 21"></path>
+                    </svg>
+                  </div>
+                  <div class="filename">output_C.png</div>
+                  <div class="label">Enhanced image C</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        
+        <div class="arena-tip" style="color:var(--muted); font-weight:normal;">
+          <span>
+            <!-- Left mouse button -->
+            <svg class="mouse-icon" viewBox="0 0 16 16" role="img" aria-label="Left mouse button">
+              <rect class="mouse-body fill" x="2" y="1" width="12" height="14" rx="5"></rect>
+              <defs>
+                <clipPath id="mini-left-clip">
+                  <rect x="2" y="1" width="12" height="14" rx="5"></rect>
+                </clipPath>
+              </defs>
+              <g clip-path="url(#mini-left-clip)">
+                <path class="mouse-button active" d="M2 1H8V7H2Z"></path>
+              </g>
+              <rect class="mouse-wheel" x="6.5" y="2" width="3" height="6" rx="1.5"></rect>
+              <rect class="mouse-body" x="2" y="1" width="12" height="14" rx="5"></rect>
+            </svg>
+             Left click to <strong>select</strong>
+          </span>
+          <span>
+            <!-- Right mouse button -->
+            <svg class="mouse-icon" viewBox="0 0 16 16" role="img" aria-label="Right mouse button">
+              <rect class="mouse-body fill" x="2" y="1" width="12" height="14" rx="5"></rect>
+              <defs>
+                <clipPath id="mini-right-clip">
+                  <rect x="2" y="1" width="12" height="14" rx="5"></rect>
+                </clipPath>
+              </defs>
+              <g clip-path="url(#mini-right-clip)">
+                <path class="mouse-button active" d="M8 1H14V7H8Z"></path>
+              </g>
+              <rect class="mouse-wheel" x="6.5" y="2" width="3" height="6" rx="1.5"></rect>
+              <rect class="mouse-body" x="2" y="1" width="12" height="14" rx="5"></rect>
+            </svg>
+            Right click to <strong>compare</strong>
+          </span>
+          <span>
+            <!-- Middle mouse button -->
+            <svg class="mouse-icon" viewBox="0 0 16 16" role="img" aria-label="Middle mouse button">
+              <rect class="mouse-body fill" x="2" y="1" width="12" height="14" rx="5"></rect>
+              <rect class="mouse-wheel active" x="6.5" y="2" width="3" height="6" rx="1.5"></rect>
+              <rect class="mouse-body" x="2" y="1" width="12" height="14" rx="5"></rect>
+            </svg>
+            Middle click to <strong>enlarge</strong>
+          </span>
+        </div>
+        
+        <div class="arena-feedback-row">
+          <div class="arena-feedback" id="arena-feedback"></div>
+          <button class="arena-next-btn" id="arena-next-btn" onclick="nextArenaRound()" style="display:none;">
+            Next <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"/></svg>
+          </button>
+        </div>
+        
+        <div class="arena-controls">
+          <div class="arena-controls-left">
+            <label class="arena-toggle">
+              <input type="checkbox" id="arena-random-toggle" onchange="toggleRandomMode()">
+              <span class="toggle-slider"></span>
+              Random Mode
+            </label>
+            <button class="arena-submit-btn" id="arena-submit-btn" onclick="submitCurrentArena()" style="display:none;">
+              <i class="fas fa-save"></i> Submit
+            </button>
+            <button class="arena-link-btn" id="arena-link-btn" onclick="linkArenaFile()" title="Link arena_data.json file for persistence">
+              <span class="link-status-dot"></span>
+              <i class="fas fa-link"></i> <span id="arena-link-label">Link File</span>
+            </button>
+          </div>
+        </div>
+        
+        <div class="arena-vote-chart" id="arena-vote-chart" style="display:none;">
+          <div class="vote-chart-title">Vote Statistics</div>
+          <div class="vote-chart-legend">
+            <span class="legend-item">
+              <span class="legend-color cage"></span>
+              <span class="legend-text">Ours</span>
+            </span>
+            <span class="legend-item">
+              <span class="legend-color"></span>
+              <span class="legend-text">Others</span>
+            </span>
+          </div>
+          <div class="vote-chart-bars" id="vote-chart-bars"></div>
+        </div>
+      </div>
+      
+    </section>
+    
+    <div class="arena-image-viewer" id="arena-image-viewer">
+      <div class="viewer-index" id="arena-viewer-index">1 / 1</div>
+      <img class="viewer-image" id="arena-viewer-img" src="" alt="imageViewer">
+      <div class="viewer-tip">
+        <span>
+          <!-- Middle mouse button -->
+          <svg class="mouse-icon" viewBox="0 0 16 16" role="img" aria-label="Middle mouse button">
+            <rect class="mouse-body fill" x="2" y="1" width="12" height="14" rx="5"></rect>
+            <rect class="mouse-wheel active" x="6.5" y="2" width="3" height="6" rx="1.5"></rect>
+            <rect class="mouse-body" x="2" y="1" width="12" height="14" rx="5"></rect>
+          </svg>
+           Hold middle mouse to <strong>pan</strong>
+        </span>
+        
+        <span>
+          <!-- Middle mouse button -->
+          <svg class="mouse-icon" viewBox="0 0 16 16" role="img" aria-label="Scroll mouse wheel to zoom">
+            <rect class="mouse-body fill" x="1.5" y="1" width="11" height="14" rx="5"></rect>
+            <rect class="mouse-wheel active" x="5.75" y="2" width="3" height="6" rx="1.5"></rect>
+            <rect class="mouse-body" x="1.5" y="1" width="11" height="14" rx="5"></rect>
+
+            <path class="scroll-mark" d="M15 4.5l1.5-1.5 1.5 1.5"></path>
+            <path class="scroll-mark" d="M18 3v4"></path>
+
+            <path class="scroll-mark" d="M15 7.5l1.5 1.5 1.5-1.5"></path>
+            <path class="scroll-mark" d="M18 9v4"></path>
+          </svg>
+          Scroll over image to <strong>zoom</strong>
+        </span>
+        
+        <span>
+          <!-- Mouse click -->
+          <svg class="cursor-click-icon" viewBox="0 0 15 15" role="img" aria-label="Click blank area to close">
+            <path class="cursor-fill" d="M3 2.2L3.1 11.8L5.5 9.5L7.2 13L8.8 12.2L7.1 8.8H10.5L3 2.2Z"></path>
+
+            <path class="click-rays" d="M10.9 3.3V1.9"></path>
+            <path class="click-rays" d="M12.1 4.2L13.4 2.9"></path>
+            <path class="click-rays" d="M12.6 5.8H14.1"></path>
+            <path class="click-rays" d="M12.1 7.2L13.4 8.5"></path>
+          </svg>
+          Click blank area to <strong>close</strong>
+        </span>
+        
+        <span>
+          <!-- Middle mouse button -->
+          <svg class="mouse-icon" viewBox="0 0 16 16" role="img" aria-label="Scroll mouse wheel to zoom">
+            <rect class="mouse-body fill" x="1.5" y="1" width="11" height="14" rx="5"></rect>
+            <rect class="mouse-wheel active" x="5.75" y="2" width="3" height="6" rx="1.5"></rect>
+            <rect class="mouse-body" x="1.5" y="1" width="11" height="14" rx="5"></rect>
+
+            <path class="scroll-mark" d="M15 4.5l1.5-1.5 1.5 1.5"></path>
+            <path class="scroll-mark" d="M18 3v4"></path>
+
+            <path class="scroll-mark" d="M15 7.5l1.5 1.5 1.5-1.5"></path>
+            <path class="scroll-mark" d="M18 9v4"></path>
+          </svg>
+          Scroll over blank area or
+          
+          <svg class="key-icon" viewBox="0 0 30 15" role="img" aria-label="Left and right arrow keys">
+            <!-- Left key -->
+            <rect class="keycap" x="1" y="2" width="12" height="12" rx="2.2"></rect>
+            <path class="key-stroke" d="M8 5.3L5.2 8L8 10.7"></path>
+            <path class="key-stroke" d="M5.6 8H9.8"></path>
+
+            <!-- Right key -->
+            <rect class="keycap" x="17" y="2" width="12" height="12" rx="2.2"></rect>
+            <path class="key-stroke" d="M22 5.3L24.8 8L22 10.7"></path>
+            <path class="key-stroke" d="M20.2 8H24.4"></path>
+          </svg>
+          Arrow keys or
+          <svg class="key-icon" viewBox="0 0 42 15" role="img" aria-label="Number keys 1-9">
+            <rect class="keycap" x="1" y="2" width="12" height="12" rx="2"></rect>
+            <text class="key-text" x="6.5" y="10.5" font-size="9" text-anchor="middle">1</text>
+            
+            <rect class="keycap" x="15" y="2" width="12" height="12" rx="2"></rect>
+            <text class="key-text" x="20.5" y="10.5" font-size="9" text-anchor="middle">2</text>
+            
+            <rect class="keycap" x="29" y="2" width="12" height="12" rx="2"></rect>
+            <text class="key-text" x="34.5" y="10.5" font-size="9" text-anchor="middle">3</text>
+          </svg>
+          Number keys to <strong>switch</strong>
+        </span>
+      </div>
+    </div>
+    
+    <canvas class="fireworks-canvas" id="fireworks-canvas"></canvas>
+
+    <section id="problem" class="animate-on-scroll">
+      <h2>The Problem</h2>
+      <div class="problem-cards">
+        <div class="problem-card">
+          <div class="card-index">01 · Input</div>
+          <h3>Embedded color bias</h3>
+          <p>Low signal-to-noise ratio, camera hardware, and in-camera processing introduce color shift during low-light image formation.</p>
+          <div class="ghost-number">01</div>
+        </div>
+        <div class="problem-card">
+          <div class="card-index">02 · Pipeline</div>
+          <h3>Bias propagation</h3>
+          <p>A color space can reorganize distorted colors, but the disturbance continues through enhancement unless the chromatic distribution is corrected.</p>
+          <div class="ghost-number">02</div>
+        </div>
+        <div class="problem-card">
+          <div class="card-index">03 · Output</div>
+          <h3>Chromatic Distortion</h3>
+          <p>Content-dependent chromatic amplification produces global color bias, under-saturation in some regions and over-saturation in others.</p>
+          <div class="ghost-number">03</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- <section class="animate-on-scroll">
+      <h2>The Insight</h2>
+      <p>
+        We realize that <strong>decoupling lightness from chrominance alone is insufficient</strong>. A good color space can reorganize distorted colors, but it cannot determine <em>how</em> the embedded color bias should be corrected. The key insight is that we need to <strong>actively suppress the bias before enhancement</strong> and <strong>rectify saturation after enhancement</strong>. The CIELab color space provides a coherent basis for organizing color shifts, but symmetric transforms preserve the disturbance. What we need is an <strong>adaptive, non-symmetric transform</strong> that can correct bias in a content-aware manner.
+      </p>
+    </section> -->
+
+    <!-- <section class="animate-on-scroll">
+      <h2>Our Approach</h2>
+      <p>
+        We propose <strong>CAGE</strong>, a cylindrical color correction framework that achieves color-faithful low-light image enhancement through two key innovations:
+      </p>
+      <ul style="margin: 0 0 16px 20px; padding: 0;">
+        <li><strong>AdaLAB</strong>: A cylindrical adaptive LAB color space that provides a decoupled and image-specific basis for uniform color shifts and scaling.</li>
+        <li><strong>AdaCCT</strong>: An adaptive cylindrical color transform with forward and inverse transforms that actively corrects color bias and saturation.</li>
+      </ul>
+      <p>
+        The <strong>forward transform</strong> suppresses embedded color bias <em>before</em> backbone enhancement through hue-directional chromatic debiasing and lightness-aware chroma scaling. The <strong>inverse transform</strong> rectifies saturation abnormality <em>after</em> backbone enhancement through out-of-gamut lightness compensation — converting excessive chroma into lightness rather than direct clipping.
+      </p>
+    </section> -->
+
+    <section id="method" class="animate-on-scroll">
+      <h2>Method Overview</h2>
+
+      <p class="method-lead">
+        <strong>CAGE</strong> wraps a low-light image enhancement backbone
+        with image-adaptive forward and inverse color transforms.
+      </p>
+
+      <figure class="fig" style="margin: 6px 0 24px;">
+        <div class="img-container">
+          <img
+            src="figures/main/Methodology - CAGE.png"
+            alt="Figure 2: Overview of CAGE. A lightweight CNN predicts image-adaptive cylindrical parameters. The input passes through the forward transform, the low-light image enhancement backbone, and the inverse transform."
+            onload="this.style.display='block'; this.style.padding='4px'; this.nextElementSibling.style.display='none';"
+            onerror="this.style.display='none'; this.nextElementSibling.style.display='flex'; this.nextElementSibling.querySelector('.filename').textContent='Methodology - CAGE.png'; this.nextElementSibling.querySelector('.label').textContent='Figure 2: Overview of CAGE with AdaCCT built on the AdaLAB space.';"
+          >
+
+          <div class="img-placeholder" style="display:none;">
+            <div class="icon">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+                <rect x="3" y="3" width="18" height="18" rx="2"></rect>
+                <circle cx="9" cy="9" r="2"></circle>
+                <path d="M21 15l-5-5L5 21"></path>
+              </svg>
+            </div>
+
+            <div class="filename"></div>
+            <div class="label"></div>
+          </div>
+        </div>
+
+        <figcaption>
+          <strong>Figure 2: Overview of CAGE.</strong>
+          Image-adaptive cylindrical parameters control color debiasing
+          before enhancement and saturation rectification after enhancement.
+        </figcaption>
+      </figure>
+
+      <div class="parameter-strip">
+        <div class="parameter-item">
+          <strong>Hue Shift</strong>
+          <span>Models the direction and strength of coherent color bias.</span>
+        </div>
+
+        <div class="parameter-item">
+          <strong>Chroma Scale</strong>
+          <span>Aligns chromatic ranges across different lightness levels.</span>
+        </div>
+
+        <div class="parameter-item">
+          <strong>Lightness Vertices</strong>
+          <span>Adapt both operations to the non-uniform lightness distribution.</span>
+        </div>
+      </div>
+
+      <p class="method-note compact">
+        These parameters match the cylindrical structure of LAB through directional shift, radial scaling, and lightness-aware sampling. Compared with a dense LUT, this parameterization is more compact and enables global interaction across lightness vertices.
+      </p>
+
+      <h3>
+        AdaCCT: Correct Before Enhancement, Rectify After Enhancement
+      </h3>
+
+      <figure class="fig">
+        <div class="img-container">
+          <img
+            src="figures/main/Methodology - AdaCCT.png"
+            alt="Figure 4: Pipeline of AdaCCT. The forward transform converts RGB to LAB, applies chromatic debiasing and chroma scaling, and constructs AdaLAB. The inverse transform reverts chroma scaling, applies out-of-gamut lightness compensation, and converts LAB back to RGB."
+            onload="this.style.display='block'; this.style.padding='4px'; this.nextElementSibling.style.display='none';"
+            onerror="this.style.display='none'; this.nextElementSibling.style.display='flex'; this.nextElementSibling.querySelector('.filename').textContent='Methodology - AdaCCT.png'; this.nextElementSibling.querySelector('.label').textContent='Figure 4: Forward and inverse transforms of AdaCCT.';"
+          >
+
+          <div class="img-placeholder" style="display:none;">
+            <div class="icon">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+                <rect x="3" y="3" width="18" height="18" rx="2"></rect>
+                <circle cx="9" cy="9" r="2"></circle>
+                <path d="M21 15l-5-5L5 21"></path>
+              </svg>
+            </div>
+
+            <div class="filename"></div>
+            <div class="label"></div>
+          </div>
+        </div>
+
+        <figcaption>
+          <strong>Figure 4: Forward and inverse transforms of AdaCCT.</strong>
+        </figcaption>
+      </figure>
+
+      <ol class="transform-flow">
+        <li>
+          <strong>Chromatic Debiasing</strong>
+          <span>Shifts biased chroma toward a corrected distribution.</span>
+          <!-- <div class="ghost-number">01</div> -->
+        </li>
+
+        <li>
+          <strong>Apply Chroma Scaling</strong>
+          <span>Constructs a more consistent AdaLAB representation.</span>
+          <!-- <div class="ghost-number">02</div> -->
+        </li>
+
+        <li>
+          <strong>Revert Chroma Scaling</strong>
+          <span>Maps the enhanced representation back to base LAB.</span>
+          <!-- <div class="ghost-number">03</div> -->
+        </li>
+
+        <li>
+          <strong>Lightness Compensation</strong>
+          <span>Converts out-of-gamut saturation surplus into lightness gain.</span>
+          <!-- <div class="ghost-number">04</div> -->
+        </li>
+      </ol>
+    </section>
+
+    <!-- <section class="animate-on-scroll">
+      <h2>Key Components</h2>
+      <ul class="ingredients">
+        <li>
+          <strong>AdaLAB Color Space</strong>: A cylindrical adaptive LAB color space that inherits the lightness (L) and two opponent chromatic axes (A, B) from CIELab. It serves as a decoupled and image-specific basis for accommodating uniform color shifts and scaling in the chromatic plane, providing a coherent foundation for organizing low-light chromatic variation.
+        </li>
+        <li>
+          <strong>AdaCCT Transform</strong>: An adaptive cylindrical color transform built on AdaLAB that suppresses embedded color bias before enhancement and rectifies saturation abnormality after enhancement:
+          <ul style="margin: 8px 0 0 20px; padding: 0;">
+            <li><strong>Forward Transform</strong>: Maps RGB to AdaLAB through RGB-to-LAB conversion, <strong>hue-directional chromatic debiasing</strong> (suppressing embedded color bias via lightness-aware hue-shift), and <strong>lightness-aware chroma scaling</strong> (reorganizing chromatic distribution).</li>
+            <li><strong>Inverse Transform</strong>: Reverts chroma-scaling intensity and applies <strong>out-of-gamut lightness compensation</strong> (converting excessive chroma into lightness compensation rather than direct clipping) before LAB-to-RGB conversion.</li>
+          </ul>
+        </li>
+        <li>
+          <strong>Image-Adaptive Cylindrical Parameters</strong>: Predicted from a downsampled input via a lightweight CNN backbone:
+          <ul style="margin: 8px 0 0 20px; padding: 0;">
+            <li><strong>Lightness Sensitivity Vertices</strong>: Image-adaptive lightness intervals converted into monotonically increasing sampling vertices, capturing non-uniform chromatic variation across lightness levels.</li>
+            <li><strong>Chroma-Scaling Intensity Values</strong>: Learned values with global interaction across lightness vertices, aligning chromatic distributions across different lightness levels.</li>
+            <li><strong>Hue-shift Direction and Magnitude</strong>: A shared 2D hue-shift direction vector modeling global shift pattern, combined with lightness-aware magnitude values for content-dependent debiasing.</li>
+          </ul>
+        </li>
+      </ul>
+    </section> -->
+
+    <!-- <section id="results" class="animate-on-scroll">
+      <h2>Experimental Results</h2>
+      <p>
+        Qualitative comparisons demonstrating CAGE's effectiveness in color restoration across different datasets and scenarios.
+      </p>
+
+      <figure class="fig">
+        <div class="img-container">
+          <img src="figures/main/Motivation - color shift patterns.png" alt="Figure 4: Visualization of low-light color shift patterns in different color spaces." onload="this.style.display='block'; this.style.padding='4px'; this.nextElementSibling.style.display='none';" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex'; this.nextElementSibling.querySelector('.filename').textContent='Motivation - color shift patterns.png'; this.nextElementSibling.querySelector('.label').textContent='Figure 4: Visualization of low-light color shift patterns in different color spaces.';">
+          <div class="img-placeholder" style="display:none;">
+            <div class="icon">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+                <rect x="3" y="3" width="18" height="18" rx="2"></rect>
+                <circle cx="9" cy="9" r="2"></circle>
+                <path d="M21 15l-5-5L5 21"></path>
+              </svg>
+            </div>
+            <div class="filename"></div>
+            <div class="label"></div>
+          </div>
+        </div>
+        <figcaption>
+          <strong>Figure 4: Visualization of low-light color shift patterns</strong> in different color spaces.
+        </figcaption>
+      </figure>
+
+      <figure class="fig">
+        <div class="img-container">
+          <img src="figures/main/Motivation - gamut handling.png" alt="Figure 5: Comparison of out-of-gamut handling strategies." onload="this.style.display='block'; this.style.padding='4px'; this.nextElementSibling.style.display='none';" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex'; this.nextElementSibling.querySelector('.filename').textContent='Motivation - gamut handling.png'; this.nextElementSibling.querySelector('.label').textContent='Figure 5: Comparison of out-of-gamut handling strategies.';">
+          <div class="img-placeholder" style="display:none;">
+            <div class="icon">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+                <rect x="3" y="3" width="18" height="18" rx="2"></rect>
+                <circle cx="9" cy="9" r="2"></circle>
+                <path d="M21 15l-5-5L5 21"></path>
+              </svg>
+            </div>
+            <div class="filename"></div>
+            <div class="label"></div>
+          </div>
+        </div>
+        <figcaption>
+          <strong>Figure 5: Comparison of out-of-gamut handling strategies.</strong>
+        </figcaption>
+      </figure>
+
+      <figure class="fig">
+        <div class="img-container">
+          <img src="figures/main/Experiment - main results.png" alt="Figure 6: Qualitative comparison showing reduced color distortion." onload="this.style.display='block'; this.style.padding='4px'; this.nextElementSibling.style.display='none';" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex'; this.nextElementSibling.querySelector('.filename').textContent='Experiment - main results.png'; this.nextElementSibling.querySelector('.label').textContent='Figure 6: Qualitative comparison showing reduced color distortion.';">
+          <div class="img-placeholder" style="display:none;">
+            <div class="icon">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+                <rect x="3" y="3" width="18" height="18" rx="2"></rect>
+                <circle cx="9" cy="9" r="2"></circle>
+                <path d="M21 15l-5-5L5 21"></path>
+              </svg>
+            </div>
+            <div class="filename"></div>
+            <div class="label"></div>
+          </div>
+        </div>
+        <figcaption>
+          <strong>Figure 6: Qualitative comparison showing reduced color distortion.</strong>
+        </figcaption>
+      </figure>
+    </section> -->
+
+    <section id="results" class="animate-on-scroll">
+      <h2>Qualitative Results</h2>
+      <p>
+        Comprehensive qualitative comparisons across paired and unpaired datasets, demonstrating CAGE's superior color restoration capability.
+      </p>
+
+      <div class="accordion">
+        <div class="accordion-sticky-header" id="accordion-sticky">
+          <h3></h3>
+          <span class="accordion-icon"><i class="fas fa-chevron-down"></i></span>
+        </div>
+        <div class="accordion-item">
+          <div class="accordion-header">
+            <h3>Paired Dataset Results</h3>
+            <span class="accordion-icon"><i class="fas fa-chevron-down"></i></span>
+          </div>
+          <div class="accordion-content">
+            <div class="accordion-content-inner">
+              <figure class="fig" style="margin: 6px 0 24px;">
+                <div class="img-container">
+                  <img src="figures/supp/Supplementary - paired - LOLv1.png" alt="Figure 7: Paired comparison on LOLv1 dataset. CAGE achieves more faithful color restoration with reduced color bias." onload="this.style.display='block'; this.style.padding='4px'; this.nextElementSibling.style.display='none';" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex'; this.nextElementSibling.querySelector('.filename').textContent='Supplementary - paired - LOLv1.png'; this.nextElementSibling.querySelector('.label').textContent='Figure 7: Paired comparison on LOLv1 dataset. CAGE achieves more faithful color restoration with reduced color bias.';">
+                  <div class="img-placeholder" style="display:none;">
+                    <div class="icon">
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+                        <rect x="3" y="3" width="18" height="18" rx="2"></rect>
+                        <circle cx="9" cy="9" r="2"></circle>
+                        <path d="M21 15l-5-5L5 21"></path>
+                      </svg>
+                    </div>
+                    <div class="filename"></div>
+                    <div class="label"></div>
+                  </div>
+                </div>
+                <figcaption>
+                  <strong>Figure 7: Paired comparison on LOLv1 dataset.</strong> CAGE achieves more faithful color restoration with reduced color bias.
+                </figcaption>
+              </figure>
+              <figure class="fig" style="margin: 6px 0 24px;">
+                <div class="img-container">
+                  <img src="figures/supp/Supplementary - paired - LOLv2-real.png" alt="Figure 8: Paired comparison on LOLv2-real dataset. Real-world low-light images with challenging color shifts." onload="this.style.display='block'; this.style.padding='4px'; this.nextElementSibling.style.display='none';" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex'; this.nextElementSibling.querySelector('.filename').textContent='Supplementary - paired - LOLv2-real.png'; this.nextElementSibling.querySelector('.label').textContent='Figure 8: Paired comparison on LOLv2-real dataset. Real-world low-light images with challenging color shifts.';">
+                  <div class="img-placeholder" style="display:none;">
+                    <div class="icon">
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+                        <rect x="3" y="3" width="18" height="18" rx="2"></rect>
+                        <circle cx="9" cy="9" r="2"></circle>
+                        <path d="M21 15l-5-5L5 21"></path>
+                      </svg>
+                    </div>
+                    <div class="filename"></div>
+                    <div class="label"></div>
+                  </div>
+                </div>
+                <figcaption>
+                  <strong>Figure 8: Paired comparison on LOLv2-real dataset.</strong> Real-world low-light images with challenging color shifts.
+                </figcaption>
+              </figure>
+              <figure class="fig" style="margin: 6px 0 24px;">
+                <div class="img-container">
+                  <img src="figures/supp/Supplementary - paired - LOLv2-syn.png" alt="Figure 9: Paired comparison on LOLv2-synthetic dataset. Synthetic low-light images with controlled color distortion." onload="this.style.display='block'; this.style.padding='4px'; this.nextElementSibling.style.display='none';" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex'; this.nextElementSibling.querySelector('.filename').textContent='Supplementary - paired - LOLv2-syn.png'; this.nextElementSibling.querySelector('.label').textContent='Figure 9: Paired comparison on LOLv2-synthetic dataset. Synthetic low-light images with controlled color distortion.';">
+                  <div class="img-placeholder" style="display:none;">
+                    <div class="icon">
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+                        <rect x="3" y="3" width="18" height="18" rx="2"></rect>
+                        <circle cx="9" cy="9" r="2"></circle>
+                        <path d="M21 15l-5-5L5 21"></path>
+                      </svg>
+                    </div>
+                    <div class="filename"></div>
+                    <div class="label"></div>
+                  </div>
+                </div>
+                <figcaption>
+                  <strong>Figure 9: Paired comparison on LOLv2-synthetic dataset.</strong> Synthetic low-light images with controlled color distortion.
+                </figcaption>
+              </figure>
+              <figure class="fig" style="margin: 6px 0 24px;">
+                <div class="img-container">
+                  <img src="figures/supp/Supplementary - paired - SDSD+SID.png" alt="Figure 10: Paired comparison on SDSD & SID datasets. Additional real-world low-light benchmarks." onload="this.style.display='block'; this.style.padding='4px'; this.nextElementSibling.style.display='none';" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex'; this.nextElementSibling.querySelector('.filename').textContent='Supplementary - paired - SDSD+SID.png'; this.nextElementSibling.querySelector('.label').textContent='Figure 10: Paired comparison on SDSD & SID datasets. Additional real-world low-light benchmarks.';">
+                  <div class="img-placeholder" style="display:none;">
+                    <div class="icon">
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+                        <rect x="3" y="3" width="18" height="18" rx="2"></rect>
+                        <circle cx="9" cy="9" r="2"></circle>
+                        <path d="M21 15l-5-5L5 21"></path>
+                      </svg>
+                    </div>
+                    <div class="filename"></div>
+                    <div class="label"></div>
+                  </div>
+                </div>
+                <figcaption>
+                  <strong>Figure 10: Paired comparison on SDSD & SID datasets.</strong> Additional real-world low-light benchmarks.
+                </figcaption>
+              </figure>
+            </div>
+          </div>
+        </div>
+
+        <div class="accordion-item">
+          <div class="accordion-header">
+            <h3>Unpaired Dataset Results</h3>
+            <span class="accordion-icon"><i class="fas fa-chevron-down"></i></span>
+          </div>
+          <div class="accordion-content">
+            <div class="accordion-content-inner">
+              <figure class="fig" style="margin: 6px 0 24px;">
+                <div class="img-container">
+                  <img src="figures/supp/Supplementary - unpaired - all.png" alt="Figure 11: Unpaired comparison on various datasets. CAGE demonstrates robust performance without ground-truth supervision." onload="this.style.display='block'; this.style.padding='4px'; this.nextElementSibling.style.display='none';" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex'; this.nextElementSibling.querySelector('.filename').textContent='Supplementary - unpaired - all.png'; this.nextElementSibling.querySelector('.label').textContent='Figure 11: Unpaired comparison on various datasets. CAGE demonstrates robust performance without ground-truth supervision.';">
+                  <div class="img-placeholder" style="display:none;">
+                    <div class="icon">
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+                        <rect x="3" y="3" width="18" height="18" rx="2"></rect>
+                        <circle cx="9" cy="9" r="2"></circle>
+                        <path d="M21 15l-5-5L5 21"></path>
+                      </svg>
+                    </div>
+                    <div class="filename"></div>
+                    <div class="label"></div>
+                  </div>
+                </div>
+                <figcaption>
+                  <strong>Figure 11: Unpaired comparison on various datasets.</strong> CAGE demonstrates robust performance without ground-truth supervision.
+                </figcaption>
+              </figure>
+            </div>
+          </div>
+        </div>
+
+        <!-- <div class="accordion-item">
+          <div class="accordion-header">
+            <h3>Framework Integration</h3>
+            <span class="accordion-icon"><i class="fas fa-chevron-down"></i></span>
+          </div>
+          <div class="accordion-content">
+            <div class="accordion-content-inner">
+              <figure class="fig" style="margin: 6px 0 24px;">
+                <div class="img-container">
+                  <img src="figures/supp/Supplementary - framework integration.png" alt="Figure 12: Framework integration visualization. CAGE can be seamlessly integrated with different enhancement backbones." onload="this.style.display='block'; this.style.padding='4px'; this.nextElementSibling.style.display='none';" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex'; this.nextElementSibling.querySelector('.filename').textContent='Supplementary - framework integration.png'; this.nextElementSibling.querySelector('.label').textContent='Figure 12: Framework integration visualization. CAGE can be seamlessly integrated with different enhancement backbones.';">
+                  <div class="img-placeholder" style="display:none;">
+                    <div class="icon">
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+                        <rect x="3" y="3" width="18" height="18" rx="2"></rect>
+                        <circle cx="9" cy="9" r="2"></circle>
+                        <path d="M21 15l-5-5L5 21"></path>
+                      </svg>
+                    </div>
+                    <div class="filename"></div>
+                    <div class="label"></div>
+                  </div>
+                </div>
+                <figcaption>
+                  <strong>Figure 12: Framework integration visualization.</strong> CAGE can be seamlessly integrated with different enhancement backbones.
+                </figcaption>
+              </figure>
+            </div>
+          </div>
+        </div> -->
+
+        <!-- <div class="accordion-item">
+          <div class="accordion-header">
+            <h3>Ablation Study</h3>
+            <span class="accordion-icon"><i class="fas fa-chevron-down"></i></span>
+          </div>
+          <div class="accordion-content">
+            <div class="accordion-content-inner">
+              <figure class="fig" style="margin: 6px 0 24px;">
+                <div class="img-container">
+                  <img src="figures/supp/Ablation - intervals number p.png" alt="Figure 13: Ablation study on interval number. Analysis of the impact of different interval configurations." onload="this.style.display='block'; this.style.padding='4px'; this.nextElementSibling.style.display='none';" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex'; this.nextElementSibling.querySelector('.filename').textContent='Ablation - intervals number p.png'; this.nextElementSibling.querySelector('.label').textContent='Figure 13: Ablation study on interval number. Analysis of the impact of different interval configurations.';">
+                  <div class="img-placeholder" style="display:none;">
+                    <div class="icon">
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+                        <rect x="3" y="3" width="18" height="18" rx="2"></rect>
+                        <circle cx="9" cy="9" r="2"></circle>
+                        <path d="M21 15l-5-5L5 21"></path>
+                      </svg>
+                    </div>
+                    <div class="filename"></div>
+                    <div class="label"></div>
+                  </div>
+                </div>
+                <figcaption>
+                  <strong>Figure 13: Ablation study on interval number.</strong> Analysis of the impact of different interval configurations.
+                </figcaption>
+              </figure>
+            </div>
+          </div>
+        </div> -->
+
+        <div class="accordion-item">
+          <div class="accordion-header">
+            <h3>User Study</h3>
+            <span class="accordion-icon"><i class="fas fa-chevron-down"></i></span>
+          </div>
+          <div class="accordion-content">
+            <div class="accordion-content-inner">
+              <figure class="fig" style="margin: 6px 0 24px;">
+                <div class="img-container">
+                  <img src="figures/supp/UserStudy.png" alt="Figure 14: User study results. Human preference evaluation showing CAGE's superior visual quality." onload="this.style.display='block'; this.style.padding='4px'; this.nextElementSibling.style.display='none';" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex'; this.nextElementSibling.querySelector('.filename').textContent='UserStudy.png'; this.nextElementSibling.querySelector('.label').textContent='Figure 14: User study results. Human preference evaluation showing CAGE\'s superior visual quality.';">
+                  <div class="img-placeholder" style="display:none;">
+                    <div class="icon">
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+                        <rect x="3" y="3" width="18" height="18" rx="2"></rect>
+                        <circle cx="9" cy="9" r="2"></circle>
+                        <path d="M21 15l-5-5L5 21"></path>
+                      </svg>
+                    </div>
+                    <div class="filename"></div>
+                    <div class="label"></div>
+                  </div>
+                </div>
+                <figcaption>
+                  <strong>Figure 14: User study results.</strong> Human preference evaluation showing CAGE's superior visual quality.
+                </figcaption>
+              </figure>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="animate-on-scroll">
+      <h2>Quantitative Results</h2>
+      <p>
+        CAGE consistently improves all backbones with only 0.07M additional parameters across multiple benchmarks.
+      </p>
+
+      <h3>Main Results</h3>
+      <div class="table-wrap">
+        <table class="results acc">
+          <caption>
+            Quantitative comparisons on LOLv1, LOLv2-real, and LOLv2-synthetic datasets.
+            <strong>CAGE</strong> consistently improves all backbones with only 0.07M additional parameters and less than 0.01G FLOPs.
+            Metrics: PSNR (dB) / SSIM. <strong>Bold</strong> = best result.
+            Following
+            <a
+              href="https://openaccess.thecvf.com/content/CVPR2025/papers/Yan_HVI_A_New_Color_Space_for_Low-light_Image_Enhancement_CVPR_2025_paper.pdf"
+              target="_blank"
+              rel="noopener"
+            >HVI-CIDNet</a>,
+            we use GT-mean evaluation on LOLv1 dataset during testing. Since LOLv1 contains only
+            15 testing pairs, and direct metric evaluation can be sensitive to global
+            brightness fluctuation, which may obscure differences in color restoration
+            and structural recovery.
+          </caption>
+          <thead>
+            <tr><th>Method</th><th>LOLv1</th><th>LOLv2-real</th><th>LOLv2-syn</th></tr>
+          </thead>
+          <tbody>
+            <tr><td><a href="http://bmvc2018.org/contents/papers/0451.pdf" target="_blank"></a>RetinexNet</a></td><td>17.56 / 0.645</td><td>17.68 / 0.642</td><td>15.61 / 0.449</td></tr>
+            <tr><td><a href="https://openaccess.thecvf.com/content_CVPR_2020/papers/Xu_Learning_to_Restore_Low-Light_Images_via_Decomposition-and-Enhancement_CVPR_2020_paper.pdf" target="_blank">KinD</a></td><td>17.64 / 0.777</td><td>20.59 / 0.818</td><td>16.26 / 0.591</td></tr>
+            <tr><td><a href="https://openaccess.thecvf.com/content_CVPR_2020/papers/Yang_From_Fidelity_to_Perceptual_Quality_A_Semi-Supervised_Approach_for_Low-Light_CVPR_2020_paper.pdf" target="_blank">DRBN</a></td><td>20.13 / 0.830</td><td>20.29 / 0.831</td><td>23.22 / 0.927</td></tr>
+            <tr><td><a href="https://www.ecva.net/papers/eccv_2020/papers_ECCV/papers/123700494.pdf" target="_blank">MIRNet</a></td><td>26.56 / 0.853</td><td>22.68 / 0.828</td><td>25.05 / 0.923</td></tr>
+            <tr><td><a href="https://openaccess.thecvf.com/content_CVPR_2020/papers/Guo_Zero-Reference_Deep_Curve_Estimation_for_Low-Light_Image_Enhancement_CVPR_2020_paper.pdf" target="_blank">ZeroDCE</a></td><td>21.88 / 0.640</td><td>16.06 / 0.580</td><td>17.71 / 0.815</td></tr>
+            <tr><td><a href="https://ieeexplore.ieee.org/document/9334429" target="_blank">EnlightenGAN</a></td><td>20.00 / 0.691</td><td>18.23 / 0.617</td><td>16.57 / 0.734</td></tr>
+            <tr><td><a href="https://ojs.aaai.org/index.php/AAAI/article/view/20162" target="_blank">LLFlow</a></td><td>25.53 / 0.870</td><td>17.43 / 0.831</td><td>23.43 / 0.933</td></tr>
+            <tr><td><a href="https://jiaya.me/file/papers/cvpr22_xiaogang.pdf" target="_blank">SNR-Net</a></td><td>26.81 / 0.855</td><td>21.48 / 0.849</td><td>24.14 / 0.927</td></tr>
+            <tr><td><a href="https://link.springer.com/article/10.1007/s11263-022-01680-5" target="_blank">BreaD</a></td><td>25.32 / 0.843</td><td>23.69 / 0.869</td><td>15.97 / 0.746</td></tr>
+            <tr><td><a href="https://dl.acm.org/doi/10.1609/aaai.v37i3.25364" target="_blank">LLFormer</a></td><td>26.12 / 0.827</td><td>21.65 / 0.816</td><td>25.26 / 0.923</td></tr>
+            <tr><td><a href="https://openaccess.thecvf.com/content/ICCV2025/papers/Zhang_CWNet_Causal_Wavelet_Network_for_Low-Light_Image_Enhancement_ICCV_2025_paper.pdf" target="_blank">CWNet</a></td><td>26.38 / 0.864</td><td>21.65 / 0.860</td><td>25.50 / 0.937</td></tr>
+            <tr class="dashed-top"><td><a href="https://openaccess.thecvf.com/content/ICCV2023/papers/Cai_Retinexformer_One-stage_Retinex-based_Transformer_for_Low-light_Image_Enhancement_ICCV_2023_paper.pdf" target="_blank">Retinexformer</a></td><td>26.08 / 0.827</td><td>21.89 / 0.837</td><td>24.59 / 0.919</td></tr>
+            <tr class="mine"><td>Retinexformer + Ours</td><td><strong>27.09</strong> / <strong>0.871</strong></td><td><strong>24.10</strong> / <strong>0.847</strong></td><td><strong>26.33</strong> / <strong>0.939</strong></td></tr>
+            <tr class="mine delta"><td>&nbsp;&nbsp;Δ</td><td><span style="color:var(--accent);font-weight:bold">+1.01</span> / <span style="color:var(--accent);font-weight:bold">+0.044</span></td><td><span style="color:var(--accent);font-weight:bold">+2.21</span> / <span style="color:var(--accent);font-weight:bold">+0.010</span></td><td><span style="color:var(--accent);font-weight:bold">+1.74</span> / <span style="color:var(--accent);font-weight:bold">+0.020</span></td></tr>
+            <tr class="dashed-top"><td><a href="https://openaccess.thecvf.com/content/CVPR2025/papers/Feijoo_DarkIR_Robust_Low-Light_Image_Restoration_CVPR_2025_paper.pdf" target="_blank">DarkIR</a></td><td>25.32 / 0.806</td><td>21.32 / 0.830</td><td>24.06 / 0.921</td></tr>
+            <tr class="mine"><td>DarkIR + Ours</td><td>26.03 / 0.849</td><td>22.51 / 0.860</td><td>24.54 / 0.923</td></tr>
+            <tr class="mine delta"><td>&nbsp;&nbsp;Δ</td><td><span style="color:var(--accent);font-weight:bold">+0.71</span> / <span style="color:var(--accent);font-weight:bold">+0.043</span></td><td><span style="color:var(--accent);font-weight:bold">+1.19</span> / <span style="color:var(--accent);font-weight:bold">+0.030</span></td><td><span style="color:var(--accent);font-weight:bold">+0.48</span> / <span style="color:var(--accent);font-weight:bold">+0.002</span></td></tr>
+            <tr class="dashed-top"><td><a href="https://openaccess.thecvf.com/content/CVPR2025/papers/Yan_HVI_A_New_Color_Space_for_Low-light_Image_Enhancement_CVPR_2025_paper.pdf" target="_blank">HVI-CIDNet</a></td><td>26.03 / 0.832</td><td>23.94 / 0.870</td><td>25.32 / 0.929</td></tr>
+            <tr class="mine"><td>HVI-CIDNet + Ours</td><td><strong>27.25</strong> / <strong>0.857</strong></td><td><strong>24.24</strong> / <strong>0.875</strong></td><td><strong>25.52</strong> / <strong>0.930</strong></td></tr>
+            <tr class="mine delta"><td>&nbsp;&nbsp;Δ</td><td><span style="color:var(--accent);font-weight:bold">+1.22</span> / <span style="color:var(--accent);font-weight:bold">+0.025</span></td><td><span style="color:var(--accent);font-weight:bold">+0.30</span> / <span style="color:var(--accent);font-weight:bold">+0.005</span></td><td><span style="color:var(--accent);font-weight:bold">+0.20</span> / <span style="color:var(--accent);font-weight:bold">+0.001</span></td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h3>Challenging Datasets</h3>
+      <div class="table-wrap">
+        <table class="results acc">
+          <caption>
+            Quantitative comparisons on challenging datasets (SDSD-indoor, SDSD-outdoor, and SID).
+            <strong>CAGE</strong> achieves consistent improvement with PSNR gains up to 1.78 dB on SDSD-indoor.
+            Metrics: PSNR (dB) / SSIM. <strong>Bold</strong> = best result.
+          </caption>
+          <thead>
+            <tr><th>Method</th><th>SDSD-indoor</th><th>SDSD-outdoor</th><th>SID</th></tr>
+          </thead>
+          <tbody>
+            <tr><td><a href="https://www4.comp.polyu.edu.hk/~cslzhang/paper/PAMI_LUT.pdf" target="_blank">3DLUT</a></td><td>24.78 / 0.718</td><td>23.29 / 0.703</td><td>16.97 / 0.591</td></tr>
+            <tr><td><a href="https://jiaya.me/file/papers/cvpr22_xiaogang.pdf" target="_blank">SNR-Net</a></td><td>26.13 / 0.815</td><td>19.22 / 0.657</td><td>21.35 / 0.550</td></tr>
+            <tr><td><a href="https://www.ecva.net/papers/eccv_2022/papers_ECCV/papers/136660562.pdf" target="_blank">LEDNet</a></td><td>27.29 / 0.876</td><td>26.66 / 0.850</td><td>21.47 / 0.638</td></tr>
+            <tr><td><a href="https://dl.acm.org/doi/epdf/10.1145/3581783.3611909" target="_blank">FourLLIE</a></td><td>24.74 / 0.826</td><td>24.67 / 0.787</td><td>18.42 / 0.513</td></tr>
+            <tr><td><a href="https://link.springer.com/chapter/10.1007/978-981-96-6596-9_30" target="_blank">RetinexMamba</a></td><td>28.44 / 0.894</td><td>28.52 / 0.859</td><td>22.45 / 0.656</td></tr>
+            <tr><td><a href="https://www.ecva.net/papers/eccv_2020/papers_ECCV/papers/123700494.pdf" target="_blank">MIRNet</a></td><td>28.64 / 0.888</td><td>28.99 / 0.869</td><td>21.36 / 0.632</td></tr>
+            <tr><td><a href="https://openaccess.thecvf.com/content/CVPR2022/papers/Zamir_Restormer_Efficient_Transformer_for_High-Resolution_Image_Restoration_CVPR_2022_paper.pdf" target="_blank">Restormer</a></td><td>28.49 / 0.892</td><td>27.99 / 0.868</td><td>22.01 / 0.645</td></tr>
+            <tr><td><a href="https://www.ecva.net/papers/eccv_2024/papers_ECCV/papers/02740.pdf" target="_blank">MambaIR</a></td><td>25.14 / 0.876</td><td>27.53 / 0.851</td><td>22.02 / 0.658</td></tr>
+            <tr><td><a href="https://openaccess.thecvf.com/content/ICCV2025/papers/Zhang_CWNet_Causal_Wavelet_Network_for_Low-Light_Image_Enhancement_ICCV_2025_paper.pdf" target="_blank">CWNet</a></td><td>30.28 / 0.904</td><td>28.54 / 0.857</td><td>20.97 / 0.623</td></tr>
+            <tr class="dashed-top"><td><a href="https://openaccess.thecvf.com/content/ICCV2023/papers/Cai_Retinexformer_One-stage_Retinex-based_Transformer_for_Low-light_Image_Enhancement_ICCV_2023_paper.pdf" target="_blank">Retinexformer</a></td><td>28.20 / 0.877</td><td>29.57 / 0.874</td><td>22.05 / 0.636</td></tr>
+            <tr class="mine"><td>Retinexformer + Ours</td><td><strong>29.98</strong> / <strong>0.906</strong></td><td><strong>30.12</strong> / <strong>0.877</strong></td><td><strong>22.64</strong> / <strong>0.660</strong></td></tr>
+            <tr class="mine delta"><td>&nbsp;&nbsp;Δ</td><td><span style="color:var(--accent);font-weight:bold">+1.78</span> / <span style="color:var(--accent);font-weight:bold">+0.029</span></td><td><span style="color:var(--accent);font-weight:bold">+0.55</span> / <span style="color:var(--accent);font-weight:bold">+0.003</span></td><td><span style="color:var(--accent);font-weight:bold">+0.59</span> / <span style="color:var(--accent);font-weight:bold">+0.024</span></td></tr>
+            <tr class="dashed-top"><td><a href="https://openaccess.thecvf.com/content/CVPR2025/papers/Feijoo_DarkIR_Robust_Low-Light_Image_Restoration_CVPR_2025_paper.pdf" target="_blank">DarkIR</a></td><td>29.94 / 0.897</td><td>28.81 / 0.848</td><td>21.50 / 0.588</td></tr>
+            <tr class="mine"><td>DarkIR + Ours</td><td><strong>30.36</strong> / <strong>0.899</strong></td><td>29.36 / 0.858</td><td>22.33 / 0.639</td></tr>
+            <tr class="mine delta"><td>&nbsp;&nbsp;Δ</td><td><span style="color:var(--accent);font-weight:bold">+0.42</span> / <span style="color:var(--accent);font-weight:bold">+0.002</span></td><td><span style="color:var(--accent);font-weight:bold">+0.55</span> / <span style="color:var(--accent);font-weight:bold">+0.010</span></td><td><span style="color:var(--accent);font-weight:bold">+0.83</span> / <span style="color:var(--accent);font-weight:bold">+0.051</span></td></tr>
+            <tr class="dashed-top"><td><a href="https://openaccess.thecvf.com/content/CVPR2025/papers/Yan_HVI_A_New_Color_Space_for_Low-light_Image_Enhancement_CVPR_2025_paper.pdf" target="_blank">HVI-CIDNet</a></td><td>28.74 / 0.895</td><td>28.70 / 0.866</td><td>22.21 / 0.631</td></tr>
+            <tr class="mine"><td>HVI-CIDNet + Ours</td><td>29.91 / 0.900</td><td><strong>29.80</strong> / <strong>0.877</strong></td><td><strong>22.46</strong> / 0.653</td></tr>
+            <tr class="mine delta"><td>&nbsp;&nbsp;Δ</td><td><span style="color:var(--accent);font-weight:bold">+1.17</span> / <span style="color:var(--accent);font-weight:bold">+0.005</span></td><td><span style="color:var(--accent);font-weight:bold">+1.10</span> / <span style="color:var(--accent);font-weight:bold">+0.011</span></td><td><span style="color:var(--accent);font-weight:bold">+0.25</span> / <span style="color:var(--accent);font-weight:bold">+0.022</span></td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <!-- <h3>Ablation Study</h3>
+      <div class="table-wrap">
+        <table class="results">
+          <caption>
+            Ablation of image-adaptive cylindrical parameters. All three components (hue-shift, chroma-scaling, lightness sensitivity) contribute to the final performance. Hue-shift correction is the key part for suppressing low-light color bias.
+          </caption>
+          <thead>
+            <tr><th>Component</th><th>PSNR ↑</th><th>SSIM ↑</th><th>LPIPS ↓</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>- Hue P.</td><td>23.7493</td><td>0.8639</td><td>0.0980</td></tr>
+            <tr><td>- Chroma P.</td><td>24.0237</td><td>0.8734</td><td>0.1046</td></tr>
+            <tr><td>- Lightness P.</td><td>24.2201</td><td>0.8667</td><td>0.1006</td></tr>
+            <tr class="mine"><td>Full Model</td><td><strong>24.2355</strong></td><td><strong>0.8746</strong></td><td><strong>0.0977</strong></td></tr>
+          </tbody>
+        </table>
+      </div> -->
+    </section>
+
+    <section id="takeaways" class="animate-on-scroll">
+      <h2>Key Takeaways</h2>
+      <div class="takeaways-grid custom-width">
+        <div class="takeaway" style="--takeaway-flex: 7;">
+          <!-- <div class="num">01 · Target</div> -->
+          <h3>Handling Embedded Color Bias</h3>
+          <p>CAGE specifically targets and suppresses the embedded color bias that arises from low signal-to-noise ratio and camera hardware limitations in low-light imaging, achieving more faithful color restoration.</p>
+        </div>
+        <div class="takeaway" style="--takeaway-flex: 6;">
+          <!-- <div class="num">02 · Performance</div> -->
+          <h3>Minimal Tradeoff, Max Gain</h3>
+          <p>CAGE introduces only 0.07M Params. and less than 0.01G FLOPs, while providing up to +2.21 dB PSNR improvement on the evaluated standard benchmarks.</p>
+        </div>
+        <div class="takeaway" style="--takeaway-flex: 6;">
+          <!-- <div class="num">03 · Compatibility</div> -->
+          <h3>Backbones Compatibility</h3>
+          <p>CAGE is naturally a plug-and-play framework that seamlessly integrates with existing low-light enhancement backbones without requiring architectural changes or retraining.</p>
+        </div>
+      </div>
+    </section>
+
+    <section id="bibtex" class="animate-on-scroll">
+      <h2>BibTeX</h2>
+      <p>
+        For more details and additional interesting results, check out the
+        <a href="https://github.com/Yangzhichen763/CAGE/tree/main" target="_blank" rel="noopener">paper</a>. If you find it useful,
+        please cite:
+      </p>
+      <div class="bibtex-box">
+        <pre>@inproceedings{yang2026cage,
+  title     = {Towards color-faithful low-light image enhancement via adaptive color debiasing and saturation rectification},
+  author    = {Yang, Zhichen and Xu, Rui and Niu, Yuzhen and Li, Fusheng and Da, Hui and Cheng, Ri},
+  booktitle = {Proceedings of the ACM International Conference on Multimedia},
+  year      = {2026}
+}</pre>
+        <button class="copy-btn" id="copy-bibtex">
+          <i class="fas fa-copy"></i> Copy
+        </button>
+      </div>
+    </section>
+
+    <section id="acknowledgement" class="animate-on-scroll">
+      <div class="collapsible-header" onclick="toggleAcknowledgement()">
+        <h2>Acknowledgement</h2>
+        <span class="collapsible-icon"><i class="fas fa-chevron-down"></i></span>
+      </div>
+      <div class="collapsible-content" id="ack-content">
+        <p>
+          If you find our work helpful, please also consider citing the following related work:
+        </p>
+        <div class="bibtex-box">
+          <pre>@inproceedings{xu2025urwkv,
+  title     = {{URWKV}: Unified {RWKV} model with multi-state perspective for low-light image restoration},
+  author    = {Xu, Rui and Niu, Yuzhen and Li, Yuezhou and Xu, Huangbiao and Liu, Wenxi and Chen, Yuzhong},
+  booktitle = {Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition},
+  pages     = {21267--21276},
+  year      = {2025}
+}</pre>
+          <button class="copy-btn" id="copy-bibtex-urwkv">
+            <i class="fas fa-copy"></i> Copy
+          </button>
+        </div>
+        <p class="page-credit">
+          We thank the authors of the
+          <a
+            href="https://haofeixu.github.io/pointdit/"
+            target="_blank"
+            rel="noopener"
+          >PointDiT</a>
+          and
+          <a
+            href="https://yingfan-bot.github.io/lotus/"
+            target="_blank"
+            rel="noopener"
+          >Lotus</a>
+          project pages, whose page designs inspired this website.
+        </p>
+        <p class="page-credit">
+          CAGE is heavily inspired by <a href="https://openaccess.thecvf.com/content/CVPR2025/papers/Yan_HVI_A_New_Color_Space_for_Low-light_Image_Enhancement_CVPR_2025_paper.pdf" target="_blank">HVI-CIDNet</a>. 
+          We sincerely thank the authors for their elegant work.
+        </p>
+      </div>
+    </section>
+
+  </div>
+
+  <footer>
+    <p>CAGE: Color-faithful Low-light Image Enhancement · ACM MM 2026</p>
+    <p>
+      <a href="https://github.com/Yangzhichen763/CAGE" target="_blank" rel="noopener"><i class="fab fa-github"></i> GitHub</a>
+      <span style="margin: 0 8px;">·</span>
+      <a href="mailto:yuzhenniu@gmail.com" target="_blank" rel="noopener"><i class="fas fa-envelope"></i> Contact</a>
+    </p>
+  </footer>
+
+  <script>
+    document.addEventListener('DOMContentLoaded', function() {
+      const themeToggle = document.getElementById('theme-toggle');
+      const html = document.documentElement;
+      
+      function setTheme(theme) {
+        html.setAttribute('data-theme', theme);
+        localStorage.setItem('theme', theme);
+      }
+      
+      const savedTheme = localStorage.getItem('theme');
+      if (savedTheme) {
+        setTheme(savedTheme);
+      } else if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
+        setTheme('dark');
+      } else {
+        setTheme('light');
+      }
+      
+      themeToggle.addEventListener('click', function() {
+        const currentTheme = html.getAttribute('data-theme');
+        if (currentTheme === 'dark') {
+          setTheme('light');
+        } else {
+          setTheme('dark');
+        }
+      });
+
+      const observerOptions = {
+        root: null,
+        rootMargin: '0px 0px -50px 0px',
+        threshold: 0.1
+      };
+
+      const observer = new IntersectionObserver(function(entries) {
+        entries.forEach(function(entry) {
+          if (entry.isIntersecting) {
+            entry.target.classList.add('visible');
+            observer.unobserve(entry.target);
+          }
+        });
+      }, observerOptions);
+
+      document.querySelectorAll('.animate-on-scroll').forEach(function(el) {
+        observer.observe(el);
+      });
+
+      const navLinks = document.querySelectorAll('nav.top ul li a');
+      const sections = document.querySelectorAll('section[id]');
+      let rafId = null;
+
+      function updateActiveNav() {
+        let currentSection = '';
+        const scrollPos = window.scrollY + 100;
+
+        sections.forEach(function(section) {
+          const sectionTop = section.offsetTop;
+          const sectionHeight = section.offsetHeight;
+          if (scrollPos >= sectionTop && scrollPos < sectionTop + sectionHeight) {
+            currentSection = section.getAttribute('id');
+          }
+        });
+
+        if (!currentSection && sections.length > 0) {
+          const lastSection = sections[sections.length - 1];
+          if (scrollPos >= lastSection.offsetTop) {
+            currentSection = lastSection.getAttribute('id');
+          }
+        }
+
+        navLinks.forEach(function(link) {
+          link.classList.remove('active');
+          if (link.getAttribute('href') === '#' + currentSection) {
+            link.classList.add('active');
+          }
+        });
+      }
+
+      function throttledUpdateActiveNav() {
+        if (!rafId) {
+          rafId = requestAnimationFrame(function() {
+            updateActiveNav();
+            rafId = null;
+          });
+        }
+      }
+
+      window.addEventListener('scroll', throttledUpdateActiveNav);
+      updateActiveNav();
+
+      document.getElementById('copy-bibtex').addEventListener('click', function() {
+        const bibtexText = `@article{yang2026cage,
+  title={Towards Color-faithful Low-light Image Enhancement via Adaptive Color Debiasing and Saturation Rectification},
+  author={Yang, Zhichen and Li, Fusheng and Xu, Rui and Da, Hui and Niu, Yuzhen and Cheng, Ri},
+  journal={Proceedings of the ACM International Conference on Multimedia},
+  year={2026}
+}`;
+
+        navigator.clipboard.writeText(bibtexText).then(function() {
+          const btn = document.getElementById('copy-bibtex');
+          const originalText = btn.innerHTML;
+          btn.innerHTML = '<i class="fas fa-check"></i> Copied!';
+          btn.style.background = '#4ecdc4';
+          setTimeout(function() {
+            btn.innerHTML = originalText;
+            btn.style.background = '#e0e0e0';
+          }, 2000);
+        }).catch(function(err) {
+          console.error('Failed to copy:', err);
+        });
+      });
+
+      document.getElementById('copy-bibtex-urwkv').addEventListener('click', function() {
+        const bibtexText = `@inproceedings{IR.URWKV,
+  title     = {{URWKV}: Unified {RWKV} model with multi-state perspective for low-light image restoration},
+  author    = {Xu, Rui and Niu, Yuzhen and Li, Yuezhou and Xu, Huangbiao and Liu, Wenxi and Chen, Yuzhong},
+  booktitle = {Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition},
+  pages     = {21267--21276},
+  year      = {2025}
+}`;
+
+        navigator.clipboard.writeText(bibtexText).then(function() {
+          const btn = document.getElementById('copy-bibtex-urwkv');
+          const originalText = btn.innerHTML;
+          btn.innerHTML = 'Copied!';
+          btn.style.background = '#4CAF50';
+          setTimeout(function() {
+            btn.innerHTML = originalText;
+            btn.style.background = '#e0e0e0';
+          }, 2000);
+        }).catch(function(err) {
+          console.error('Failed to copy:', err);
+        });
+      });
+
+      const stickyHeader = document.getElementById('accordion-sticky');
+      let activeHeader = null;
+      
+      function updateStickyHeader() {
+        if (!activeHeader) {
+          stickyHeader.classList.remove('visible');
+          return;
+        }
+        
+        const navTop = document.querySelector('nav.top');
+        const navHeight = navTop ? navTop.offsetHeight : 56;
+        const headerRect = activeHeader.getBoundingClientRect();
+        const contentRect = activeHeader.nextElementSibling.getBoundingClientRect();
+        
+        const shouldShow = headerRect.bottom < navHeight && contentRect.bottom > navHeight;
+        
+        if (shouldShow) {
+          stickyHeader.classList.add('visible');
+          stickyHeader.querySelector('h3').textContent = activeHeader.querySelector('h3').textContent;
+          stickyHeader.querySelector('.accordion-icon').style.transform = 'rotate(180deg)';
+        } else {
+          stickyHeader.classList.remove('visible');
+        }
+      }
+      
+      document.querySelectorAll('.accordion-header').forEach(function(header) {
+        header.addEventListener('click', function() {
+          const content = this.nextElementSibling;
+          const icon = this.querySelector('.accordion-icon');
+          const isOpen = content.classList.contains('open');
+
+          document.querySelectorAll('.accordion-content').forEach(function(item) {
+            item.classList.remove('open');
+          });
+          document.querySelectorAll('.accordion-header').forEach(function(item) {
+            item.classList.remove('active');
+          });
+
+          if (!isOpen) {
+            content.classList.add('open');
+            this.classList.add('active');
+            activeHeader = this;
+          } else {
+            activeHeader = null;
+          }
+          
+          updateStickyHeader();
+        });
+      });
+      
+      stickyHeader.addEventListener('click', function() {
+        if (activeHeader) {
+          activeHeader.click();
+        }
+      });
+      
+      window.addEventListener('scroll', updateStickyHeader);
+      window.addEventListener('resize', updateStickyHeader);
+
+      // initArena();
+    });
+
+    let arenaData = [];
+    let shuffledArenaData = [];
+
+    let currentRound = 0;
+    let selectedIndex = -1;
+    let isAnswered = false;
+    let isComparisonMode = false;
+    let comparisonBaseIndex = -1;
+    let comparisonBaseSource = '';
+    let viewerImages = [];
+    let currentRandomData = null;
+    let isRandomMode = false;
+    let voteCounts = {}; // loadVoteCounts();
+
+    const viewerState = {
+      items: [],
+      index: 0,
+      scale: 1,
+      offsetX: 0,
+      offsetY: 0,
+      dragging: false,
+      startX: 0,
+      startY: 0
+    };
+
+    const ARENA_DATA_DEFAULT = [
+      {
+        "input": ".examples/input/00700.png",
+        "outputs": [
+          { "src": ".examples/SNR-Net/00700.png", "isCAGE": false },
+          { "src": ".examples/CAGE-DarkIR/00700.png", "isCAGE": true },
+          { "src": ".examples/BreaD/00700.png", "isCAGE": false }
+        ]
+      },
+      {
+        "input": ".examples/input/00710.png",
+        "outputs": [
+          { "src": ".examples/DarkIR/00710.png", "isCAGE": false },
+          { "src": ".examples/CAGE-DarkIR/00710.png", "isCAGE": true },
+          { "src": ".examples/SNR-Net/00710.png", "isCAGE": false }
+        ]
+      },
+      {
+        "input": ".examples/input/00720.png",
+        "outputs": [
+          { "src": ".examples/BreaD/00720.png", "isCAGE": false },
+          { "src": ".examples/DarkIR/00720.png", "isCAGE": false },
+          { "src": ".examples/CAGE-DarkIR/00720.png", "isCAGE": true }
+        ]
+      }
+    ];
+
+    let arenaFileHandle = null;
+    const ARENA_DB_NAME = 'cage_arena_db';
+    const ARENA_DB_STORE = 'file_handles';
+    const ARENA_DB_KEY = 'datas/arena_data_json';
+
+    function shuffleArenaData() {
+      shuffledArenaData = [...arenaData].sort(() => Math.random() - 0.5);
+    }
+
+    function openArenaDB() {
+      return new Promise((resolve, reject) => {
+        const req = indexedDB.open(ARENA_DB_NAME, 1);
+        req.onupgradeneeded = () => req.result.createObjectStore(ARENA_DB_STORE);
+        req.onsuccess = () => resolve(req.result);
+        req.onerror = () => reject(req.error);
+      });
+    }
+
+    async function saveArenaFileHandle(handle) {
+      const db = await openArenaDB();
+      return new Promise((resolve, reject) => {
+        const tx = db.transaction(ARENA_DB_STORE, 'readwrite');
+        tx.objectStore(ARENA_DB_STORE).put(handle, ARENA_DB_KEY);
+        tx.oncomplete = () => resolve();
+        tx.onerror = () => reject(tx.error);
+      });
+    }
+
+    async function loadArenaFileHandle() {
+      const db = await openArenaDB();
+      return new Promise((resolve, reject) => {
+        const tx = db.transaction(ARENA_DB_STORE, 'readonly');
+        const req = tx.objectStore(ARENA_DB_STORE).get(ARENA_DB_KEY);
+        req.onsuccess = () => resolve(req.result || null);
+        req.onerror = () => reject(req.error);
+      });
+    }
+
+    async function clearArenaFileHandle() {
+      arenaFileHandle = null;
+      const db = await openArenaDB();
+      return new Promise((resolve, reject) => {
+        const tx = db.transaction(ARENA_DB_STORE, 'readwrite');
+        tx.objectStore(ARENA_DB_STORE).delete(ARENA_DB_KEY);
+        tx.oncomplete = () => resolve();
+        tx.onerror = () => reject(tx.error);
+      });
+    }
+
+    async function verifyArenaPermission(handle, readWrite) {
+      const opts = { mode: readWrite ? 'readwrite' : 'read' };
+      if ((await handle.queryPermission(opts)) === 'granted') return true;
+      if ((await handle.requestPermission(opts)) === 'granted') return true;
+      return false;
+    }
+
+    function updateArenaLinkUI(linked) {
+      const btn = document.getElementById('arena-link-btn');
+      const label = document.getElementById('arena-link-label');
+      if (!btn || !label) return;
+      if (linked) {
+        btn.classList.add('linked');
+        label.textContent = 'File Linked';
+        btn.title = 'arena_data.json is linked. Click to relink.';
+      } else {
+        btn.classList.remove('linked');
+        label.textContent = 'Link File';
+        btn.title = 'Link arena_data.json file for persistence';
+      }
+    }
+
+    async function linkArenaFile() {
+      if (!window.showOpenFilePicker) {
+        alert('Your browser does not support the File System Access API. Please use Chrome or Edge (v86+) to enable file persistence. Submissions will fall back to localStorage.');
+        return;
+      }
+      try {
+        const [handle] = await window.showOpenFilePicker({
+          types: [{ description: 'JSON file', accept: { 'application/json': ['.json'] } }],
+          multiple: false,
+          suggestedName: 'arena_data.json'
+        });
+        arenaFileHandle = handle;
+        await saveArenaFileHandle(handle);
+        updateArenaLinkUI(true);
+        await loadArenaData();
+        loadRound(currentRound);
+        const feedback = document.getElementById('arena-feedback');
+        if (feedback) {
+          feedback.textContent = '✓ arena_data.json linked successfully!';
+          feedback.className = 'arena-feedback correct';
+          setTimeout(() => { if (feedback.textContent.startsWith('✓ arena_data.json')) { feedback.textContent = ''; feedback.className = 'arena-feedback'; } }, 2000);
+        }
+      } catch (e) {
+        if (e.name !== 'AbortError') {
+          console.error('Failed to link arena_data.json:', e);
+        }
+      }
+    }
+
+    async function ensureArenaFileHandle(readWrite) {
+      if (!arenaFileHandle) {
+        try {
+          arenaFileHandle = await loadArenaFileHandle();
+        } catch (e) { /* ignore */ }
+      }
+      if (!arenaFileHandle) return false;
+      const hasPermission = await verifyArenaPermission(arenaFileHandle, readWrite);
+      if (!hasPermission) {
+        await clearArenaFileHandle();
+      }
+      return hasPermission;
+    }
+
+    function cleanArenaPaths(data) {
+      if (!data || !Array.isArray(data)) return data;
+      return data.map(item => ({
+        ...item,
+        input: item.input.replace('/images/', '/'),
+        outputs: item.outputs.map(output => ({
+          ...output,
+          src: output.src.replace('/images/', '/')
+        }))
+      }));
+    }
+
+    async function loadArenaData() {
+      console.log('loadArenaData called');
+      const hasAccess = await ensureArenaFileHandle(false);
+      console.log('hasAccess:', hasAccess);
+      if (hasAccess) {
+        try {
+          const file = await arenaFileHandle.getFile();
+          const text = await file.text();
+          arenaData = cleanArenaPaths(JSON.parse(text));
+          updateArenaLinkUI(true);
+          console.log('Loaded from file:', arenaData.length);
+          shuffleArenaData();
+          currentRound = 0;
+          return;
+        } catch (e) {
+          console.error('Failed to read arena_data.json:', e);
+          if (e.name === 'NotFoundError') {
+            await clearArenaFileHandle();
+          }
+        }
+      }
+      try {
+        const stored = localStorage.getItem('cage_arena_submissions');
+        if (stored) {
+          arenaData = cleanArenaPaths(JSON.parse(stored));
+          console.log('Loaded from localStorage:', arenaData.length);
+        } else {
+          arenaData = [...ARENA_DATA_DEFAULT];
+          console.log('Using default data:', arenaData.length);
+        }
+      } catch (error) {
+        console.error('Failed to load arena data:', error);
+        arenaData = [...ARENA_DATA_DEFAULT];
+        console.log('Using default data (error):', arenaData.length);
+      }
+      shuffleArenaData();
+      currentRound = 0;
+      updateArenaLinkUI(!!arenaFileHandle);
+    }
+
+    async function submitCurrentArena() {
+      if (!currentRandomData) return;
+
+      try {
+        await loadArenaData();
+        arenaData.push(currentRandomData);
+
+        const hasAccess = await ensureArenaFileHandle(true);
+        const feedback = document.getElementById('arena-feedback');
+
+        if (hasAccess) {
+          const writable = await arenaFileHandle.createWritable();
+          await writable.write(JSON.stringify(arenaData, null, 2));
+          await writable.close();
+          feedback.textContent = '✓ Arena data successfully submitted to .json file!';
+          feedback.className = 'arena-feedback correct';
+        } else {
+          localStorage.setItem('cage_arena_submissions', JSON.stringify(arenaData));
+          feedback.textContent = '✓ Saved to browser storage. Click "Link File" to persist to arena_data.json.';
+          feedback.className = 'arena-feedback correct';
+        }
+
+        document.getElementById('arena-submit-btn').style.display = 'none';
+        document.getElementById('arena-next-btn').style.display = 'flex';
+      } catch (error) {
+        console.error('Error submitting arena data:', error);
+        const feedback = document.getElementById('arena-feedback');
+        feedback.textContent = '⚠ Failed to submit arena data.';
+        feedback.className = 'arena-feedback';
+      }
+    }
+
+    // function loadVoteCounts() {
+    //   try {
+    //     const stored = localStorage.getItem('cage_arena_votes');
+    //     if (stored) {
+    //       return JSON.parse(stored);
+    //     }
+    //   } catch (error) {
+    //     console.error('Failed to load vote counts:', error);
+    //   }
+    //   return {};
+    // }
+
+    // function saveVoteCounts() {
+    //   try {
+    //     localStorage.setItem('cage_arena_votes', JSON.stringify(voteCounts));
+    //   } catch (error) {
+    //     console.error('Failed to save vote counts:', error);
+    //   }
+    // }
+
+    async function initArena() {
+      console.log('initArena called');
+      try {
+        await loadArenaData();
+        console.log('Arena data loaded:', arenaData.length);
+        loadRound(currentRound);
+        console.log('Round loaded');
+      } catch (error) {
+        console.error('Error initializing arena:', error);
+        arenaData = [...ARENA_DATA_DEFAULT];
+        loadRound(currentRound);
+      }
+      addArenaListeners();
+      console.log('Arena listeners added');
+      initializeImageViewer();
+      console.log('Image viewer initialized');
+    }
+
+    function getComparisonSourceAtPoint(wrapper, clientX) {
+      if (!wrapper) return '';
+      const slider = wrapper.querySelector('.slider');
+      const split = slider ? Number(slider.value) : 50;
+      const rect = wrapper.getBoundingClientRect();
+      const localX = Math.max(0, Math.min(rect.width, clientX - rect.left));
+      return localX < rect.width * split / 100
+        ? wrapper.dataset.beforeSrc
+        : wrapper.dataset.afterSrc;
+    }
+
+    function addArenaListeners() {
+      const inputBox = document.getElementById('arena-input-box');
+
+      if (inputBox) {
+        inputBox.addEventListener('click', function(e) {
+          // The input area is always a comparison view. Left click does not vote.
+          e.preventDefault();
+        });
+
+        inputBox.addEventListener('contextmenu', function(e) {
+          e.preventDefault();
+          const wrapper = inputBox.querySelector('.arena-compare-wrapper');
+          const baseSrc = getComparisonSourceAtPoint(wrapper, e.clientX);
+          if (!baseSrc) return;
+
+          if (isComparisonMode && baseSrc === comparisonBaseSource) {
+            exitComparisonMode();
+            renderInputComparison(inputBox.dataset.inputSrc, inputBox.dataset.enlightenedSrc);
+          } else {
+            exitComparisonMode();
+            enterComparisonModeFromSource(baseSrc);
+          }
+        });
+
+        inputBox.addEventListener('mousedown', function(e) {
+          if (e.button !== 1) return;
+          e.preventDefault();
+
+          const wrapper = inputBox.querySelector('.arena-compare-wrapper');
+          const src = getComparisonSourceAtPoint(wrapper, e.clientX);
+          if (!src) return;
+
+          const title = src === inputBox.dataset.inputSrc
+            ? 'Low-light Input'
+            : 'GT-mean Enlightened Input';
+
+          openImageViewerBySource(src, title, 'input');
+        });
+      }
+
+      document.querySelectorAll('.arena-card').forEach(function(card, index) {
+        card.addEventListener('click', function(e) {
+          if (isComparisonMode) {
+            e.preventDefault();
+            return;
+          }
+          selectArenaImage(index, e);
+        });
+
+        card.addEventListener('contextmenu', function(e) {
+          e.preventDefault();
+
+          const wrapper = card.querySelector('.arena-compare-wrapper');
+          const baseSrc = wrapper
+            ? getComparisonSourceAtPoint(wrapper, e.clientX)
+            : card.dataset.src;
+
+          if (!baseSrc) return;
+
+          if (isComparisonMode && baseSrc === comparisonBaseSource) {
+            exitComparisonMode();
+            return;
+          }
+
+          exitComparisonMode();
+          enterComparisonModeFromSource(baseSrc);
+        });
+
+        card.addEventListener('mousedown', function(e) {
+          if (e.button !== 1) return;
+          e.preventDefault();
+
+          const wrapper = card.querySelector('.arena-compare-wrapper');
+          const src = wrapper
+            ? getComparisonSourceAtPoint(wrapper, e.clientX)
+            : card.dataset.src;
+
+          if (!src) return;
+
+          openImageViewerBySource(
+            src,
+            `Enhanced image ${String.fromCharCode(65 + index)}`,
+            'enhanced'
+          );
+        });
+      });
+    }
+
+    function loadRound(roundIndex) {
+      exitComparisonMode();
+
+      let data;
+      if (isRandomMode && currentRandomData) {
+        data = currentRandomData;
+      } else {
+        if (shuffledArenaData.length === 0 && arenaData.length === 0) {
+          const feedback = document.getElementById('arena-feedback');
+          if (feedback) {
+            feedback.textContent = 'No arena data available. Enable random mode to load images.';
+          }
+          return;
+        }
+        data = shuffledArenaData[roundIndex % shuffledArenaData.length] || arenaData[roundIndex % arenaData.length];
+      }
+
+      const outputs = (data.outputs || []).filter(function(output) {
+        const path = output.src || '';
+        return !path.toLowerCase().includes('gt');
+      });
+
+      if (outputs.length < 3) {
+        const feedback = document.getElementById('arena-feedback');
+        if (feedback) {
+          feedback.textContent = 'At least three enhanced results are required.';
+          feedback.className = 'arena-feedback';
+        }
+        return;
+      }
+
+      const inputSrc = data.input;
+      const enlightenedSrc = inputSrc.replace('/input/', '/enlightened/');
+      renderInputComparison(inputSrc, enlightenedSrc);
+
+      const cards = document.querySelectorAll('.arena-card');
+      const indices = [0, 1, 2];
+
+      for (let i = indices.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [indices[i], indices[j]] = [indices[j], indices[i]];
+      }
+
+      cards.forEach(function(card, i) {
+        const idx = indices[i];
+        const output = outputs[idx];
+
+        card.dataset.index = i;
+        card.dataset.originalIndex = idx;
+        card.dataset.isCAGE = String(output.isCAGE);
+        card.dataset.src = output.src;
+
+        const oldWrapper = card.querySelector('.arena-compare-wrapper');
+        if (oldWrapper) {
+          oldWrapper.remove();
+        }
+
+        let img = card.querySelector('img.arena-img');
+        if (!img) {
+          img = document.createElement('img');
+          img.className = 'arena-img';
+          img.dataset.index = i;
+          img.onerror = function() { showCardPlaceholder(this); };
+          img.onload = function() { hideCardPlaceholder(this); };
+          card.insertBefore(img, card.querySelector('.img-placeholder'));
+        }
+
+        img.style.display = 'block';
+        img.src = output.src;
+
+        const placeholder = card.querySelector('.img-placeholder');
+        if (placeholder) {
+          placeholder.style.display = 'none';
+        }
+
+        const indexEl = card.querySelector('.arena-card-index');
+        if (indexEl) {
+          indexEl.textContent = String.fromCharCode(65 + i);
+        }
+
+        card.classList.remove(
+          'selected',
+          'correct',
+          'comparison-base',
+          'comparison-active'
+        );
+      });
+
+      selectedIndex = -1;
+      isAnswered = false;
+      comparisonBaseIndex = -1;
+      comparisonBaseSource = '';
+
+      const feedback = document.getElementById('arena-feedback');
+      if (feedback) {
+        feedback.textContent = '';
+        feedback.className = 'arena-feedback';
+      }
+
+      const nextBtn = document.getElementById('arena-next-btn');
+      if (nextBtn) {
+        nextBtn.style.display = 'none';
+      }
+    }
+
+    function enterComparisonMode(baseIndex) {
+      const cards = document.querySelectorAll('.arena-card');
+      if (baseIndex < 0 || baseIndex >= cards.length) return;
+      const baseSrc = cards[baseIndex].dataset.src;
+      enterComparisonModeFromSource(baseSrc);
+    }
+
+    function enterComparisonModeFromSource(baseSrc) {
+      if (!baseSrc) return;
+
+      isComparisonMode = true;
+      comparisonBaseSource = baseSrc;
+      comparisonBaseIndex = -1;
+
+      document.querySelectorAll('.arena-card').forEach(function(card, index) {
+        const afterSrc = card.dataset.src;
+        card.classList.add('comparison-active');
+
+        if (afterSrc === baseSrc) {
+          comparisonBaseIndex = index;
+          card.classList.add('comparison-base');
+          return;
+        }
+
+        displayBeforeAfterImage(card, baseSrc, afterSrc);
+      });
+    }
+
+    function renderInputComparison(inputSrc, enlightenedSrc) {
+      const inputBox = document.getElementById('arena-input-box');
+      if (!inputBox || !inputSrc || !enlightenedSrc) return;
+
+      inputBox.dataset.inputSrc = inputSrc;
+      inputBox.dataset.enlightenedSrc = enlightenedSrc;
+      inputBox.classList.add('comparison-base');
+
+      const existingImage = inputBox.querySelector('#arena-input-img');
+      if (existingImage) {
+        existingImage.remove();
+      }
+
+      const placeholder = document.getElementById('arena-input-placeholder');
+      if (placeholder) {
+        placeholder.style.display = 'none';
+      }
+
+      displayBeforeAfterImageInput(inputBox, inputSrc, enlightenedSrc);
+    }
+
+    function enterInputComparisonMode() {
+      const inputBox = document.getElementById('arena-input-box');
+      if (!inputBox) return;
+
+      renderInputComparison(
+        inputBox.dataset.inputSrc,
+        inputBox.dataset.enlightenedSrc
+      );
+    }
+
+    function exitComparisonMode() {
+      document.querySelectorAll('.arena-card').forEach(function(card, index) {
+        card.classList.remove('comparison-base', 'comparison-active');
+
+        const wrapper = card.querySelector('.arena-compare-wrapper');
+        if (!wrapper) return;
+
+        const img = document.createElement('img');
+        img.src = card.dataset.src || wrapper.dataset.afterSrc;
+        img.className = 'arena-img';
+        img.dataset.index = index;
+        img.onerror = function() { showCardPlaceholder(this); };
+        img.onload = function() { hideCardPlaceholder(this); };
+        wrapper.replaceWith(img);
+      });
+
+      isComparisonMode = false;
+      comparisonBaseIndex = -1;
+      comparisonBaseSource = '';
+    }
+
+    async function toggleRandomMode() {
+      const toggle = document.getElementById('arena-random-toggle');
+      isRandomMode = toggle.checked;
+      
+      if (isRandomMode) {
+        await generateRandomArenaData();
+        loadRound(0);
+        document.getElementById('arena-submit-btn').style.display = 'flex';
+        document.getElementById('arena-next-btn').style.display = 'none';
+      } else {
+        currentRandomData = null;
+        currentRound = 0;
+        loadRound(0);
+        document.getElementById('arena-submit-btn').style.display = 'none';
+      }
+    }
+
+    async function generateRandomArenaData() {
+      const imagePatterns = [
+        { prefix: 'CAGE-CIDNet', isCAGE: true },
+        { prefix: 'CAGE-DarkIR', isCAGE: true },
+        { prefix: 'CAGE-Retinexformer', isCAGE: true },
+        { prefix: 'BreaD', isCAGE: false },
+        { prefix: 'CWNet', isCAGE: false },
+        { prefix: 'DarkIR', isCAGE: false },
+        { prefix: 'HVI-CIDNet', isCAGE: false },
+        { prefix: 'FourLLIE', isCAGE: false },
+        { prefix: 'HVI-CIDNet', isCAGE: false },
+        { prefix: 'LLFlow', isCAGE: false },
+        { prefix: 'LLFormer', isCAGE: false },
+        { prefix: 'MIRNet', isCAGE: false },
+        { prefix: 'Retinexformer', isCAGE: false },
+        { prefix: 'RetinexMamba', isCAGE: false },
+        { prefix: 'SNR-Net', isCAGE: false },
+      ];
+      
+      const cagePatterns = imagePatterns.filter(p => p.isCAGE && !p.prefix.toLowerCase().includes('gt'));
+      const nonCagePatterns = imagePatterns.filter(p => !p.isCAGE && !p.prefix.toLowerCase().includes('gt'));
+      
+      const randomNum = String(Math.floor(Math.random() * 100) + 690).padStart(5, '0');
+      
+      const cagePattern = cagePatterns[Math.floor(Math.random() * cagePatterns.length)];
+      const cageSrc = `.examples/${cagePattern.prefix}/${randomNum}.png`;
+      
+      const shuffledNonCage = [...nonCagePatterns].sort(() => Math.random() - 0.5);
+      const nonCagePattern1 = shuffledNonCage[0];
+      const nonCagePattern2 = shuffledNonCage[1] || shuffledNonCage[0];
+      
+      const nonCageSrc1 = `.examples/${nonCagePattern1.prefix}/${randomNum}.png`;
+      const nonCageSrc2 = `.examples/${nonCagePattern2.prefix}/${randomNum}.png`;
+      
+      currentRandomData = {
+        input: `.examples/input/${randomNum}.png`,
+        outputs: [
+          { src: cageSrc, isCAGE: true },
+          { src: nonCageSrc1, isCAGE: false },
+          { src: nonCageSrc2, isCAGE: false }
+        ]
+      };
+    }
+
+    function toggleAcknowledgement() {
+      const header = document.querySelector('#acknowledgement .collapsible-header');
+      const content = document.getElementById('ack-content');
+      
+      header.classList.toggle('expanded');
+      content.classList.toggle('open');
+    }
+
+    function showInputPlaceholder(img) {
+      img.style.display = 'none';
+      const placeholder = document.getElementById('arena-input-placeholder');
+      if (placeholder) {
+        placeholder.style.display = 'flex';
+        const filenameEl = placeholder.querySelector('.filename');
+        if (filenameEl && img.src) {
+          const path = new URL(img.src).pathname;
+          filenameEl.textContent = path.split('/').pop() || 'input.png';
+        }
+      }
+    }
+
+    function hideInputPlaceholder(img) {
+      img.style.display = 'block';
+      const placeholder = document.getElementById('arena-input-placeholder');
+      if (placeholder) {
+        placeholder.style.display = 'none';
+      }
+    }
+
+    function showCardPlaceholder(img) {
+      img.style.display = 'none';
+      const card = img.closest('.arena-card');
+      if (card) {
+        const placeholder = card.querySelector('.img-placeholder');
+        if (placeholder) {
+          placeholder.style.display = 'flex';
+          const filenameEl = placeholder.querySelector('.filename');
+          if (filenameEl && img.src) {
+            const path = new URL(img.src).pathname;
+            filenameEl.textContent = path.split('/').pop() || 'image.png';
+          }
+        }
+      }
+    }
+
+    function hideCardPlaceholder(img) {
+      img.style.display = 'block';
+      const card = img.closest('.arena-card');
+      if (card) {
+        const placeholder = card.querySelector('.img-placeholder');
+        if (placeholder) {
+          placeholder.style.display = 'none';
+        }
+      }
+    }
+
+    function createComparisonView(beforeImageUrl, afterImageUrl, initialPercentage) {
+      const wrapper = document.createElement('div');
+      wrapper.className = 'arena-compare-wrapper';
+      wrapper.dataset.beforeSrc = beforeImageUrl;
+      wrapper.dataset.afterSrc = afterImageUrl;
+
+      const sliderContainer = document.createElement('div');
+      sliderContainer.className = 'slider-container';
+
+      const afterImage = document.createElement('img');
+      afterImage.className = 'img compare-layer background-img';
+      afterImage.src = afterImageUrl;
+      afterImage.alt = '';
+      afterImage.draggable = false;
+
+      const beforeImage = document.createElement('img');
+      beforeImage.className = 'img compare-layer foreground-img';
+      beforeImage.src = beforeImageUrl;
+      beforeImage.alt = '';
+      beforeImage.draggable = false;
+
+      const divider = document.createElement('div');
+      divider.className = 'compare-divider';
+      divider.setAttribute('role', 'separator');
+      divider.setAttribute('aria-orientation', 'vertical');
+
+      const slider = document.createElement('input');
+      slider.type = 'range';
+      slider.min = '0';
+      slider.max = '100';
+      slider.value = String(initialPercentage || 50);
+      slider.className = 'slider';
+      slider.tabIndex = -1;
+      slider.setAttribute('aria-hidden', 'true');
+
+      const sliderButton = document.createElement('div');
+      sliderButton.className = 'slider-button';
+
+      sliderContainer.append(afterImage, beforeImage, divider, slider, sliderButton);
+      wrapper.appendChild(sliderContainer);
+
+      const percentage = initialPercentage || 50;
+      beforeImage.style.clipPath = `inset(0 ${100 - percentage}% 0 0)`;
+      divider.style.left = `${percentage}%`;
+      sliderButton.style.left = `${percentage}%`;
+
+      function updateSlider(clientX) {
+        const rect = sliderContainer.getBoundingClientRect();
+        if (!rect.width) return;
+
+        const percentage = Math.max(
+          0,
+          Math.min(100, ((clientX - rect.left) / rect.width) * 100)
+        );
+
+        slider.value = String(percentage);
+        beforeImage.style.clipPath = `inset(0 ${100 - percentage}% 0 0)`;
+        divider.style.left = `${percentage}%`;
+        sliderButton.style.left = `${percentage}%`;
+      }
+
+      let dragging = false;
+
+      divider.addEventListener('pointerdown', function(e) {
+        if (e.button !== 0) return;
+        dragging = true;
+        divider.setPointerCapture(e.pointerId);
+        e.preventDefault();
+        e.stopPropagation();
+        updateSlider(e.clientX);
+      });
+
+      divider.addEventListener('pointermove', function(e) {
+        if (!dragging) return;
+        e.preventDefault();
+        updateSlider(e.clientX);
+      });
+
+      function stopDragging(e) {
+        if (!dragging) return;
+        dragging = false;
+
+        if (divider.hasPointerCapture(e.pointerId)) {
+          divider.releasePointerCapture(e.pointerId);
+        }
+      }
+
+      divider.addEventListener('pointerup', stopDragging);
+      divider.addEventListener('pointercancel', stopDragging);
+
+      sliderButton.addEventListener('pointerdown', function(e) {
+        if (e.button !== 0) return;
+        dragging = true;
+        sliderButton.setPointerCapture(e.pointerId);
+        e.preventDefault();
+        e.stopPropagation();
+        updateSlider(e.clientX);
+      });
+
+      sliderButton.addEventListener('pointermove', function(e) {
+        if (!dragging) return;
+        e.preventDefault();
+        updateSlider(e.clientX);
+      });
+
+      sliderButton.addEventListener('pointerup', stopDragging);
+      sliderButton.addEventListener('pointercancel', stopDragging);
+
+      return wrapper;
+    }
+
+    function displayBeforeAfterImage(card, beforeImageUrl, afterImageUrl) {
+      if (!card || !beforeImageUrl || !afterImageUrl) return;
+
+      const wrapper = createComparisonView(beforeImageUrl, afterImageUrl);
+      const visual = card.querySelector('img.arena-img, .arena-compare-wrapper');
+
+      if (visual) {
+        visual.replaceWith(wrapper);
+      } else {
+        card.insertBefore(wrapper, card.querySelector('.img-placeholder'));
+      }
+    }
+
+    function displayBeforeAfterImageInput(box, beforeImageUrl, afterImageUrl) {
+      if (!box || !beforeImageUrl || !afterImageUrl) return;
+
+      const existingWrapper = box.querySelector('.arena-compare-wrapper');
+      let initialPercentage = 50;
+      if (existingWrapper) {
+        const slider = existingWrapper.querySelector('.slider');
+        if (slider) {
+          initialPercentage = parseInt(slider.value, 10);
+        }
+      }
+
+      const wrapper = createComparisonView(beforeImageUrl, afterImageUrl, initialPercentage);
+      const visual = box.querySelector(
+        ':scope > #arena-input-img, :scope > .arena-compare-wrapper'
+      );
+      const placeholder = box.querySelector('.img-placeholder');
+
+      if (visual) {
+        visual.replaceWith(wrapper);
+      } else if (placeholder) {
+        box.insertBefore(wrapper, placeholder);
+      } else {
+        box.appendChild(wrapper);
+      }
+    }
+
+    function selectArenaImage(index, event) {
+      console.log('selectArenaImage called:', index);
+      if (isComparisonMode || isAnswered) return;
+      
+      isAnswered = true;
+      selectedIndex = index;
+      
+      const cards = document.querySelectorAll('.arena-card');
+      cards.forEach(card => card.classList.remove('selected'));
+      
+      const selectedCard = cards[index];
+      if (!selectedCard) return;
+      selectedCard.classList.add('selected');
+      
+      const isCorrect = selectedCard.dataset.isCAGE === 'true';
+      const originalIndex = selectedCard.dataset.originalIndex;
+      const roundData = isRandomMode && currentRandomData ? currentRandomData : arenaData[currentRound];
+      const outputData = roundData ? roundData.outputs[originalIndex] : null;
+      const methodName = outputData ? outputData.src.split('/')[1] : 'unknown';
+      
+      if (!voteCounts[methodName]) {
+        voteCounts[methodName] = 0;
+      }
+      voteCounts[methodName]++;
+      // saveVoteCounts();
+      
+      try {
+        updateVoteChart();
+      } catch (error) {
+        console.error('Error updating vote chart:', error);
+      }
+      
+      cards.forEach(card => {
+        if (card.dataset.isCAGE === 'true') {
+          card.classList.add('correct');
+        }
+      });
+      
+      const feedback = document.getElementById('arena-feedback');
+      if (isCorrect && feedback) {
+        feedback.textContent = '🎉 Congratulations! This is our CAGE integrated method result 🤗';
+        feedback.classList.add('correct');
+        const mouseX = event ? event.clientX : null;
+        const mouseY = event ? event.clientY : null;
+        const correctCard = document.querySelector('.arena-card[data-isCAGE="true"]');
+        const correctRect = correctCard ? correctCard.getBoundingClientRect() : null;
+        const targetX = correctRect ? correctRect.left + correctRect.width / 2 : mouseX;
+        const targetY = correctRect ? correctRect.bottom : mouseY;
+        try {
+          launchFireworks(mouseX, mouseY, targetX, targetY);
+        } catch (error) {
+          console.error('Error launching fireworks:', error);
+        }
+      } else if (feedback) {
+        feedback.textContent = '';
+        feedback.classList.remove('correct', 'wrong');
+      }
+      
+      const nextBtn = document.getElementById('arena-next-btn');
+      if (nextBtn) {
+        nextBtn.style.display = 'flex';
+      }
+    }
+
+    async function nextArenaRound() {
+      if (isRandomMode) {
+        await generateRandomArenaData();
+        loadRound(0);
+
+        const submitBtn = document.getElementById('arena-submit-btn');
+        if (submitBtn) {
+          submitBtn.style.display = 'flex';
+        }
+        return;
+      }
+
+      if (currentRound + 1 >= shuffledArenaData.length) {
+        shuffleArenaData();
+        currentRound = 0;
+      } else {
+        currentRound++;
+      }
+      loadRound(currentRound);
+    }
+
+    function resetViewerTransform() {
+      viewerState.scale = 1;
+      viewerState.offsetX = 0;
+      viewerState.offsetY = 0;
+      applyViewerTransform();
+    }
+
+    function applyViewerTransform() {
+      const viewerImage = document.getElementById('arena-viewer-img');
+      if (!viewerImage) return;
+      viewerImage.style.transform = `translate(${viewerState.offsetX}px, ${viewerState.offsetY}px) scale(${viewerState.scale})`;
+    }
+
+    function renderViewerImage(resetTransform = false) {
+      const viewerImage = document.getElementById('arena-viewer-img');
+      const viewerIndex = document.getElementById('arena-viewer-index');
+      const item = viewerState.items[viewerState.index];
+      
+      if (!viewerImage || !viewerIndex || !item) return;
+      
+      viewerImage.src = item.src;
+      viewerImage.alt = item.alt;
+      viewerIndex.textContent = `${viewerState.index + 1} / ${viewerState.items.length}`;
+      
+      if (resetTransform) {
+        resetViewerTransform();
+      } else {
+        applyViewerTransform();
+      }
+    }
+
+    function openImageViewerBySource(source, alt = 'Image', viewerGroup = 'enhanced') {
+      const viewer = document.getElementById('arena-image-viewer');
+      if (!viewer || !source) return;
+
+      const arenaSection = document.getElementById('gallery');
+      if (arenaSection) {
+        const rect = arenaSection.getBoundingClientRect();
+        viewer.style.top = `${Math.max(0, rect.top)}px`;
+        viewer.style.height = `${Math.min(window.innerHeight, rect.height)}px`;
+      } else {
+        viewer.style.top = '0px';
+        viewer.style.height = '100vh';
+      }
+
+      const enhancedItems = collectEnhancedViewerItems();
+
+      if (viewerGroup === 'input') {
+        const inputBox = document.getElementById('arena-input-box');
+        const inputItems = [
+          {
+            src: inputBox?.dataset.inputSrc || '',
+            alt: 'Low-light Input'
+          },
+          {
+            src: inputBox?.dataset.enlightenedSrc || '',
+            alt: 'GT-mean Enlightened Input'
+          }
+        ].filter(function(item) {
+          return item.src;
+        });
+
+        viewerState.items = [...inputItems, ...enhancedItems];
+      } else {
+        viewerState.items = enhancedItems;
+      }
+
+      let index = viewerState.items.findIndex(function(item) {
+        return item.src === source;
+      });
+
+      if (index < 0) {
+        viewerState.items.push({ src: source, alt });
+        index = viewerState.items.length - 1;
+      }
+
+      viewerState.index = index;
+      renderViewerImage(true);
+      viewer.classList.add('active');
+    }
+
+    function collectEnhancedViewerItems() {
+      const items = [];
+      document.querySelectorAll('.arena-card').forEach((card, index) => {
+        const src = card.dataset.src;
+        if (src) {
+          items.push({
+            src: src,
+            alt: `Enhanced image ${String.fromCharCode(65 + index)}`
+          });
+        } else {
+          const wrapper = card.querySelector('.arena-compare-wrapper');
+          if (wrapper) {
+            items.push({
+              src: wrapper.dataset.afterSrc,
+              alt: `Enhanced image ${String.fromCharCode(65 + index)}`
+            });
+          }
+        }
+      });
+      return items;
+    }
+
+    function closeImageViewer() {
+      const viewer = document.getElementById('arena-image-viewer');
+      viewer.classList.remove('active');
+      viewerState.dragging = false;
+      document.getElementById('arena-viewer-img')?.classList.remove('is-dragging');
+    }
+
+    function initializeImageViewer() {
+      const viewer = document.getElementById('arena-image-viewer');
+      const viewerImage = document.getElementById('arena-viewer-img');
+      if (!viewer || !viewerImage) return;
+      
+      viewer.addEventListener('click', closeImageViewer);
+      viewerImage.addEventListener('click', function(e) { e.stopPropagation(); });
+      
+      viewer.addEventListener('wheel', function(e) {
+        e.preventDefault();
+        
+        if (e.target === viewer) {
+          if (viewerState.items.length <= 1) return;
+          const direction = e.deltaY > 0 ? 1 : -1;
+          viewerState.index = (viewerState.index + direction + viewerState.items.length) % viewerState.items.length;
+          renderViewerImage(false);
+          return;
+        }
+        
+        const zoomFactor = e.deltaY < 0 ? 1.1 : 0.9;
+        viewerState.scale = Math.min(8, Math.max(0.2, viewerState.scale * zoomFactor));
+        applyViewerTransform();
+      }, { passive: false });
+      
+      viewerImage.addEventListener('mousedown', function(e) {
+        if (e.button !== 1) return;
+        e.preventDefault();
+        e.stopPropagation();
+        viewerState.dragging = true;
+        viewerState.startX = e.clientX - viewerState.offsetX;
+        viewerState.startY = e.clientY - viewerState.offsetY;
+        viewerImage.classList.add('is-dragging');
+      });
+      
+      window.addEventListener('mousemove', function(e) {
+        if (!viewerState.dragging) return;
+        viewerState.offsetX = e.clientX - viewerState.startX;
+        viewerState.offsetY = e.clientY - viewerState.startY;
+        applyViewerTransform();
+      });
+      
+      window.addEventListener('mouseup', function(e) {
+        if (e.button === 1) {
+          viewerState.dragging = false;
+          viewerImage.classList.remove('is-dragging');
+        }
+      });
+      
+      window.addEventListener('keydown', function(e) {
+        if (!viewer.classList.contains('active')) return;
+        
+        if (e.key === 'Escape') {
+          closeImageViewer();
+        } else if (e.key === 'ArrowLeft') {
+          viewerState.index = (viewerState.index - 1 + viewerState.items.length) % viewerState.items.length;
+          renderViewerImage(false);
+        } else if (e.key === 'ArrowRight') {
+          viewerState.index = (viewerState.index + 1) % viewerState.items.length;
+          renderViewerImage(false);
+        } else if (/^[1-9]$/.test(e.key)) {
+          const index = parseInt(e.key) - 1;
+          if (index < viewerState.items.length) {
+            viewerState.index = index;
+            renderViewerImage(true);
+          }
+        }
+      });
+      
+      let scrollFrameId;
+      window.addEventListener('scroll', function() {
+        if (!viewer.classList.contains('active')) return;
+        if (scrollFrameId) cancelAnimationFrame(scrollFrameId);
+        scrollFrameId = requestAnimationFrame(function() {
+          const arenaSection = document.getElementById('image-arena');
+          if (arenaSection) {
+            const rect = arenaSection.getBoundingClientRect();
+            if (rect.bottom < 0 || rect.top > window.innerHeight) {
+              closeImageViewer();
+              return;
+            }
+            viewer.style.top = `${rect.top}px`;
+            viewer.style.height = `${rect.height}px`;
+          }
+        });
+      });
+    }
+
+    function startCompare(baseSrc) {
+      const compareSlider = document.getElementById('arena-compare-slider');
+      compareSlider.style.display = 'block';
+      document.querySelector('.compare-base').src = baseSrc;
+      
+      const selectedCard = document.querySelector('.arena-card.selected');
+      if (selectedCard) {
+        document.querySelector('.compare-target').src = selectedCard.querySelector('img').src;
+      } else {
+        document.querySelector('.compare-target').src = document.querySelectorAll('.arena-card img')[0].src;
+      }
+      
+      document.querySelector('.compare-slider').value = 50;
+      document.querySelector('.compare-target').style.clipPath = 'inset(0 50% 0 0)';
+      document.querySelector('.compare-divider').style.left = '50%';
+    }
+
+    function closeCompare() {
+      document.getElementById('arena-compare-slider').style.display = 'none';
+    }
+
+    function updateVoteChart() {
+      console.log('updateVoteChart called, voteCounts:', voteCounts);
+      const voteChart = document.getElementById('arena-vote-chart');
+      const chartBars = document.getElementById('vote-chart-bars');
+      console.log('voteChart:', !!voteChart, 'chartBars:', !!chartBars);
+      if (!voteChart || !chartBars) return;
+      
+      const sortedMethods = Object.entries(voteCounts)
+        .filter(([, count]) => count > 0)
+        .sort((a, b) => a[1] - b[1]);
+      
+      if (sortedMethods.length === 0) {
+        voteChart.style.display = 'none';
+        return;
+      }
+      
+      voteChart.style.display = 'block';
+      
+      const counts = sortedMethods.map(([, count]) => count);
+      const maxCount = Math.max(...counts);
+      const minCount = 0; // Math.min(...counts);
+      const maxBarHeight = 80;
+      
+      chartBars.innerHTML = '';
+      
+      sortedMethods.forEach(([method, count]) => {
+        const barItem = document.createElement('div');
+        barItem.className = 'vote-bar-item';
+        
+        const bar = document.createElement('div');
+        bar.className = 'vote-bar' + (method.startsWith('CAGE') ? ' cage' : '');
+        
+        let heightPercent;
+        if (sortedMethods.length === 1 || maxCount === minCount) {
+          heightPercent = 100;
+        } else {
+          heightPercent = ((count - minCount) / (maxCount - minCount)) * 100;
+        }
+        bar.style.height = `${Math.max(2, heightPercent / 100 * maxBarHeight)}px`;
+        
+        const label = document.createElement('div');
+        label.className = 'vote-label';
+        label.textContent = method;
+        
+        const countSpan = document.createElement('div');
+        countSpan.className = 'vote-count';
+        countSpan.textContent = count;
+        
+        const barGroup = document.createElement('div');
+        barGroup.className = 'vote-bar-group';
+        barGroup.appendChild(countSpan);
+        barGroup.appendChild(bar);
+        
+        barItem.appendChild(barGroup);
+        barItem.appendChild(label);
+        
+        chartBars.appendChild(barItem);
+      });
+    }
+
+    function launchFireworks(mouseX, mouseY, targetX, targetY) {
+      const canvas = document.getElementById('fireworks-canvas');
+      const ctx = canvas.getContext('2d');
+      canvas.width = window.innerWidth;
+      canvas.height = window.innerHeight;
+      
+      const startX = mouseX || canvas.width / 2;
+      const startY = mouseY || canvas.height / 2;
+      
+      const dx = (targetX || startX) - startX;
+      const dy = (targetY || startY) - startY + 50;
+      
+      const mainAngle = Math.atan2(-dy, dx);
+      const angleUp = Math.abs(mainAngle) < Math.PI / 2;
+      const spreadFactor = angleUp ? 0.5 + (1 - Math.abs(mainAngle) / (Math.PI / 2)) * 0.5 : 1;
+      const spreadAngle = Math.PI / 4 * spreadFactor;
+      
+      const strips = [];
+      const particles = [];
+      const stripColors = ['#FF3B30', '#FF9500', '#FFCC00', '#34C759', '#007AFF', '#5856D6', '#AF52DE', '#FF2D55'];
+      const ballColors = ['#E6D5B8', '#D4A5A5', '#A5B8D4', '#A5D4B8', '#B8A5D4'];
+      const modes = ['sin', 'cos', 'triangle', 'square', 'sawtooth'];
+      const particleShapes = ['circle', 'square', 'triangle', 'diamond', 'star'];
+      
+      const gravity = 0.3;
+      const stripGravity = 0.3;
+      let flashFrame = 0;
+      let startTime = Date.now();
+      const boundDecay = 0.5;
+      const moveDecay = 0.9;
+      const hangingRate = 0.1;
+      
+      const totalCount = Math.floor(Math.random() * 16) + 32;
+      const particleCount = Math.floor(totalCount / 3);
+      const stripCount = totalCount - particleCount;
+      
+      for (let i = 0; i < stripCount; i++) {
+        const angleOffset = (Math.random() - 0.5) * spreadAngle * 2;
+        const angle = mainAngle + angleOffset;
+        const speed = Math.random() * 10 + 6;
+        const mode = modes[i % modes.length];
+        
+        strips.push({
+          x: startX,
+          y: startY,
+          vx: Math.cos(angle) * speed,
+          vy: Math.sin(angle) * speed,
+          color: stripColors[Math.floor(Math.random() * stripColors.length)],
+          length: Math.random() * 22 + 15,
+          width: 3,
+          mode: mode,
+          amplitude: Math.random() * 3 + 3,
+          frequency: Math.random() * 1 + 2,
+          rotation: Math.random() * Math.PI * 2,
+          rotationSpeed: (Math.random() - 0.5) * 0.3,
+          life: 360,
+          maxLife: 360,
+          fadeDelay: Math.random() * 60,
+          anchored: false,
+          anchorTime: 0,
+          anchorX: 0,
+          anchorY: 0,
+          angularVelocity: 0,
+          pendulumAngle: 0,
+          swayOffset: Math.random() * Math.PI * 2,
+          swayFrequency: Math.random() * 0.05 + 0.03
+        });
+      }
+      
+      for (let i = 0; i < particleCount; i++) {
+        const angleOffset = (Math.random() - 0.5) * spreadAngle * 2;
+        const angle = mainAngle + angleOffset;
+        const speed = Math.random() * 15 + 10;
+        
+        particles.push({
+          x: startX,
+          y: startY,
+          vx: Math.cos(angle) * speed,
+          vy: Math.sin(angle) * speed,
+          size: Math.random() * 3 + 1.5,
+          color: ballColors[Math.floor(Math.random() * ballColors.length)],
+          shape: particleShapes[Math.floor(Math.random() * particleShapes.length)],
+          rotation: Math.random() * Math.PI * 2,
+          rotationSpeed: (Math.random() - 0.5) * 0.2,
+          life: 300,
+          maxLife: 300,
+          bounce: 0.8,
+          fadeDelay: Math.random() * 60
+        });
+      }
+      
+      function drawStrip(ctx, p) {
+        ctx.fillStyle = p.color;
+        ctx.beginPath();
+        
+        const points = [];
+        for (let t = 0; t <= 1; t += 0.05) {
+          const x = (t - 0.5) * p.length;
+          let y = 0;
+          
+          switch (p.mode) {
+            case 'sin':
+              y = Math.sin(t * p.frequency * Math.PI) * p.amplitude;
+              break;
+            case 'cos':
+              y = Math.cos(t * p.frequency * Math.PI * 2) * p.amplitude;
+              break;
+            case 'triangle':
+              y = Math.abs(2 * t - 1) * p.amplitude * 2 - p.amplitude;
+              break;
+            case 'square':
+              y = (t < 0.5 ? 1 : -1) * p.amplitude;
+              break;
+            case 'sawtooth':
+              y = (t * 2 - 1) * p.amplitude;
+              break;
+          }
+          
+          points.push({ x, y });
+        }
+        
+        for (let i = 0; i < points.length; i++) {
+          const pt = points[i];
+          if (i === 0) {
+            ctx.moveTo(pt.x, pt.y - p.width / 2);
+          } else {
+            ctx.lineTo(pt.x, pt.y - p.width / 2);
+          }
+        }
+        
+        for (let i = points.length - 1; i >= 0; i--) {
+          const pt = points[i];
+          ctx.lineTo(pt.x, pt.y + p.width / 2);
+        }
+        
+        ctx.closePath();
+        ctx.fill();
+      }
+      
+      function drawParticle(ctx, p) {
+        ctx.fillStyle = p.color;
+        ctx.beginPath();
+        
+        ctx.translate(p.x, p.y);
+        ctx.rotate(p.rotation);
+        
+        switch (p.shape) {
+          case 'circle':
+            ctx.arc(0, 0, p.size, 0, Math.PI * 2);
+            break;
+          case 'square':
+            ctx.rect(-p.size, -p.size, p.size * 2, p.size * 2);
+            break;
+          case 'triangle':
+            ctx.moveTo(0, -p.size);
+            ctx.lineTo(p.size, p.size);
+            ctx.lineTo(-p.size, p.size);
+            ctx.closePath();
+            break;
+          case 'diamond':
+            ctx.moveTo(0, -p.size);
+            ctx.lineTo(p.size, 0);
+            ctx.lineTo(0, p.size);
+            ctx.lineTo(-p.size, 0);
+            ctx.closePath();
+            break;
+          case 'star':
+            for (let i = 0; i < 5; i++) {
+              const outerAngle = (i * 4 * Math.PI) / 5 - Math.PI / 2;
+              const innerAngle = outerAngle + Math.PI / 5;
+              ctx.lineTo(Math.cos(outerAngle) * p.size, Math.sin(outerAngle) * p.size);
+              ctx.lineTo(Math.cos(innerAngle) * p.size * 0.5, Math.sin(innerAngle) * p.size * 0.5);
+            }
+            ctx.closePath();
+            break;
+        }
+        
+        ctx.fill();
+      }
+      
+      function animate() {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        
+        if (flashFrame < 10) {
+          flashFrame++;
+          const alpha = Math.sin(flashFrame * Math.PI / 5) * 0.8;
+          ctx.beginPath();
+          ctx.arc(startX, startY, 50 + flashFrame * 5, 0, Math.PI * 2);
+          ctx.fillStyle = `rgba(255, 215, 0, ${alpha})`;
+          ctx.fill();
+        }
+        
+        const elapsed = (Date.now() - startTime) / 1000;
+        const stripFadeStart = 1.0;
+        const particleFadeStart = 3.0;
+        const fadeDuration = 1.0;
+        
+        strips.forEach(p => {
+          p.life--;
+          
+          if (p.anchored) {
+            p.anchorTime++;
+            p.life++;
+            
+            p.pendulumAngle += p.angularVelocity;
+            p.angularVelocity += -p.pendulumAngle * 0.01;
+            p.angularVelocity *= 0.985;
+            
+            p.x = p.anchorX;
+            p.y = p.anchorY;
+            p.rotation = Math.PI / 2 + p.pendulumAngle;
+            
+            if (p.anchorTime >= 60 + Math.random() * 120) {
+              p.anchored = false;
+              p.vx = Math.cos(p.pendulumAngle) * p.angularVelocity * p.length;
+              p.vy = Math.sin(p.pendulumAngle) * p.angularVelocity * p.length + 1;
+            }
+          } else {
+            p.x += p.vx;
+            p.y += p.vy;
+            p.vy += stripGravity;
+            p.vx *= 0.99;
+            
+            if (p.vy > 10.0) {
+              p.vy = 10.0;
+            }
+            
+            p.rotation += p.rotationSpeed;
+            
+            p.x += Math.sin(p.life * p.swayFrequency + p.swayOffset) * 0.5;
+            
+            if (p.y <= 0) {
+              if (!p.anchored && Math.random() < hangingRate) {
+                p.anchored = true;
+                p.anchorTime = 0;
+                p.anchorX = p.x;
+                p.anchorY = 0;
+                p.angularVelocity = -p.vx * 0.05;
+                p.pendulumAngle = 0;
+              } else {
+                p.y = 0;
+                p.vy = Math.abs(p.vy) * 0.1;
+                p.vx = Math.abs(p.vx) * 0.5;
+              }
+            }
+          }
+          
+          if (p.life > 0 && p.y < canvas.height + 100) {
+            ctx.save();
+            
+            let alpha = p.life / p.maxLife;
+            const pFadeStart = stripFadeStart + p.fadeDelay / 60;
+            if (elapsed >= pFadeStart) {
+              alpha *= Math.max(0, 1 - (elapsed - pFadeStart) / fadeDuration);
+            }
+            ctx.globalAlpha = alpha;
+            
+            ctx.translate(p.x, p.y);
+            ctx.rotate(p.rotation);
+            drawStrip(ctx, p);
+            ctx.restore();
+          }
+        });
+        
+        particles.forEach(p => {
+          p.x += p.vx;
+          p.y += p.vy;
+          p.vy += gravity;
+          p.rotation += p.rotationSpeed;
+          p.life--;
+          
+          if (p.x - p.size <= 0) {
+            p.x = p.size;
+            p.vx *= -p.bounce;
+          } else if (p.x + p.size >= canvas.width) {
+            p.x = canvas.width - p.size;
+            p.vx *= -p.bounce;
+          }
+          
+          if (p.y - p.size <= 0) {
+            p.y = p.size;
+            p.vy *= -p.bounce;
+          } else if (p.y + p.size >= canvas.height) {
+            p.y = canvas.height - p.size;
+            p.vy *= -p.bounce * boundDecay;
+            p.vx *= moveDecay;
+          }
+          
+          if (p.life > 0) {
+            ctx.save();
+            
+            let alpha = Math.min(1, p.life / p.maxLife);
+            const pFadeStart = particleFadeStart + (p.fadeDelay / 60) * 2;
+            if (elapsed >= pFadeStart) {
+              alpha *= Math.max(0, 1 - (elapsed - pFadeStart) / fadeDuration);
+            }
+            ctx.globalAlpha = alpha;
+            
+            drawParticle(ctx, p);
+            ctx.restore();
+          }
+        });
+        
+        if (strips.some(p => p.life > 0 && p.y < canvas.height + 100) || particles.some(p => p.life > 0)) {
+          requestAnimationFrame(animate);
+        }
+      }
+      
+      animate();
+    }
+
+    document.addEventListener('DOMContentLoaded', initArena);
+  </script>
+
+</body>
+</html>'
