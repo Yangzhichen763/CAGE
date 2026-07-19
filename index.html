@@ -2928,27 +2928,27 @@
 
     const ARENA_DATA_DEFAULT = [
       {
-        "input": ".examples/input/00700.png",
+        "input": "examples/input/00700.png",
         "outputs": [
-          { "src": ".examples/SNR-Net/00700.png", "isCAGE": false },
-          { "src": ".examples/CAGE-DarkIR/00700.png", "isCAGE": true },
-          { "src": ".examples/BreaD/00700.png", "isCAGE": false }
+          { "src": "examples/SNR-Net/00700.png", "isCAGE": false },
+          { "src": "examples/CAGE-DarkIR/00700.png", "isCAGE": true },
+          { "src": "examples/BreaD/00700.png", "isCAGE": false }
         ]
       },
       {
-        "input": ".examples/input/00710.png",
+        "input": "examples/input/00710.png",
         "outputs": [
-          { "src": ".examples/DarkIR/00710.png", "isCAGE": false },
-          { "src": ".examples/CAGE-DarkIR/00710.png", "isCAGE": true },
-          { "src": ".examples/SNR-Net/00710.png", "isCAGE": false }
+          { "src": "examples/DarkIR/00710.png", "isCAGE": false },
+          { "src": "examples/CAGE-DarkIR/00710.png", "isCAGE": true },
+          { "src": "examples/SNR-Net/00710.png", "isCAGE": false }
         ]
       },
       {
-        "input": ".examples/input/00720.png",
+        "input": "examples/input/00720.png",
         "outputs": [
-          { "src": ".examples/BreaD/00720.png", "isCAGE": false },
-          { "src": ".examples/DarkIR/00720.png", "isCAGE": false },
-          { "src": ".examples/CAGE-DarkIR/00720.png", "isCAGE": true }
+          { "src": "examples/BreaD/00720.png", "isCAGE": false },
+          { "src": "examples/DarkIR/00720.png", "isCAGE": false },
+          { "src": "examples/CAGE-DarkIR/00720.png", "isCAGE": true }
         ]
       }
     ];
@@ -3515,17 +3515,17 @@
       const randomNum = String(Math.floor(Math.random() * 100) + 690).padStart(5, '0');
       
       const cagePattern = cagePatterns[Math.floor(Math.random() * cagePatterns.length)];
-      const cageSrc = `.examples/${cagePattern.prefix}/${randomNum}.png`;
+      const cageSrc = `examples/${cagePattern.prefix}/${randomNum}.png`;
       
       const shuffledNonCage = [...nonCagePatterns].sort(() => Math.random() - 0.5);
       const nonCagePattern1 = shuffledNonCage[0];
       const nonCagePattern2 = shuffledNonCage[1] || shuffledNonCage[0];
       
-      const nonCageSrc1 = `.examples/${nonCagePattern1.prefix}/${randomNum}.png`;
-      const nonCageSrc2 = `.examples/${nonCagePattern2.prefix}/${randomNum}.png`;
+      const nonCageSrc1 = `examples/${nonCagePattern1.prefix}/${randomNum}.png`;
+      const nonCageSrc2 = `examples/${nonCagePattern2.prefix}/${randomNum}.png`;
       
       currentRandomData = {
-        input: `.examples/input/${randomNum}.png`,
+        input: `examples/input/${randomNum}.png`,
         outputs: [
           { src: cageSrc, isCAGE: true },
           { src: nonCageSrc1, isCAGE: false },
@@ -3604,12 +3604,14 @@
       afterImage.src = afterImageUrl;
       afterImage.alt = '';
       afterImage.draggable = false;
+      afterImage.onerror = function() { showInputPlaceholder(this); };
 
       const beforeImage = document.createElement('img');
       beforeImage.className = 'img compare-layer foreground-img';
       beforeImage.src = beforeImageUrl;
       beforeImage.alt = '';
       beforeImage.draggable = false;
+      beforeImage.onerror = function() { showInputPlaceholder(this); };
 
       const divider = document.createElement('div');
       divider.className = 'compare-divider';

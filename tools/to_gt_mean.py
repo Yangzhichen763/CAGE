@@ -300,9 +300,9 @@ def parse_args():
 
 if __name__ == "__main__":
     # CPU:
-    # python tools/to_gt_mean.py  -i .examples/input  -g .examples/gt  -o .examples/enlightened
+    # python tools/to_gt_mean.py  -i examples/input  -g examples/gt  -o examples/enlightened
     #
     # GPU:
-    # python tools/to_gt_mean.py  -i .examples/input  -g .examples/gt  -o .examples/enlightened --device cuda:0
+    # python tools/to_gt_mean.py  -i examples/input  -g examples/gt  -o examples/enlightened --device cuda:0
 
     main()
