@@ -4305,26 +4305,46 @@
       const themeToggle = document.getElementById('theme-toggle');
       const html = document.documentElement;
       
-      function setTheme(theme) {
+      function applyTheme(theme) {
         html.setAttribute('data-theme', theme);
-        localStorage.setItem('theme', theme);
+      }
+      
+      function getSystemTheme() {
+        return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+      }
+      
+      function setTheme(mode) {
+        localStorage.setItem('theme', mode);
+        if (mode === 'system') {
+          applyTheme(getSystemTheme());
+        } else {
+          applyTheme(mode);
+        }
       }
       
       const savedTheme = localStorage.getItem('theme');
-      if (savedTheme) {
+      if (savedTheme && savedTheme !== 'system') {
         setTheme(savedTheme);
-      } else if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
-        setTheme('dark');
       } else {
-        setTheme('light');
+        setTheme('system');
       }
       
+      const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
+      mediaQuery.addEventListener('change', function() {
+        const currentMode = localStorage.getItem('theme');
+        if (currentMode === 'system') {
+          applyTheme(getSystemTheme());
+        }
+      });
+      
       themeToggle.addEventListener('click', function() {
-        const currentTheme = html.getAttribute('data-theme');
-        if (currentTheme === 'dark') {
+        const currentMode = localStorage.getItem('theme');
+        if (currentMode === 'system') {
           setTheme('light');
-        } else {
+        } else if (currentMode === 'light') {
           setTheme('dark');
+        } else {
+          setTheme('system');
         }
       });
 
@@ -6593,6 +6613,26 @@
         });
       }
 
+      function scheduleConnectionsUpdate() {
+        if (interactive.hidden) return;
+        let attempts = 0;
+        const maxAttempts = 10;
+        
+        function tryUpdate() {
+          attempts++;
+          drawConnections();
+          
+          const cnnRect = cnn.getBoundingClientRect();
+          const paramsRect = params.getBoundingClientRect();
+          
+          if (attempts < maxAttempts && (cnnRect.width === 0 || paramsRect.width === 0)) {
+            setTimeout(tryUpdate, Math.pow(2, attempts) * 50);
+          }
+        }
+        
+        requestAnimationFrame(tryUpdate);
+      }
+
       function offsetPoint(p, dx = 0, dy = 0) {
         return {
           x: p.x + dx,
@@ -6667,6 +6707,11 @@
       resizeObserver.observe(diagram);
       resizeObserver.observe(mainBranch);
       resizeObserver.observe(parameterBranch);
+      resizeObserver.observe(input);
+      resizeObserver.observe(cnn);
+      resizeObserver.observe(params);
+      resizeObserver.observe(forward);
+      resizeObserver.observe(inverse);
 
       window.addEventListener('resize', function() {
         drawConnections();
@@ -6674,13 +6719,13 @@
       });
 
       window.addEventListener('load', function() {
-        drawConnections();
+        scheduleConnectionsUpdate();
         syncDetailHeight();
       });
 
       syncDetailState();
       requestAnimationFrame(function() {
-        drawConnections();
+        scheduleConnectionsUpdate();
         syncDetailHeight();
       });
     })();
