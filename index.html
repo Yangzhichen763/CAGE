@@ -3244,7 +3244,7 @@
     <div class="tldr">
       <h2>TL;DR</h2>
       <p>
-        Eliminate interference of <strong>embedded color bias</strong> throughout enhancement via <strong>reorganizing color space</strong>, delivering up to <strong>+2.21dB</strong> PSNR gain with only <strong>0.07M extra Params. and less than 0.01G FLOPs</strong>.
+        Eliminate interference of <strong>embedded color bias</strong> throughout enhancement via <strong>reorganizing and correcting color space</strong>, delivering up to <strong>+2.21dB</strong> PSNR gain with only <strong>0.07M extra Params. and less than 0.01G FLOPs</strong>.
       </p>
     </div>
 
@@ -3521,13 +3521,13 @@
         <div class="problem-card">
           <div class="card-index">02 · Pipeline</div>
           <h3>Bias propagation</h3>
-          <p>A color space can reorganize distorted colors, but the disturbance continues through enhancement unless the chromatic distribution is corrected.</p>
+          <p>A color space can reorganize distorted colors, but the disturbance persists through enhancement unless the chromatic distribution is corrected.</p>
           <div class="ghost-number">02</div>
         </div>
         <div class="problem-card">
           <div class="card-index">03 · Output</div>
           <h3>Chromatic distortion</h3>
-          <p>Content-dependent chromatic amplification produces global color bias, under-saturation in some regions and over-saturation in others.</p>
+          <p>Brightness enhancement amplifies chromatic responses, causing global color bias and regional under-saturation and over-saturation.</p>
           <div class="ghost-number">03</div>
         </div>
       </div>
