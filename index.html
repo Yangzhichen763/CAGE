@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="utf-8">
@@ -4299,6 +4299,7 @@
     </p>
   </footer>
 
+  <script src="datas/arena_data.js"></script>
   <script>
     document.addEventListener('DOMContentLoaded', function() {
       const themeToggle = document.getElementById('theme-toggle');
@@ -4695,19 +4696,12 @@
           }
         }
       }
-      try {
-        const response = await fetch('datas/arena_data.json');
-        if (response.ok) {
-          const text = await response.text();
-          arenaData = cleanArenaPaths(JSON.parse(text));
-          console.log('Loaded from datas/arena_data.json:', arenaData.length);
-        } else {
-          throw new Error('HTTP ' + response.status);
-        }
-      } catch (error) {
-        console.error('Failed to load datas/arena_data.json:', error);
+      if (window.ARENA_DATA_FILE && Array.isArray(window.ARENA_DATA_FILE) && window.ARENA_DATA_FILE.length > 0) {
+        arenaData = cleanArenaPaths(window.ARENA_DATA_FILE);
+        console.log('Loaded from datas/arena_data.js:', arenaData.length);
+      } else {
         arenaData = [...ARENA_DATA_DEFAULT];
-        console.log('Using default data:', arenaData.length);
+        console.log('Loaded embedded arena data:', arenaData.length);
       }
       shuffleArenaData();
       currentRound = 0;
@@ -5547,6 +5541,7 @@
         if (e.target === viewer) {
           if (viewerState.items.length <= 1) return;
           const direction = e.deltaY > 0 ? 1 : -1;
+          console.log('Wheel direction:', direction);
           viewerState.index = (viewerState.index + direction + viewerState.items.length) % viewerState.items.length;
           renderViewerImage(false);
           return;

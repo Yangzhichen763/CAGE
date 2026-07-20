@@ -1,0 +1,314 @@
+window.ARENA_DATA_FILE = [
+  {
+    "input": "examples/input/00700.png",
+    "outputs": [
+      { "src": "examples/SNR-Net/00700.png", "isCAGE": false },
+      { "src": "examples/CAGE-DarkIR/00700.png", "isCAGE": true },
+      { "src": "examples/BreaD/00700.png", "isCAGE": false }
+    ]
+  },
+  {
+    "input": "examples/input/00710.png",
+    "outputs": [
+      { "src": "examples/DarkIR/00710.png", "isCAGE": false },
+      { "src": "examples/CAGE-DarkIR/00710.png", "isCAGE": true },
+      { "src": "examples/SNR-Net/00710.png", "isCAGE": false }
+    ]
+  },
+  {
+    "input": "examples/input/00720.png",
+    "outputs": [
+      { "src": "examples/BreaD/00720.png", "isCAGE": false },
+      { "src": "examples/DarkIR/00720.png", "isCAGE": false },
+      { "src": "examples/CAGE-DarkIR/00720.png", "isCAGE": true }
+    ]
+  },
+  {
+    "input": "examples/input/00767.png",
+    "outputs": [
+      { "src": "examples/CAGE-CIDNet/00767.png", "isCAGE": true },
+      { "src": "examples/FourLLIE/00767.png", "isCAGE": false },
+      { "src": "examples/MIRNet/00767.png", "isCAGE": false }
+    ]
+  },
+  {
+    "input": "examples/input/00749.png",
+    "outputs": [
+      { "src": "examples/CAGE-CIDNet/00749.png", "isCAGE": true },
+      { "src": "examples/HVI-CIDNet/00749.png", "isCAGE": false },
+      { "src": "examples/LLFormer/00749.png", "isCAGE": false }
+    ]
+  },
+  {
+    "input": "examples/input/00746.png",
+    "outputs": [
+      { "src": "examples/CAGE-CIDNet/00746.png", "isCAGE": true },
+      { "src": "examples/RetinexMamba/00746.png", "isCAGE": false },
+      { "src": "examples/HVI-CIDNet/00746.png", "isCAGE": false }
+    ]
+  },
+  {
+    "input": "examples/input/00788.png",
+    "outputs": [
+      { "src": "examples/CAGE-Retinexformer/00788.png", "isCAGE": true },
+      { "src": "examples/LLFlow/00788.png", "isCAGE": false },
+      { "src": "examples/FourLLIE/00788.png", "isCAGE": false }
+    ]
+  },
+  {
+    "input": "examples/input/00694.png",
+    "outputs": [
+      { "src": "examples/CAGE-Retinexformer/00694.png", "isCAGE": true },
+      { "src": "examples/RetinexMamba/00694.png", "isCAGE": false },
+      { "src": "examples/FourLLIE/00694.png", "isCAGE": false }
+    ]
+  },
+  {
+    "input": "examples/input/00789.png",
+    "outputs": [
+      { "src": "examples/CAGE-Retinexformer/00789.png", "isCAGE": true },
+      { "src": "examples/CWNet/00789.png", "isCAGE": false },
+      { "src": "examples/LLFormer/00789.png", "isCAGE": false }
+    ]
+  },
+  {
+    "input": "examples/input/00786.png",
+    "outputs": [
+      { "src": "examples/CAGE-CIDNet/00786.png", "isCAGE": true },
+      { "src": "examples/HVI-CIDNet/00786.png", "isCAGE": false },
+      { "src": "examples/CWNet/00786.png", "isCAGE": false }
+    ]
+  },
+  {
+    "input": "examples/input/00772.png",
+    "outputs": [
+      { "src": "examples/CAGE-Retinexformer/00772.png", "isCAGE": true },
+      { "src": "examples/CWNet/00772.png", "isCAGE": false },
+      { "src": "examples/LLFlow/00772.png", "isCAGE": false }
+    ]
+  },
+  {
+    "input": "examples/input/00739.png",
+    "outputs": [
+      { "src": "examples/CAGE-CIDNet/00739.png", "isCAGE": true },
+      { "src": "examples/Retinexformer/00739.png", "isCAGE": false },
+      { "src": "examples/LLFormer/00739.png", "isCAGE": false }
+    ]
+  },
+  {
+    "input": "examples/input/00770.png",
+    "outputs": [
+      { "src": "examples/CAGE-Retinexformer/00770.png", "isCAGE": true },
+      { "src": "examples/CWNet/00770.png", "isCAGE": false },
+      { "src": "examples/DarkIR/00770.png", "isCAGE": false }
+    ]
+  },
+  {
+    "input": "examples/input/00749.png",
+    "outputs": [
+      { "src": "examples/CAGE-CIDNet/00749.png", "isCAGE": true },
+      { "src": "examples/DarkIR/00749.png", "isCAGE": false },
+      { "src": "examples/SNR-Net/00749.png", "isCAGE": false }
+    ]
+  },
+  {
+    "input": "examples/input/00774.png",
+    "outputs": [
+      { "src": "examples/CAGE-DarkIR/00774.png", "isCAGE": true },
+      { "src": "examples/HVI-CIDNet/00774.png", "isCAGE": false },
+      { "src": "examples/RetinexMamba/00774.png", "isCAGE": false }
+    ]
+  },
+  {
+    "input": "examples/input/00729.png",
+    "outputs": [
+      { "src": "examples/CAGE-CIDNet/00729.png", "isCAGE": true },
+      { "src": "examples/CWNet/00729.png", "isCAGE": false },
+      { "src": "examples/Retinexformer/00729.png", "isCAGE": false }
+    ]
+  },
+  {
+    "input": "examples/input/00767.png",
+    "outputs": [
+      { "src": "examples/CAGE-CIDNet/00767.png", "isCAGE": true },
+      { "src": "examples/LLFlow/00767.png", "isCAGE": false },
+      { "src": "examples/MIRNet/00767.png", "isCAGE": false }
+    ]
+  },
+  {
+    "input": "examples/input/00787.png",
+    "outputs": [
+      { "src": "examples/CAGE-Retinexformer/00787.png", "isCAGE": true },
+      { "src": "examples/HVI-CIDNet/00787.png", "isCAGE": false },
+      { "src": "examples/BreaD/00787.png", "isCAGE": false }
+    ]
+  },
+  {
+    "input": "examples/input/00717.png",
+    "outputs": [
+      { "src": "examples/CAGE-CIDNet/00717.png", "isCAGE": true },
+      { "src": "examples/MIRNet/00717.png", "isCAGE": false },
+      { "src": "examples/LLFormer/00717.png", "isCAGE": false }
+    ]
+  },
+  {
+    "input": "examples/input/00695.png",
+    "outputs": [
+      { "src": "examples/CAGE-Retinexformer/00695.png", "isCAGE": true },
+      { "src": "examples/LLFormer/00695.png", "isCAGE": false },
+      { "src": "examples/HVI-CIDNet/00695.png", "isCAGE": false }
+    ]
+  },
+  {
+    "input": "examples/input/00760.png",
+    "outputs": [
+      { "src": "examples/CAGE-DarkIR/00760.png", "isCAGE": true },
+      { "src": "examples/HVI-CIDNet/00760.png", "isCAGE": false },
+      { "src": "examples/CWNet/00760.png", "isCAGE": false }
+    ]
+  },
+  {
+    "input": "examples/input/00691.png",
+    "outputs": [
+      { "src": "examples/CAGE-Retinexformer/00691.png", "isCAGE": true },
+      { "src": "examples/BreaD/00691.png", "isCAGE": false },
+      { "src": "examples/CWNet/00691.png", "isCAGE": false }
+    ]
+  },
+  {
+    "input": "examples/input/00703.png",
+    "outputs": [
+      { "src": "examples/CAGE-Retinexformer/00703.png", "isCAGE": true },
+      { "src": "examples/MIRNet/00703.png", "isCAGE": false },
+      { "src": "examples/LLFlow/00703.png", "isCAGE": false }
+    ]
+  },
+  {
+    "input": "examples/input/00739.png",
+    "outputs": [
+      { "src": "examples/CAGE-Retinexformer/00739.png", "isCAGE": true },
+      { "src": "examples/MIRNet/00739.png", "isCAGE": false },
+      { "src": "examples/HVI-CIDNet/00739.png", "isCAGE": false }
+    ]
+  },
+  {
+    "input": "examples/input/00766.png",
+    "outputs": [
+      { "src": "examples/CAGE-CIDNet/00766.png", "isCAGE": true },
+      { "src": "examples/HVI-CIDNet/00766.png", "isCAGE": false },
+      { "src": "examples/MIRNet/00766.png", "isCAGE": false }
+    ]
+  },
+  {
+    "input": "examples/input/00704.png",
+    "outputs": [
+      { "src": "examples/CAGE-CIDNet/00704.png", "isCAGE": true },
+      { "src": "examples/Retinexformer/00704.png", "isCAGE": false },
+      { "src": "examples/HVI-CIDNet/00704.png", "isCAGE": false }
+    ]
+  },
+  {
+    "input": "examples/input/00770.png",
+    "outputs": [
+      { "src": "examples/CAGE-Retinexformer/00770.png", "isCAGE": true },
+      { "src": "examples/LLFormer/00770.png", "isCAGE": false },
+      { "src": "examples/CWNet/00770.png", "isCAGE": false }
+    ]
+  },
+  {
+    "input": "examples/input/00739.png",
+    "outputs": [
+      { "src": "examples/CAGE-Retinexformer/00739.png", "isCAGE": true },
+      { "src": "examples/MIRNet/00739.png", "isCAGE": false },
+      { "src": "examples/Retinexformer/00739.png", "isCAGE": false }
+    ]
+  },
+  {
+    "input": "examples/input/00700.png",
+    "outputs": [
+      { "src": "examples/CAGE-DarkIR/00700.png", "isCAGE": true },
+      { "src": "examples/LLFlow/00700.png", "isCAGE": false },
+      { "src": "examples/RetinexMamba/00700.png", "isCAGE": false }
+    ]
+  },
+  {
+    "input": "examples/input/00751.png",
+    "outputs": [
+      { "src": "examples/CAGE-CIDNet/00751.png", "isCAGE": true },
+      { "src": "examples/RetinexMamba/00751.png", "isCAGE": false },
+      { "src": "examples/HVI-CIDNet/00751.png", "isCAGE": false }
+    ]
+  },
+  {
+    "input": "examples/input/00725.png",
+    "outputs": [
+      { "src": "examples/CAGE-CIDNet/00725.png", "isCAGE": true },
+      { "src": "examples/LLFormer/00725.png", "isCAGE": false },
+      { "src": "examples/Retinexformer/00725.png", "isCAGE": false }
+    ]
+  },
+  {
+    "input": "examples/input/00693.png",
+    "outputs": [
+      { "src": "examples/CAGE-CIDNet/00693.png", "isCAGE": true },
+      { "src": "examples/SNR-Net/00693.png", "isCAGE": false },
+      { "src": "examples/RetinexMamba/00693.png", "isCAGE": false }
+    ]
+  },
+  {
+    "input": "examples/input/00776.png",
+    "outputs": [
+      { "src": "examples/CAGE-CIDNet/00776.png", "isCAGE": true },
+      { "src": "examples/DarkIR/00776.png", "isCAGE": false },
+      { "src": "examples/Retinexformer/00776.png", "isCAGE": false }
+    ]
+  },
+  {
+    "input": "examples/input/00706.png",
+    "outputs": [
+      { "src": "examples/CAGE-Retinexformer/00706.png", "isCAGE": true },
+      { "src": "examples/RetinexMamba/00706.png", "isCAGE": false },
+      { "src": "examples/Retinexformer/00706.png", "isCAGE": false }
+    ]
+  },
+  {
+    "input": "examples/input/00744.png",
+    "outputs": [
+      { "src": "examples/CAGE-DarkIR/00744.png", "isCAGE": true },
+      { "src": "examples/FourLLIE/00744.png", "isCAGE": false },
+      { "src": "examples/SNR-Net/00744.png", "isCAGE": false }
+    ]
+  },
+  {
+    "input": "examples/input/00773.png",
+    "outputs": [
+      { "src": "examples/CAGE-CIDNet/00773.png", "isCAGE": true },
+      { "src": "examples/HVI-CIDNet/00773.png", "isCAGE": false },
+      { "src": "examples/HVI-CIDNet/00773.png", "isCAGE": false }
+    ]
+  },
+  {
+    "input": "examples/input/00719.png",
+    "outputs": [
+      { "src": "examples/CAGE-DarkIR/00719.png", "isCAGE": true },
+      { "src": "examples/BreaD/00719.png", "isCAGE": false },
+      { "src": "examples/LLFlow/00719.png", "isCAGE": false }
+    ]
+  },
+  {
+    "input": "examples/input/00732.png",
+    "outputs": [
+      { "src": "examples/CAGE-Retinexformer/00732.png", "isCAGE": true },
+      { "src": "examples/BreaD/00732.png", "isCAGE": false },
+      { "src": "examples/HVI-CIDNet/00732.png", "isCAGE": false }
+    ]
+  },
+  {
+    "input": "examples/input/00768.png",
+    "outputs": [
+      { "src": "examples/CAGE-Retinexformer/00768.png", "isCAGE": true },
+      { "src": "examples/BreaD/00768.png", "isCAGE": false },
+      { "src": "examples/HVI-CIDNet/00768.png", "isCAGE": false }
+    ]
+  }
+];
