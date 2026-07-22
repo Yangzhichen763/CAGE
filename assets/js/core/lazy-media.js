@@ -40,16 +40,16 @@ function showMediaFallback(img) {
 
 const observer = "IntersectionObserver" in window
     ? new IntersectionObserver(
-          entries => {
-              entries.forEach(entry => {
-                  if (!entry.isIntersecting) return;
-                  const target = entry.target;
-                  revealImage(target);
-                  observer.unobserve(target);
-              });
-          },
-          { rootMargin: "600px 0px", threshold: 0.01 },
-      )
+        entries => {
+            entries.forEach(entry => {
+                if (!entry.isIntersecting) return;
+                const target = entry.target;
+                revealImage(target);
+                observer.unobserve(target);
+            });
+        },
+        { rootMargin: "600px 0px", threshold: 0.01 },
+    )
     : null;
 
 export function observeLazyMedia(root = document) {

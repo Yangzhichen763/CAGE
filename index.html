@@ -1,2509 +1,1833 @@
 ﻿<!doctype html>
 <html lang="en">
- <head>
-  <meta charset="utf-8"/>
-  <meta content="width=device-width, initial-scale=1" name="viewport"/>
-  <title>
-   CAGE · Color-faithful Low-light Image Enhancement
-  </title>
-  <meta content="CAGE: a cylindrical color correction framework with adaptive color debiasing and gamut-harmonized saturation rectification for color-faithful low-light image enhancement." name="description"/>
-  <meta content="website" property="og:type"/>
-  <meta content="https://yangzhichen763.github.io/CAGE/" property="og:url"/>
-  <meta content="CAGE: Color-faithful Low-light Image Enhancement" property="og:title"/>
-  <meta content="CAGE: a cylindrical color correction framework with adaptive color debiasing and gamut-harmonized saturation rectification for color-faithful low-light image enhancement." property="og:description"/>
-  <link href="https://fonts.googleapis.com" rel="preconnect"/>
-  <link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
-  <link href="https://fonts.googleapis.com/css?family=Google+Sans:400,500,600,700|Noto+Sans:400,600,700&amp;display=swap" rel="stylesheet"/>
-  <link href="https://cdn.jsdelivr.net/gh/jpswalsh/academicons@1/css/academicons.min.css" rel="stylesheet"/>
-  <link href="figures/AdaLAB.ico" rel="icon" type="image/x-icon"/>
-  <link href="figures/AdaLAB.ico" rel="shortcut icon" type="image/x-icon"/>
-  <link href="assets/css/base.css" rel="stylesheet"/>
-  <link href="assets/css/arena.css" rel="stylesheet"/>
-  <link href="assets/css/utilities.css" rel="stylesheet"/>
-  <link href="assets/css/method.css" rel="stylesheet"/>
-  <link href="assets/css/gallery.css" rel="stylesheet"/>
-  <link href="assets/css/interaction.css" rel="stylesheet"/>
-  <script defer="" src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/js/all.min.js">
-  </script>
-  <script defer="" src="assets/js/core/common-ui.js">
-  </script>
-  <script src="assets/js/app.js" type="module">
-  </script>
- </head>
- <body>
-  <noscript>
-   This interactive project page requires JavaScript to load media and visualization modules.
-  </noscript>
+
+<head>
+  <meta charset="utf-8" />
+  <meta content="width=device-width, initial-scale=1" name="viewport" />
+  <title>CAGE · Color-faithful Low-light Image Enhancement</title>
+  <meta
+    content="CAGE: a cylindrical color correction framework with adaptive color debiasing and gamut-harmonized saturation rectification for color-faithful low-light image enhancement."
+    name="description" />
+  <meta content="website" property="og:type" />
+  <meta content="https://yangzhichen763.github.io/CAGE/" property="og:url" />
+  <meta content="CAGE: Color-faithful Low-light Image Enhancement" property="og:title" />
+  <meta
+    content="CAGE: a cylindrical color correction framework with adaptive color debiasing and gamut-harmonized saturation rectification for color-faithful low-light image enhancement."
+    property="og:description" />
+  <link href="https://fonts.googleapis.com" rel="preconnect" />
+  <link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect" />
+  <link
+    href="https://fonts.googleapis.com/css?family=Google+Sans:400,500,600,700|Noto+Sans:400,600,700&amp;display=swap"
+    rel="stylesheet" />
+  <link href="https://cdn.jsdelivr.net/gh/jpswalsh/academicons@1/css/academicons.min.css" rel="stylesheet" />
+  <link href="figures/AdaLAB.ico" rel="icon" type="image/x-icon" />
+  <link href="figures/AdaLAB.ico" rel="shortcut icon" type="image/x-icon" />
+  <link href="assets/css/base.css" rel="stylesheet" />
+  <link href="assets/css/arena.css" rel="stylesheet" />
+  <link href="assets/css/utilities.css" rel="stylesheet" />
+  <link href="assets/css/method.css" rel="stylesheet" />
+  <link href="assets/css/gallery.css" rel="stylesheet" />
+  <link href="assets/css/interaction.css" rel="stylesheet" />
+  <script defer="" src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/js/all.min.js"></script>
+  <script defer="" src="assets/js/core/common-ui.js"></script>
+  <script src="assets/js/app.js" type="module"></script>
+</head>
+
+<body>
+  <noscript>This interactive project page requires JavaScript to load media and visualization modules.</noscript>
   <div class="cs-image-lightbox" id="imageLightbox">
-   <img alt="Full size preview" id="lightboxImage"/>
+    <img alt="Full size preview" id="lightboxImage" />
   </div>
   <nav class="top">
-   <div class="wrap">
-    <a class="brand" href="#">
-     <div class="brand-icon">
-      <img alt="CAGE" decoding="async" src="figures/AdaLAB.ico"/>
-     </div>
-     CAGE
-    </a>
-    <div class="nav-actions">
-     <ul>
-      <li>
-       <a href="#gallery">
-        Gallery
-       </a>
-      </li>
-      <li>
-       <a href="#problem">
-        Problem
-       </a>
-      </li>
-      <li>
-       <a href="#method">
-        Method
-       </a>
-      </li>
-      <li>
-       <a href="#results">
-        Results
-       </a>
-      </li>
-      <li>
-       <a href="#takeaways">
-        Takeaways
-       </a>
-      </li>
-     </ul>
-     <span class="nav-divider">
-     </span>
-     <button aria-label="Toggle theme" class="theme-toggle" id="theme-toggle">
-      <svg aria-hidden="true" class="moon" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" viewbox="0 0 24 24">
-       <path d="M21 12.8A9 9 0 1 1 11.2 3 7 7 0 0 0 21 12.8z">
-       </path>
-      </svg>
-      <svg aria-hidden="true" class="sun" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" viewbox="0 0 24 24">
-       <circle cx="12" cy="12" r="4">
-       </circle>
-       <path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4">
-       </path>
-      </svg>
-     </button>
-    </div>
-   </div>
-  </nav>
-  <header class="hero">
-   <h1 class="title hero-title">
-    Towards Color-faithful Low-light Image Enhancement via
-    <span class="hero-highlight">
-     Adaptive Color Debiasing
-    </span>
-    and Saturation Rectification
-   </h1>
-   <div class="authors hero-authors">
-    <a href="#" rel="noopener" target="_blank">
-     Zhichen Yang
-    </a>
-    ,
-    <a href="#" rel="noopener" target="_blank">
-     Rui Xu
-    </a>
-    ,
-    <a href="#" rel="noopener" target="_blank">
-     Yuzhen Niu
-     <sup>
-      ∗
-     </sup>
-    </a>
-    ,
-    <a href="#" rel="noopener" target="_blank">
-     Fusheng Li
-    </a>
-    ,
-    <a href="#" rel="noopener" target="_blank">
-     Hui Da
-    </a>
-    ,
-    <a href="#" rel="noopener" target="_blank">
-     Ri Cheng
-    </a>
-   </div>
-   <div class="venue hero-venue venue-strong">
-    ACM MM 2026
-   </div>
-   <div class="affil hero-authors">
-    Fuzhou University, Fujian, China
-   </div>
-   <div class="buttons hero-buttons">
-    <a class="btn" href="#" rel="noopener" target="_blank">
-     <i class="ai ai-arxiv">
-     </i>
-     arXiv
-    </a>
-    <a class="btn" href="#" rel="noopener" target="_blank">
-     <i class="fas fa-file-pdf">
-     </i>
-     Paper (ACM MM 2026)
-    </a>
-    <a class="btn" href="https://github.com/Yangzhichen763/CAGE" rel="noopener" target="_blank">
-     <i class="fab fa-github">
-     </i>
-     Code
-    </a>
-    <a class="btn" href="#bibtex">
-     BibTeX
-    </a>
-   </div>
-  </header>
-  <div class="wrap">
-   <div class="tldr animate-on-scroll">
-    <h2>
-     TL;DR
-    </h2>
-    <p>
-     Eliminate interference of
-     <strong>
-      embedded color bias
-     </strong>
-     throughout enhancement via
-     <strong>
-      reorganizing and correcting color space
-     </strong>
-     , delivering up to
-     <strong>
-      +2.21dB
-     </strong>
-     PSNR gain with only
-     <strong>
-      0.07M extra Params. and less than 0.01G FLOPs
-     </strong>
-     .
-    </p>
-   </div>
-   <section class="teaser animate-on-scroll teaser-compact">
-    <figure>
-     <div class="img-container">
-      <img alt="Our motivation. Direct brightening makes color shifts more visible. Baseline enhancement improves brightness but leaves color bias and saturation abnormalities. Our CAGE delivers more faithful color restoration." class="lazy-media" data-placeholder-file="Introduction.png" data-placeholder-label="Our motivation. Direct brightening makes color shifts more visible. Baseline enhancement improves brightness but leaves color bias and saturation abnormalities. Our CAGE delivers more faithful color restoration." data-src="figures/main/Introduction.png" decoding="async" loading="lazy"/>
-      <div class="img-placeholder is-hidden">
-       <div class="icon">
-        <svg fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.6" viewbox="0 0 24 24">
-         <rect height="18" rx="2" width="18" x="3" y="3">
-         </rect>
-         <circle cx="9" cy="9" r="2">
-         </circle>
-         <path d="M21 15l-5-5L5 21">
-         </path>
-        </svg>
-       </div>
-       <div class="filename">
-       </div>
-       <div class="label">
-       </div>
-      </div>
-     </div>
-     <figcaption>
-      <strong>
-       Our motivation.
-      </strong>
-      <em>
-       (a→b)
-      </em>
-      Direct brightening makes color shifts more
-                        visible.
-      <em>
-       (a→c)
-      </em>
-      Baseline enhancement improves brightness but leaves color bias and saturation abnormalities.
-      <em>
-       (a→d)
-      </em>
-      Our CAGE delivers more faithful color restoration.
-     </figcaption>
-    </figure>
-   </section>
-   <section id="gallery">
-    <h2>
-     Gallery
-    </h2>
-    <div class="gallery-shell">
-     <div class="gallery-feature-heading gallery-feature-heading-arena animate-on-scroll">
-      <div class="gallery-feature-title">
-       <span aria-hidden="true" class="gallery-feature-number">
-        01
-       </span>
-       <h3>
-        Image Arena
-       </h3>
-      </div>
-      <p>
-       Choose the result that looks perceptually natural and restores color most faithfully.
-      </p>
-     </div>
-     <div class="gallery-panel gallery-section animate-on-scroll" data-feature="arena" id="galleryArena">
-      <div class="arena-container">
-       <div class="arena-main-panel">
-        <div class="arena-input-section">
-         <div class="arena-label">
-          Low-light / GT-mean Enlightened Input
-         </div>
-         <div class="arena-image-box" id="arena-input-box">
-          <img alt="input" id="arena-input-img"/>
-          <div class="img-placeholder is-hidden" id="arena-input-placeholder">
-           <div class="icon">
-            <svg fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.6" viewbox="0 0 24 24">
-             <rect height="18" rx="2" width="18" x="3" y="3">
-             </rect>
-             <circle cx="9" cy="9" r="2">
-             </circle>
-             <path d="M21 15l-5-5L5 21">
-             </path>
-            </svg>
-           </div>
-           <div class="filename">
-            input.png
-           </div>
-           <div class="label">
-            Low-light image
-           </div>
-          </div>
-         </div>
-        </div>
-        <div class="arena-divider">
-        </div>
-        <div class="arena-output-section">
-         <div class="arena-label">
-          Enhanced Results
-         </div>
-         <div class="arena-grid" id="arena-grid">
-          <div class="arena-card" data-index="0">
-           <div class="arena-card-index">
-            A
-           </div>
-           <img class="arena-img" data-index="0"/>
-           <div class="img-placeholder is-hidden">
-            <div class="icon">
-             <svg fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.6" viewbox="0 0 24 24">
-              <rect height="18" rx="2" width="18" x="3" y="3">
-              </rect>
-              <circle cx="9" cy="9" r="2">
-              </circle>
-              <path d="M21 15l-5-5L5 21">
-              </path>
-             </svg>
-            </div>
-            <div class="filename">
-             output_A.png
-            </div>
-            <div class="label">
-             Enhanced image A
-            </div>
-           </div>
-          </div>
-          <div class="arena-card" data-index="1">
-           <div class="arena-card-index">
-            B
-           </div>
-           <img class="arena-img" data-index="1"/>
-           <div class="img-placeholder is-hidden">
-            <div class="icon">
-             <svg fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.6" viewbox="0 0 24 24">
-              <rect height="18" rx="2" width="18" x="3" y="3">
-              </rect>
-              <circle cx="9" cy="9" r="2">
-              </circle>
-              <path d="M21 15l-5-5L5 21">
-              </path>
-             </svg>
-            </div>
-            <div class="filename">
-             output_B.png
-            </div>
-            <div class="label">
-             Enhanced image B
-            </div>
-           </div>
-          </div>
-          <div class="arena-card" data-index="2">
-           <div class="arena-card-index">
-            C
-           </div>
-           <img class="arena-img" data-index="2"/>
-           <div class="img-placeholder is-hidden">
-            <div class="icon">
-             <svg fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.6" viewbox="0 0 24 24">
-              <rect height="18" rx="2" width="18" x="3" y="3">
-              </rect>
-              <circle cx="9" cy="9" r="2">
-              </circle>
-              <path d="M21 15l-5-5L5 21">
-              </path>
-             </svg>
-            </div>
-            <div class="filename">
-             output_C.png
-            </div>
-            <div class="label">
-             Enhanced image C
-            </div>
-           </div>
-          </div>
-         </div>
-        </div>
-       </div>
-       <div class="arena-tip arena-tip-muted">
-        <span>
-         <svg aria-label="Left mouse button" class="mouse-icon" role="img" viewbox="0 0 16 16">
-          <rect class="mouse-body fill" height="14" rx="5" width="12" x="2" y="1">
-          </rect>
-          <defs>
-           <clippath id="mini-left-clip">
-            <rect height="14" rx="5" width="12" x="2" y="1">
-            </rect>
-           </clippath>
-          </defs>
-          <g clip-path="url(#mini-left-clip)">
-           <path class="mouse-button active" d="M2 1H8V7H2Z">
-           </path>
-          </g>
-          <rect class="mouse-wheel" height="6" rx="1.5" width="3" x="6.5" y="2">
-          </rect>
-          <rect class="mouse-body" height="14" rx="5" width="12" x="2" y="1">
-          </rect>
-         </svg>
-         Left click to
-         <strong>
-          select
-         </strong>
-        </span>
-        <span>
-         <svg aria-label="Right mouse button" class="mouse-icon" role="img" viewbox="0 0 16 16">
-          <rect class="mouse-body fill" height="14" rx="5" width="12" x="2" y="1">
-          </rect>
-          <defs>
-           <clippath id="mini-right-clip">
-            <rect height="14" rx="5" width="12" x="2" y="1">
-            </rect>
-           </clippath>
-          </defs>
-          <g clip-path="url(#mini-right-clip)">
-           <path class="mouse-button active" d="M8 1H14V7H8Z">
-           </path>
-          </g>
-          <rect class="mouse-wheel" height="6" rx="1.5" width="3" x="6.5" y="2">
-          </rect>
-          <rect class="mouse-body" height="14" rx="5" width="12" x="2" y="1">
-          </rect>
-         </svg>
-         Right click to
-         <strong>
-          compare
-         </strong>
-        </span>
-        <span>
-         <svg aria-label="Middle mouse button" class="mouse-icon" role="img" viewbox="0 0 16 16">
-          <rect class="mouse-body fill" height="14" rx="5" width="12" x="2" y="1">
-          </rect>
-          <rect class="mouse-wheel active" height="6" rx="1.5" width="3" x="6.5" y="2">
-          </rect>
-          <rect class="mouse-body" height="14" rx="5" width="12" x="2" y="1">
-          </rect>
-         </svg>
-         Middle click to
-         <strong>
-          enlarge
-         </strong>
-        </span>
-       </div>
-       <div class="arena-feedback-row">
-        <div class="arena-feedback" id="arena-feedback">
-        </div>
-        <button class="arena-next-btn is-hidden" data-action="next-arena-round" id="arena-next-btn">
-         Next
-         <svg fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewbox="0 0 24 24">
-          <path d="m9 18 6-6-6-6">
-          </path>
-         </svg>
-        </button>
-       </div>
-       <div class="arena-vote-chart is-hidden" id="arena-vote-chart">
-        <div class="vote-chart-title">
-         Vote Statistics
-        </div>
-        <div class="vote-chart-legend">
-         <span class="legend-item">
-          <span class="legend-color cage">
-          </span>
-          <span class="legend-text">
-           Ours
-          </span>
-         </span>
-         <span class="legend-item">
-          <span class="legend-color">
-          </span>
-          <span class="legend-text">
-           Others
-          </span>
-         </span>
-        </div>
-        <div class="vote-chart-bars" id="vote-chart-bars">
-        </div>
-       </div>
-      </div>
-     </div>
-     <div class="gallery-feature-heading gallery-feature-heading-color animate-on-scroll">
-      <div class="gallery-feature-title">
-       <span aria-hidden="true" class="gallery-feature-number">
-        02
-       </span>
-       <h3>
-        Color Space Visualization
-       </h3>
-      </div>
-      <p>
-       Upload an image and compare its color distribution with the complete uniformly sampled RGB
-                            gamut.
-      </p>
-     </div>
-     <div class="gallery-panel gallery-section animate-on-scroll" data-feature="color-space" id="galleryColorSpace">
-      <div aria-label="Interactive color space visualization" class="cs-atlas">
-       <div aria-label="Color space" class="cs-segmented cs-space-tabs-top" id="spaceTabs" role="tablist">
-        <button aria-selected="true" class="cs-seg-button is-active" data-space="RGB" role="tab" type="button">
-         RGB
-        </button>
-        <button aria-selected="false" class="cs-seg-button" data-space="YUV" role="tab" type="button">
-         YUV
-        </button>
-        <button aria-selected="false" class="cs-seg-button" data-space="HSV" role="tab" type="button">
-         HSV
-        </button>
-        <button aria-selected="false" class="cs-seg-button" data-space="HVI" role="tab" type="button">
-         HVI
-        </button>
-        <button aria-selected="false" class="cs-seg-button" data-space="OKLAB" role="tab" type="button">
-         LAB
-        </button>
-       </div>
-       <div class="cs-four-column">
-        <div class="cs-visual-column">
-         <article class="cs-panel cs-combined-panel">
-          <div>
-           <div class="cs-panel-head">
-            <div>
-             <h3>
-              Input Image
-             </h3>
-            </div>
-            <span class="cs-pill" id="imageMeta">
-             Image
-            </span>
-           </div>
-           <p class="cs-panel-note">
-            Upload an image to visualize its 3D mapping and the corresponding color space voxels 3D mapping.
-           </p>
-           <label class="cs-drop-zone" for="imageInput" id="dropZone">
-            <canvas aria-label="Input image preview" height="420" id="previewCanvas" width="640">
-            </canvas>
-            <span class="cs-drop-overlay">
-             <strong>
-              Choose or drop an image
-             </strong>
-             <small>
-              PNG, JPEG, WebP, BMP, or GIF
-             </small>
-            </span>
-           </label>
-           <input accept="image/*" class="cs-visually-hidden" id="imageInput" type="file"/>
-          </div>
-          <div class="cs-point-cloud-row">
-           <div class="cs-point-cloud-col">
-            <div class="cs-panel-head">
-             <div>
-              <h3>
-               Image 3D Mapping
-              </h3>
-             </div>
-             <span class="cs-pill" id="imagePointCount">
-              0 points
-             </span>
-            </div>
-            <p class="cs-panel-note">
-             Each sampled pixel becomes a 3D point colored by its source RGB value.
-            </p>
-            <div aria-label="Interactive image 3D Mapping" class="cs-viewer-stage" id="imageViewer" tabindex="0">
-             <div aria-hidden="true" class="cs-axis-gizmo" id="imageAxisGizmo">
-              <svg viewbox="0 0 64 64">
-               <g class="gizmo-axes">
-                <line class="axis-line axis-x" data-axis="x" x1="45" x2="45" y1="45" y2="45">
-                </line>
-                <line class="axis-line axis-y" data-axis="y" x1="45" x2="45" y1="45" y2="45">
-                </line>
-                <line class="axis-line axis-z" data-axis="z" x1="45" x2="45" y1="45" y2="45">
-                </line>
-                <circle class="axis-dot axis-x" cx="45" cy="45" data-axis="x" data-dir="positive">
-                </circle>
-                <circle class="axis-dot axis-x" cx="45" cy="45" data-axis="x" data-dir="negative">
-                </circle>
-                <circle class="axis-dot axis-y" cx="45" cy="45" data-axis="y" data-dir="positive">
-                </circle>
-                <circle class="axis-dot axis-y" cx="45" cy="45" data-axis="y" data-dir="negative">
-                </circle>
-                <circle class="axis-dot axis-z" cx="45" cy="45" data-axis="z" data-dir="positive">
-                </circle>
-                <circle class="axis-dot axis-z" cx="45" cy="45" data-axis="z" data-dir="negative">
-                </circle>
-                <text class="axis-label axis-x" data-axis="x" data-dir="positive" dominant-baseline="middle" text-anchor="middle" x="45" y="45">
-                </text>
-                <text class="axis-label axis-y" data-axis="y" data-dir="positive" dominant-baseline="middle" text-anchor="middle" x="45" y="45">
-                </text>
-                <text class="axis-label axis-z" data-axis="z" data-dir="positive" dominant-baseline="middle" text-anchor="middle" x="45" y="45">
-                </text>
-               </g>
-              </svg>
-             </div>
-            </div>
-           </div>
-           <div class="cs-point-cloud-col">
-            <div class="cs-panel-head">
-             <div>
-              <h3>
-               Gamut 3D Mapping
-              </h3>
-             </div>
-             <span class="cs-pill" id="latticePointCount">
-              0 points
-             </span>
-            </div>
-            <p class="cs-panel-note">
-             A uniformly sampled RGB gamut is mapped into the selected space.
-            </p>
-            <div aria-label="Interactive color gamut 3D mapping" class="cs-viewer-stage" id="latticeViewer" tabindex="0">
-             <div aria-hidden="true" class="cs-axis-gizmo" id="latticeAxisGizmo">
-              <svg viewbox="0 0 64 64">
-               <g class="gizmo-axes">
-                <line class="axis-line axis-x" data-axis="x" x1="45" x2="45" y1="45" y2="45">
-                </line>
-                <line class="axis-line axis-y" data-axis="y" x1="45" x2="45" y1="45" y2="45">
-                </line>
-                <line class="axis-line axis-z" data-axis="z" x1="45" x2="45" y1="45" y2="45">
-                </line>
-                <circle class="axis-dot axis-x" cx="45" cy="45" data-axis="x" data-dir="positive">
-                </circle>
-                <circle class="axis-dot axis-x" cx="45" cy="45" data-axis="x" data-dir="negative">
-                </circle>
-                <circle class="axis-dot axis-y" cx="45" cy="45" data-axis="y" data-dir="positive">
-                </circle>
-                <circle class="axis-dot axis-y" cx="45" cy="45" data-axis="y" data-dir="negative">
-                </circle>
-                <circle class="axis-dot axis-z" cx="45" cy="45" data-axis="z" data-dir="positive">
-                </circle>
-                <circle class="axis-dot axis-z" cx="45" cy="45" data-axis="z" data-dir="negative">
-                </circle>
-                <text class="axis-label axis-x" data-axis="x" data-dir="positive" dominant-baseline="middle" text-anchor="middle" x="45" y="45">
-                </text>
-                <text class="axis-label axis-y" data-axis="y" data-dir="positive" dominant-baseline="middle" text-anchor="middle" x="45" y="45">
-                </text>
-                <text class="axis-label axis-z" data-axis="z" data-dir="positive" dominant-baseline="middle" text-anchor="middle" x="45" y="45">
-                </text>
-               </g>
-              </svg>
-             </div>
-            </div>
-           </div>
-          </div>
-         </article>
-        </div>
-        <aside class="cs-panel cs-mapping-panel">
-         <div class="cs-panel-head">
-          <div>
-           <h3>
-            Settings
-           </h3>
-          </div>
-         </div>
-         <div class="cs-summary">
-          <h4 id="spaceTitle">
-           Info Card
-          </h4>
-          <div class="cs-axis-chips" id="axisChips">
-           <span>
-            X · R · [0, 1]
-           </span>
-           <span>
-            Y · G · [0, 1]
-           </span>
-           <span>
-            Z · B · [0, 1]
-           </span>
-          </div>
-          <p id="spaceDescription">
-           RGB coordinates retain their native channel range.
-          </p>
-          <div aria-label="Color space conversion equations" class="cs-conversion-grid cs-is-collapsed" id="conversionGrid">
-           <section class="cs-conversion-block">
-            <div class="cs-conversion-head">
-             <span>
-              Forward conversion
-             </span>
-             <b>
-              RGB →
-              <span id="forwardSpaceName">
-               RGB
-              </span>
-             </b>
-            </div>
-            <div class="cs-formula-box" id="spaceFormulaForward">
-            </div>
-           </section>
-           <section class="cs-conversion-block">
-            <div class="cs-conversion-head">
-             <span>
-              Inverse conversion
-             </span>
-             <b>
-              <span id="inverseSpaceName">
-               RGB
-              </span>
-              → RGB
-             </b>
-            </div>
-            <div class="cs-formula-box" id="spaceFormulaInverse">
-            </div>
-           </section>
-          </div>
-          <button aria-expanded="false" class="cs-formula-toggle" id="formulaToggle" type="button">
-           <svg class="cs-toggle-icon" height="12" viewbox="0 0 12 12" width="12">
-            <path d="M2 4L6 8L10 4" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5">
+    <div class="wrap">
+      <a class="brand" href="#">
+
+        <!-- Brand -->
+        <div class="brand-icon">
+          <img alt="CAGE" decoding="async" src="figures/AdaLAB.ico" />
+        </div>CAGE
+      </a>
+
+      <!-- Navigation -->
+      <div class="nav-actions">
+        <ul>
+          <li><a href="#gallery">Gallery</a></li>
+          <li><a href="#problem">Problem</a></li>
+          <li><a href="#method">Method</a></li>
+          <li><a href="#results">Results</a></li>
+          <li><a href="#takeaways">Takeaways</a></li>
+        </ul>
+
+        <span class="nav-divider"></span>
+        <button aria-label="Toggle theme" class="theme-toggle" id="theme-toggle">
+          <svg aria-hidden="true" class="moon" fill="none" stroke="currentColor" stroke-linecap="round"
+            stroke-linejoin="round" stroke-width="1.8" viewbox="0 0 24 24">
+            <path d="M21 12.8A9 9 0 1 1 11.2 3 7 7 0 0 0 21 12.8z"></path>
+          </svg>
+          <svg aria-hidden="true" class="sun" fill="none" stroke="currentColor" stroke-linecap="round"
+            stroke-linejoin="round" stroke-width="1.8" viewbox="0 0 24 24">
+            <circle cx="12" cy="12" r="4"></circle>
+            <path
+              d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4">
             </path>
-           </svg>
-          </button>
-         </div>
-         <p class="cs-control-label">
-          Sampling and geometry
-         </p>
-         <div class="cs-settings-stack">
-          <label class="cs-field">
-           <span>
-            Input Prefabs
-           </span>
-           <select class="cs-grouped-select" id="patternMode">
-            <optgroup label="Image">
-             <option value="low-light">
-              Low-light
-             </option>
-             <option value="normal-light">
-              Normal-light
-             </option>
-             <option value="image-random">
-              Random Image
-             </option>
-            </optgroup>
-            <optgroup label="Pattern">
-             <option selected="" value="structured">
-              Structured
-             </option>
-             <option value="low-discrepancy">
-              Grid 3D
-             </option>
-             <option value="grid">
-              Grid 2D
-             </option>
-             <option value="rainbow">
-              Rainbow
-             </option>
-             <option value="gradient">
-              Gradient
-             </option>
-             <option value="bijection">
-              Bijection
-             </option>
-            </optgroup>
-            <optgroup label="Noise">
-             <option value="random">
-              Random
-             </option>
-             <option value="voronoi">
-              Voronoi
-             </option>
-             <option value="perlin">
-              Perlin
-             </option>
-             <option value="mosaic">
-              Mosaic
-             </option>
-            </optgroup>
-           </select>
-          </label>
-          <label class="cs-field">
-           <span>
-            Image point budget
-           </span>
-           <select id="imageBudget">
-            <option value="1000">
-             1,000
-            </option>
-            <option value="2000">
-             2,000
-            </option>
-            <option value="4000">
-             4,000
-            </option>
-            <option value="8000">
-             8,000
-            </option>
-            <option value="16000">
-             16,000
-            </option>
-            <option selected="" value="32000">
-             32,000
-            </option>
-            <option value="64000">
-             64,000
-            </option>
-            <option value="128000">
-             128,000
-            </option>
-            <option value="256000">
-             256,000
-            </option>
-            <option value="all">
-             All
-            </option>
-           </select>
-          </label>
-          <label class="cs-field">
-           <span>
-            RGB lattice resolution
-           </span>
-           <select aria-describedby="latticeResolutionHint" id="latticeResolution">
-            <option value="2">
-             2 × 2 × 2
-            </option>
-            <option value="3">
-             3 × 3 × 3
-            </option>
-            <option value="4">
-             4 × 4 × 4
-            </option>
-            <option value="6">
-             6 × 6 × 6
-            </option>
-            <option value="8">
-             8 × 8 × 8
-            </option>
-            <option value="10">
-             10 × 10 × 10
-            </option>
-            <option value="12">
-             12 × 12 × 12
-            </option>
-            <option value="14">
-             14 × 14 × 14
-            </option>
-            <option value="16">
-             16 × 16 × 16
-            </option>
-            <option value="18">
-             18 × 18 × 18
-            </option>
-            <option value="20">
-             20 × 20 × 20
-            </option>
-            <option value="24">
-             24 × 24 × 24
-            </option>
-            <option value="28">
-             28 × 28 × 28
-            </option>
-            <option selected="" value="32">
-             32 × 32 × 32
-            </option>
-            <option value="40">
-             40 × 40 × 40
-            </option>
-            <option value="48">
-             48 × 48 × 48
-            </option>
-            <option value="56">
-             56 × 56 × 56
-            </option>
-            <option value="64">
-             64 × 64 × 64
-            </option>
-            <option value="128">
-             128 × 128 × 128
-            </option>
-           </select>
-           <small class="cs-field-hint" id="latticeResolutionHint">
-            32 samples per axis · 32,768 points
-           </small>
-          </label>
-          <label class="cs-field cs-is-hidden" id="hsvProjectionField">
-           <span>
-            HSV coordinates
-           </span>
-           <select id="hsvProjection">
-            <option selected="" value="cylindrical">
-             Cylindrical
-            </option>
-            <option value="raw">
-             Cartecian
-            </option>
-           </select>
-          </label>
-          <label class="cs-field cs-is-hidden" id="hviDensityField">
-           <span>
-            HVI density k
-           </span>
-           <div class="cs-range-row">
-            <input id="hviDensity" max="1.2" min="0.05" step="0.05" type="range" value="0.2"/>
-            <output for="hviDensity" id="hviDensityValue">
-             0.20
-            </output>
-           </div>
-          </label>
-          <label class="cs-field cs-is-hidden" id="labProjectionField">
-           <span>
-            LAB coordinates
-           </span>
-           <select id="labProjection">
-            <option selected="" value="cylindrical">
-             Cylindrical
-            </option>
-            <option value="cartesian">
-             Cartesian
-            </option>
-           </select>
-          </label>
-         </div>
-         <p class="cs-control-label">
-          View options
-         </p>
-         <div class="cs-toggle-grid">
-          <label class="cs-toggle">
-           <input id="normalizeRange" type="checkbox"/>
-           <span>
-            Normalize 0–1
-           </span>
-          </label>
-          <label class="cs-toggle">
-           <input checked="" id="autoRotate" type="checkbox"/>
-           <span>
-            Auto rotate
-           </span>
-          </label>
-          <label class="cs-toggle">
-           <input checked="" id="showFrame" type="checkbox"/>
-           <span>
-            Show frame
-           </span>
-          </label>
-          <label class="cs-toggle">
-           <input id="showAxes" type="checkbox"/>
-           <span>
-            Show axes
-           </span>
-          </label>
-         </div>
-         <div class="cs-button-grid">
-         </div>
-        </aside>
-       </div>
+          </svg>
+        </button>
       </div>
-     </div>
     </div>
-   </section>
-   <div class="arena-image-viewer" id="arena-image-viewer">
-    <div class="viewer-index" id="arena-viewer-index">
-     1 / 1
+  </nav>
+
+  <!-- Hero -->
+  <header class="hero">
+    <!-- Title -->
+    <h1 class="title hero-title">
+      Towards Color-faithful Low-light Image Enhancement via<span class="hero-highlight">Adaptive Color
+        Debiasing</span> and Saturation Rectification
+    </h1>
+
+    <!-- Authors -->
+    <div class="authors hero-authors">
+      <a href="#" rel="noopener" target="_blank">Zhichen Yang</a>,
+      <a href="#" rel="noopener" target="_blank">Rui Xu</a>,
+      <a href="#" rel="noopener" target="_blank">Yuzhen Niu<sup>∗</sup></a>,
+      <a href="#" rel="noopener" target="_blank">Fusheng Li</a>,
+      <a href="#" rel="noopener" target="_blank">Hui Da</a>,
+      <a href="#" rel="noopener" target="_blank">Ri Cheng</a>
     </div>
-    <img alt="imageViewer" class="viewer-image" id="arena-viewer-img"/>
-    <div class="viewer-tip">
-     <span>
-      <svg aria-label="Middle mouse button" class="mouse-icon" role="img" viewbox="0 0 16 16">
-       <rect class="mouse-body fill" height="14" rx="5" width="12" x="2" y="1">
-       </rect>
-       <rect class="mouse-wheel active" height="6" rx="1.5" width="3" x="6.5" y="2">
-       </rect>
-       <rect class="mouse-body" height="14" rx="5" width="12" x="2" y="1">
-       </rect>
-      </svg>
-      Hold middle mouse to
-      <strong>
-       pan
-      </strong>
-     </span>
-     <span>
-      <svg aria-label="Scroll mouse wheel to zoom" class="mouse-icon" role="img" viewbox="0 0 16 16">
-       <rect class="mouse-body fill" height="14" rx="5" width="11" x="1.5" y="1">
-       </rect>
-       <rect class="mouse-wheel active" height="6" rx="1.5" width="3" x="5.75" y="2">
-       </rect>
-       <rect class="mouse-body" height="14" rx="5" width="11" x="1.5" y="1">
-       </rect>
-       <path class="scroll-mark" d="M15 4.5l1.5-1.5 1.5 1.5">
-       </path>
-       <path class="scroll-mark" d="M18 3v4">
-       </path>
-       <path class="scroll-mark" d="M15 7.5l1.5 1.5 1.5-1.5">
-       </path>
-       <path class="scroll-mark" d="M18 9v4">
-       </path>
-      </svg>
-      Scroll over image to
-      <strong>
-       zoom
-      </strong>
-     </span>
-     <span>
-      <svg aria-label="Click blank area to close" class="cursor-click-icon" role="img" viewbox="0 0 15 15">
-       <path class="cursor-fill" d="M3 2.2L3.1 11.8L5.5 9.5L7.2 13L8.8 12.2L7.1 8.8H10.5L3 2.2Z">
-       </path>
-       <path class="click-rays" d="M10.9 3.3V1.9">
-       </path>
-       <path class="click-rays" d="M12.1 4.2L13.4 2.9">
-       </path>
-       <path class="click-rays" d="M12.6 5.8H14.1">
-       </path>
-       <path class="click-rays" d="M12.1 7.2L13.4 8.5">
-       </path>
-      </svg>
-      Click blank area to
-      <strong>
-       close
-      </strong>
-     </span>
-     <span>
-      <svg aria-label="Scroll mouse wheel to zoom" class="mouse-icon" role="img" viewbox="0 0 16 16">
-       <rect class="mouse-body fill" height="14" rx="5" width="11" x="1.5" y="1">
-       </rect>
-       <rect class="mouse-wheel active" height="6" rx="1.5" width="3" x="5.75" y="2">
-       </rect>
-       <rect class="mouse-body" height="14" rx="5" width="11" x="1.5" y="1">
-       </rect>
-       <path class="scroll-mark" d="M15 4.5l1.5-1.5 1.5 1.5">
-       </path>
-       <path class="scroll-mark" d="M18 3v4">
-       </path>
-       <path class="scroll-mark" d="M15 7.5l1.5 1.5 1.5-1.5">
-       </path>
-       <path class="scroll-mark" d="M18 9v4">
-       </path>
-      </svg>
-      Scroll over blank area or
-      <span>
-       <kbd>
-        &lt;
-       </kbd>
-       <kbd>
-        &gt;
-       </kbd>
-      </span>
-      Arrow keys or
-      <span>
-       <kbd>
-        1
-       </kbd>
-       <kbd>
-        2
-       </kbd>
-       <kbd>
-        3
-       </kbd>
-      </span>
-      Number keys to
-      <strong>
-       switch
-      </strong>
-     </span>
+
+    <!-- Venue -->
+    <div class="venue hero-venue venue-strong">ACM MM 2026</div>
+
+    <!-- Affiliation -->
+    <div class="affil hero-authors">Fuzhou University, Fujian, China</div>
+
+    <!-- Buttons -->
+    <div class="buttons hero-buttons">
+      <a class="btn" href="#" rel="noopener" target="_blank">
+        <i class="ai ai-arxiv"></i>arXiv
+      </a>
+      <a class="btn" href="#" rel="noopener" target="_blank">
+        <i class="fas fa-file-pdf"></i>Paper (ACM MM 2026)
+      </a>
+      <a class="btn" href="https://github.com/Yangzhichen763/CAGE" rel="noopener" target="_blank">
+        <i class="fab fa-github"></i>Code
+      </a>
+      <a class="btn" href="#bibtex">BibTeX</a>
     </div>
-   </div>
-   <canvas class="fireworks-canvas" id="fireworks-canvas">
-   </canvas>
-   <section class="animate-on-scroll" id="problem">
-    <h2>
-     The Problem
-    </h2>
-    <div class="problem-cards">
-     <div class="problem-card">
-      <div class="card-index">
-       01 · Input
-      </div>
-      <h3>
-       Embedded color bias
-      </h3>
+  </header>
+
+  <div class="wrap">
+
+    <!-- TL;DR -->
+    <div class="tldr animate-on-scroll">
+      <h2>TL;DR</h2>
       <p>
-       Low signal-to-noise ratio, camera hardware, and in-camera processing introduce color shift
-                            during low-light image formation.
+        Eliminate interference of <strong>embedded color bias</strong> throughout enhancement via
+        <strong>reorganizing and correcting color space</strong>, delivering up to <strong>+2.21dB</strong> PSNR
+        gain with only <strong>0.07M extra Params. and less than 0.01G FLOPs</strong> .
       </p>
-      <div class="ghost-number">
-       01
-      </div>
-     </div>
-     <div class="problem-card">
-      <div class="card-index">
-       02 · Pipeline
-      </div>
-      <h3>
-       Bias propagation
-      </h3>
-      <p>
-       A color space can reorganize distorted colors, but the disturbance persists through
-                            enhancement unless the chromatic distribution is corrected.
-      </p>
-      <div class="ghost-number">
-       02
-      </div>
-     </div>
-     <div class="problem-card">
-      <div class="card-index">
-       03 · Output
-      </div>
-      <h3>
-       Chromatic distortion
-      </h3>
-      <p>
-       Brightness enhancement amplifies chromatic responses, causing global color bias and regional
-                            under-saturation and over-saturation.
-      </p>
-      <div class="ghost-number">
-       03
-      </div>
-     </div>
     </div>
-   </section>
-   <section class="animate-on-scroll" data-feature="method" id="method">
-    <h2>
-     Method Overview
-    </h2>
-    <p class="method-lead">
-     <strong>
-      CAGE
-     </strong>
-     integrates a low-light image enhancement backbone with the forward and inverse
-                    transforms of AdaCCT. The two transforms map images between RGB and AdaLAB while regulating the
-                    chromatic distribution before and after backbone enhancement.
-    </p>
-    <div class="method-modes">
-     <div aria-label="How to view the CAGE method" class="seg" id="methodSeg" role="tablist">
-      <button aria-controls="methodFigure" aria-selected="true" id="mode-figure" role="tab" tabindex="0">
-       Full Pipeline
-      </button>
-      <button aria-controls="methodInteractive" aria-selected="false" id="mode-interactive" role="tab" tabindex="-1">
-       Interactive Architecture
-      </button>
-     </div>
-    </div>
-    <div class="method-grid" hidden="" id="methodInteractive">
-     <div aria-label="CAGE pipeline blocks" class="mdiagram" id="mflow" role="tablist">
-      <div class="marchitecture-head">
-       <div>
-        <p class="marchitecture-eyebrow">
-         Interactive Node Map
-        </p>
-        <h3 class="marchitecture-title">
-         CAGE processing architecture
-        </h3>
-       </div>
+
+    <!-- Teaser -->
+    <section class="teaser animate-on-scroll teaser-compact">
+      <figure>
+        <div class="img-container">
+          <img
+            alt="Our motivation. Direct brightening makes color shifts more visible. Baseline enhancement improves brightness but leaves color bias and saturation abnormalities. Our CAGE delivers more faithful color restoration."
+            class="lazy-media" data-placeholder-file="Introduction.png"
+            data-placeholder-label="Our motivation. Direct brightening makes color shifts more visible. Baseline enhancement improves brightness but leaves color bias and saturation abnormalities. Our CAGE delivers more faithful color restoration."
+            data-src="figures/main/Introduction.png" decoding="async" loading="lazy" />
+          <div class="img-placeholder is-hidden">
+            <div class="icon">
+              <svg fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.6"
+                viewbox="0 0 24 24">
+                <rect height="18" rx="2" width="18" x="3" y="3"></rect>
+                <circle cx="9" cy="9" r="2"></circle>
+                <path d="M21 15l-5-5L5 21"></path>
+              </svg>
+            </div>
+            <div class="filename"></div>
+            <div class="label"></div>
+          </div>
+        </div>
+        <figcaption>
+          <strong>Our motivation.</strong>
+          <em>(a→b)</em> Direct brightening makes color shifts more visible.
+          <em>(a→c)</em> Baseline enhancement improves brightness but leaves color bias and saturation
+          abnormalities.
+          <em>(a→d)</em> Our CAGE delivers more faithful color restoration.
+        </figcaption>
+      </figure>
+    </section>
+
+    <!-- Gallery -->
+    <section id="gallery">
+      <h2>Gallery</h2>
+      <div class="gallery-shell">
+        <div class="gallery-feature-heading gallery-feature-heading-arena animate-on-scroll">
+          <div class="gallery-feature-title">
+            <span aria-hidden="true" class="gallery-feature-number">01</span>
+            <h3>Image Arena</h3>
+          </div>
+          <p>Choose the result that looks perceptually natural and restores color most faithfully.</p>
+        </div>
+        <div class="gallery-panel gallery-section animate-on-scroll" data-feature="arena" id="galleryArena">
+          <div class="arena-container">
+            <div class="arena-main-panel">
+              <div class="arena-input-section">
+                <div class="arena-label">Low-light / GT-mean Enlightened Input</div>
+                <div class="arena-image-box" id="arena-input-box">
+                  <img alt="input" id="arena-input-img" />
+                  <div class="img-placeholder is-hidden" id="arena-input-placeholder">
+                    <div class="icon">
+                      <svg fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"
+                        stroke-width="1.6" viewbox="0 0 24 24">
+                        <rect height="18" rx="2" width="18" x="3" y="3"></rect>
+                        <circle cx="9" cy="9" r="2"></circle>
+                        <path d="M21 15l-5-5L5 21"></path>
+                      </svg>
+                    </div>
+                    <div class="filename">input.png</div>
+                    <div class="label">Low-light image</div>
+                  </div>
+                </div>
+              </div>
+              <div class="arena-divider"></div>
+              <div class="arena-output-section">
+                <div class="arena-label">Enhanced Results</div>
+                <div class="arena-grid" id="arena-grid">
+                  <div class="arena-card" data-index="0">
+                    <div class="arena-card-index">A</div>
+                    <img class="arena-img" data-index="0" />
+                    <div class="img-placeholder is-hidden">
+                      <div class="icon">
+                        <svg fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"
+                          stroke-width="1.6" viewbox="0 0 24 24">
+                          <rect height="18" rx="2" width="18" x="3" y="3"></rect>
+                          <circle cx="9" cy="9" r="2"></circle>
+                          <path d="M21 15l-5-5L5 21"></path>
+                        </svg>
+                      </div>
+                      <div class="filename">output_A.png</div>
+                      <div class="label">Enhanced image A</div>
+                    </div>
+                  </div>
+                  <div class="arena-card" data-index="1">
+                    <div class="arena-card-index">B</div>
+                    <img class="arena-img" data-index="1" />
+                    <div class="img-placeholder is-hidden">
+                      <div class="icon">
+                        <svg fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"
+                          stroke-width="1.6" viewbox="0 0 24 24">
+                          <rect height="18" rx="2" width="18" x="3" y="3"></rect>
+                          <circle cx="9" cy="9" r="2"></circle>
+                          <path d="M21 15l-5-5L5 21"></path>
+                        </svg>
+                      </div>
+                      <div class="filename">output_B.png</div>
+                      <div class="label">Enhanced image B</div>
+                    </div>
+                  </div>
+                  <div class="arena-card" data-index="2">
+                    <div class="arena-card-index">C</div>
+                    <img class="arena-img" data-index="2" />
+                    <div class="img-placeholder is-hidden">
+                      <div class="icon">
+                        <svg fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"
+                          stroke-width="1.6" viewbox="0 0 24 24">
+                          <rect height="18" rx="2" width="18" x="3" y="3"></rect>
+                          <circle cx="9" cy="9" r="2"></circle>
+                          <path d="M21 15l-5-5L5 21"></path>
+                        </svg>
+                      </div>
+                      <div class="filename">output_C.png</div>
+                      <div class="label">Enhanced image C</div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div class="arena-tip arena-tip-muted">
+              <span>
+                <svg aria-label="Left mouse button" class="mouse-icon" role="img" viewbox="0 0 16 16">
+                  <rect class="mouse-body fill" height="14" rx="5" width="12" x="2" y="1"></rect>
+                  <defs>
+                    <clippath id="mini-left-clip">
+                      <rect height="14" rx="5" width="12" x="2" y="1"></rect>
+                    </clippath>
+                  </defs>
+                  <g clip-path="url(#mini-left-clip)">
+                    <path class="mouse-button active" d="M2 1H8V7H2Z"></path>
+                  </g>
+                  <rect class="mouse-wheel" height="6" rx="1.5" width="3" x="6.5" y="2"></rect>
+                  <rect class="mouse-body" height="14" rx="5" width="12" x="2" y="1"></rect>
+                </svg>
+                Left click to <strong>select</strong>
+              </span>
+              <span>
+                <svg aria-label="Right mouse button" class="mouse-icon" role="img" viewbox="0 0 16 16">
+                  <rect class="mouse-body fill" height="14" rx="5" width="12" x="2" y="1"></rect>
+                  <defs>
+                    <clippath id="mini-right-clip">
+                      <rect height="14" rx="5" width="12" x="2" y="1"></rect>
+                    </clippath>
+                  </defs>
+                  <g clip-path="url(#mini-right-clip)">
+                    <path class="mouse-button active" d="M8 1H14V7H8Z"></path>
+                  </g>
+                  <rect class="mouse-wheel" height="6" rx="1.5" width="3" x="6.5" y="2"></rect>
+                  <rect class="mouse-body" height="14" rx="5" width="12" x="2" y="1"></rect>
+                </svg>
+                Right click to <strong>compare</strong>
+              </span>
+              <span>
+                <svg aria-label="Middle mouse button" class="mouse-icon" role="img" viewbox="0 0 16 16">
+                  <rect class="mouse-body fill" height="14" rx="5" width="12" x="2" y="1"></rect>
+                  <rect class="mouse-wheel active" height="6" rx="1.5" width="3" x="6.5" y="2"></rect>
+                  <rect class="mouse-body" height="14" rx="5" width="12" x="2" y="1"></rect>
+                </svg>
+                Middle click to <strong>enlarge</strong>
+              </span>
+            </div>
+            <div class="arena-feedback-row">
+              <div class="arena-feedback" id="arena-feedback"></div>
+              <button class="arena-next-btn is-hidden" data-action="next-arena-round" id="arena-next-btn">
+                Next
+                <svg fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                  viewbox="0 0 24 24">
+                  <path d="m9 18 6-6-6-6"></path>
+                </svg>
+              </button>
+            </div>
+            <div class="arena-vote-chart is-hidden" id="arena-vote-chart">
+              <div class="vote-chart-title">Vote Statistics</div>
+              <div class="vote-chart-legend">
+                <span class="legend-item">
+                  <span class="legend-color cage"></span>
+                  <span class="legend-text">Ours</span>
+                </span>
+                <span class="legend-item">
+                  <span class="legend-color"></span>
+                  <span class="legend-text">Others</span>
+                </span>
+              </div>
+              <div class="vote-chart-bars" id="vote-chart-bars"></div>
+            </div>
+          </div>
+        </div>
+        <div class="gallery-feature-heading gallery-feature-heading-color animate-on-scroll">
+          <div class="gallery-feature-title">
+            <span aria-hidden="true" class="gallery-feature-number">02</span>
+            <h3>Color Space Visualization</h3>
+          </div>
+          <p>
+            Upload an image and interactive with its 3D mapping and the gamut 3D mapping.
+          </p>
+        </div>
+        <div class="gallery-panel gallery-section animate-on-scroll" data-feature="color-space" id="galleryColorSpace">
+          <div aria-label="Interactive color space visualization" class="cs-atlas">
+            <div aria-label="Color space" class="cs-segmented cs-space-tabs-top" id="spaceTabs" role="tablist">
+              <button aria-selected="true" class="cs-seg-button is-active" data-space="RGB" role="tab"
+                type="button">RGB</button>
+              <button aria-selected="false" class="cs-seg-button" data-space="YUV" role="tab" type="button">YUV</button>
+              <button aria-selected="false" class="cs-seg-button" data-space="HSV" role="tab" type="button">HSV</button>
+              <button aria-selected="false" class="cs-seg-button" data-space="HVI" role="tab" type="button">HVI</button>
+              <button aria-selected="false" class="cs-seg-button" data-space="OKLAB" role="tab"
+                type="button">LAB</button>
+            </div>
+            <div class="cs-four-column">
+              <div class="cs-visual-column">
+                <article class="cs-panel cs-combined-panel">
+                  <div class="cs-point-cloud-col">
+                    <div class="cs-panel-head">
+                      <div>
+                        <h3>
+                          Input Image
+                        </h3>
+                      </div>
+                      <span class="cs-pill" id="imageMeta">Image</span>
+                    </div>
+                    <p class="cs-panel-note">
+                      Upload an image to visualize its 3D mapping and the corresponding color
+                      space voxels 3D mapping.
+                    </p>
+                    <label class="cs-drop-zone" for="imageInput" id="dropZone">
+                      <canvas aria-label="Input image preview" height="420" id="previewCanvas" width="640"></canvas>
+                      <span class="cs-drop-overlay">
+                        <strong>
+                          Choose or drop an image
+                        </strong>
+                        <small>
+                          PNG, JPEG, WebP, BMP, or GIF
+                        </small>
+                      </span>
+                    </label>
+                    <input accept="image/*" class="cs-visually-hidden" id="imageInput" type="file" />
+                  </div>
+                  <div class="cs-point-cloud-row">
+                    <div class="cs-point-cloud-col">
+                      <div class="cs-panel-head">
+                        <div>
+                          <h3>
+                            Image 3D Mapping
+                          </h3>
+                        </div>
+                        <span class="cs-pill" id="imagePointCount">0 points</span>
+                      </div>
+                      <p class="cs-panel-note">
+                        Each sampled pixel becomes a 3D point colored by its source RGB value.
+                      </p>
+                      <div aria-label="Interactive image 3D Mapping" class="cs-viewer-stage" id="imageViewer"
+                        tabindex="0">
+                        <div aria-hidden="true" class="cs-axis-gizmo" id="imageAxisGizmo">
+                          <svg viewbox="0 0 64 64">
+                            <g class="gizmo-axes">
+                              <line class="axis-line axis-x" data-axis="x" x1="45" x2="45" y1="45" y2="45"></line>
+                              <line class="axis-line axis-y" data-axis="y" x1="45" x2="45" y1="45" y2="45"></line>
+                              <line class="axis-line axis-z" data-axis="z" x1="45" x2="45" y1="45" y2="45"></line>
+                              <circle class="axis-dot axis-x" cx="45" cy="45" data-axis="x" data-dir="positive">
+                              </circle>
+                              <circle class="axis-dot axis-x" cx="45" cy="45" data-axis="x" data-dir="negative">
+                              </circle>
+                              <circle class="axis-dot axis-y" cx="45" cy="45" data-axis="y" data-dir="positive">
+                              </circle>
+                              <circle class="axis-dot axis-y" cx="45" cy="45" data-axis="y" data-dir="negative">
+                              </circle>
+                              <circle class="axis-dot axis-z" cx="45" cy="45" data-axis="z" data-dir="positive">
+                              </circle>
+                              <circle class="axis-dot axis-z" cx="45" cy="45" data-axis="z" data-dir="negative">
+                              </circle>
+                              <text class="axis-label axis-x" data-axis="x" data-dir="positive"
+                                dominant-baseline="middle" text-anchor="middle" x="45" y="45"></text>
+                              <text class="axis-label axis-y" data-axis="y" data-dir="positive"
+                                dominant-baseline="middle" text-anchor="middle" x="45" y="45"></text>
+                              <text class="axis-label axis-z" data-axis="z" data-dir="positive"
+                                dominant-baseline="middle" text-anchor="middle" x="45" y="45"></text>
+                            </g>
+                          </svg>
+                        </div>
+                      </div>
+                    </div>
+                    <div class="cs-point-cloud-col">
+                      <div class="cs-panel-head">
+                        <div>
+                          <h3>Gamut 3D Mapping</h3>
+                        </div>
+                        <span class="cs-pill" id="latticePointCount">0 points</span>
+                      </div>
+                      <p class="cs-panel-note">A uniformly sampled RGB gamut is mapped into the
+                        selected space.</p>
+                      <div aria-label="Interactive color gamut 3D mapping" class="cs-viewer-stage" id="latticeViewer"
+                        tabindex="0">
+                        <div aria-hidden="true" class="cs-axis-gizmo" id="latticeAxisGizmo">
+                          <svg viewbox="0 0 64 64">
+                            <g class="gizmo-axes">
+                              <line class="axis-line axis-x" data-axis="x" x1="45" x2="45" y1="45" y2="45"></line>
+                              <line class="axis-line axis-y" data-axis="y" x1="45" x2="45" y1="45" y2="45"></line>
+                              <line class="axis-line axis-z" data-axis="z" x1="45" x2="45" y1="45" y2="45"></line>
+                              <circle class="axis-dot axis-x" cx="45" cy="45" data-axis="x" data-dir="positive">
+                              </circle>
+                              <circle class="axis-dot axis-x" cx="45" cy="45" data-axis="x" data-dir="negative">
+                              </circle>
+                              <circle class="axis-dot axis-y" cx="45" cy="45" data-axis="y" data-dir="positive">
+                              </circle>
+                              <circle class="axis-dot axis-y" cx="45" cy="45" data-axis="y" data-dir="negative">
+                              </circle>
+                              <circle class="axis-dot axis-z" cx="45" cy="45" data-axis="z" data-dir="positive">
+                              </circle>
+                              <circle class="axis-dot axis-z" cx="45" cy="45" data-axis="z" data-dir="negative">
+                              </circle>
+                              <text class="axis-label axis-x" data-axis="x" data-dir="positive"
+                                dominant-baseline="middle" text-anchor="middle" x="45" y="45"></text>
+                              <text class="axis-label axis-y" data-axis="y" data-dir="positive"
+                                dominant-baseline="middle" text-anchor="middle" x="45" y="45"></text>
+                              <text class="axis-label axis-z" data-axis="z" data-dir="positive"
+                                dominant-baseline="middle" text-anchor="middle" x="45" y="45"></text>
+                            </g>
+                          </svg>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </article>
+              </div>
+              <aside class="cs-panel cs-mapping-panel">
+                <div class="cs-panel-head">
+                  <div>
+                    <h3>Settings</h3>
+                  </div>
+                </div>
+                <div class="cs-summary">
+                  <h4 id="spaceTitle">Info Card</h4>
+                  <div class="cs-axis-chips" id="axisChips">
+                    <span>R ∈ [0, 1]</span>
+                    <span>G ∈ [0, 1]</span>
+                    <span>B ∈ [0, 1]</span>
+                  </div>
+                  <p class="text" id="spaceDescription">RGB coordinates retain their native channel range.</p>
+                  <div aria-label="Color space conversion equations" class="cs-conversion-grid cs-is-collapsed"
+                    id="conversionGrid">
+                    <section class="cs-conversion-block">
+                      <div class="cs-conversion-head">
+                        <span>Forward conversion</span>
+                        <b>
+                          RGB →
+                          <span id="forwardSpaceName">RGB</span>
+                        </b>
+                      </div>
+                      <div class="cs-formula-box" id="spaceFormulaForward"></div>
+                    </section>
+                    <section class="cs-conversion-block">
+                      <div class="cs-conversion-head">
+                        <span>Inverse conversion</span>
+                        <b>
+                          <span id="inverseSpaceName">RGB</span>→ RGB</b>
+                      </div>
+                      <div class="cs-formula-box" id="spaceFormulaInverse"></div>
+                    </section>
+                  </div>
+                  <button aria-expanded="false" class="cs-formula-toggle" id="formulaToggle" type="button">
+                    <svg class="cs-toggle-icon" height="12" viewbox="0 0 12 12" width="12">
+                      <path d="M2 4L6 8L10 4" fill="none" stroke="currentColor" stroke-linecap="round"
+                        stroke-linejoin="round" stroke-width="1.5">
+                      </path>
+                    </svg>
+                  </button>
+                </div>
+                <p class="cs-control-label">Sampling and geometry</p>
+                <div class="cs-settings-stack">
+                  <label class="cs-field">
+                    <span>Input Prefabs</span>
+                    <select class="cs-grouped-select" id="patternMode">
+                      <optgroup label="Image">
+                        <option value="low-light">Low-light</option>
+                        <option value="normal-light">Normal-light</option>
+                        <option value="image-random">Random Image</option>
+                      </optgroup>
+                      <optgroup label="Pattern">
+                        <option selected="" value="structured">Structured</option>
+                        <option value="low-discrepancy">Grid 3D</option>
+                        <option value="grid">Grid 2D</option>
+                        <option value="rainbow">Rainbow</option>
+                        <option value="gradient">Gradient</option>
+                        <option value="bijection">Bijection</option>
+                      </optgroup>
+                      <optgroup label="Noise">
+                        <option value="random">Random</option>
+                        <option value="voronoi">Voronoi</option>
+                        <option value="perlin">Perlin</option>
+                        <option value="mosaic">Mosaic</option>
+                      </optgroup>
+                    </select>
+                  </label>
+                  <label class="cs-field">
+                    <span>Image point budget</span>
+                    <select id="imageBudget">
+                      <option value="1000">1,000</option>
+                      <option value="2000">2,000</option>
+                      <option value="4000">4,000</option>
+                      <option value="8000">8,000</option>
+                      <option value="16000">16,000</option>
+                      <option selected="" value="32000">32,000</option>
+                      <option value="64000">64,000</option>
+                      <option value="128000">128,000</option>
+                      <option value="256000">256,000</option>
+                      <option value="all">All</option>
+                    </select>
+                  </label>
+                  <label class="cs-field">
+                    <span>RGB lattice resolution</span>
+                    <select aria-describedby="latticeResolutionHint" id="latticeResolution">
+                      <option value="2">2 × 2 × 2</option>
+                      <option value="3">3 × 3 × 3</option>
+                      <option value="4">4 × 4 × 4</option>
+                      <option value="6">6 × 6 × 6</option>
+                      <option value="8">8 × 8 × 8</option>
+                      <option value="10">10 × 10 × 10</option>
+                      <option value="12">12 × 12 × 12</option>
+                      <option value="14">14 × 14 × 14</option>
+                      <option value="16">16 × 16 × 16</option>
+                      <option value="18">18 × 18 × 18</option>
+                      <option value="20">20 × 20 × 20</option>
+                      <option value="24">24 × 24 × 24</option>
+                      <option value="28">28 × 28 × 28</option>
+                      <option selected="" value="32">32 × 32 × 32</option>
+                      <option value="40">40 × 40 × 40</option>
+                      <option value="48">48 × 48 × 48</option>
+                      <option value="56">56 × 56 × 56</option>
+                      <option value="64">64 × 64 × 64</option>
+                      <option value="128">128 × 128 × 128</option>
+                    </select>
+                    <small class="cs-field-hint" id="latticeResolutionHint">32 samples per axis ·
+                      32,768 points</small>
+                  </label>
+                  <label class="cs-field cs-is-hidden" id="hsvProjectionField">
+                    <span>HSV coordinates</span>
+                    <select id="hsvProjection">
+                      <option selected="" value="cylindrical">Cylindrical</option>
+                      <option value="raw">Cartecian</option>
+                    </select>
+                  </label>
+                  <label class="cs-field cs-is-hidden" id="hviDensityField">
+                    <span>HVI density k</span>
+                    <div class="cs-range-row">
+                      <input id="hviDensity" max="1.2" min="0.05" step="0.05" type="range" value="0.2" />
+                      <output for="hviDensity" id="hviDensityValue">0.20</output>
+                    </div>
+                  </label>
+                  <label class="cs-field cs-is-hidden" id="labProjectionField">
+                    <span>LAB coordinates</span>
+                    <select id="labProjection">
+                      <option selected="" value="cylindrical">Cylindrical</option>
+                      <option value="cartesian">Cartesian</option>
+                    </select>
+                  </label>
+                </div>
+                <p class="cs-control-label">View options</p>
+                <div class="cs-toggle-grid">
+                  <label class="cs-toggle">
+                    <input id="normalizeRange" type="checkbox" />
+                    <span>Normalize 0–1</span>
+                  </label>
+                  <label class="cs-toggle">
+                    <input checked="" id="autoRotate" type="checkbox" />
+                    <span>Auto rotate</span>
+                  </label>
+                  <label class="cs-toggle">
+                    <input checked="" id="showFrame" type="checkbox" />
+                    <span>Show frame</span>
+                  </label>
+                  <label class="cs-toggle">
+                    <input id="showAxes" type="checkbox" />
+                    <span>Show axes</span>
+                  </label>
+                </div>
+                <div class="cs-button-grid"></div>
+              </aside>
+            </div>
+          </div>
+        </div>
       </div>
-      <div class="mbranches">
-       <svg aria-hidden="true" class="mconnections" id="mconnections">
-        <defs>
-         <marker id="mArrowHead" markerheight="16" markerunits="userSpaceOnUse" markerwidth="16" orient="auto" overflow="visible" refx="8" refy="8" viewbox="0 0 24 24">
-          <path class="m-arrow-head" d="M2 2 L8 8 L2 14">
-          </path>
-         </marker>
-        </defs>
-        <path id="mcurveInputCnn" marker-end="url(#mArrowHead)">
-        </path>
-        <path id="mcurveParamsForward" marker-end="url(#mArrowHead)">
-        </path>
-        <path id="mcurveParamsInverse" marker-end="url(#mArrowHead)">
-        </path>
-       </svg>
-       <div class="mbranch main-branch">
-        <button aria-selected="true" class="mnode dashed" data-key="input" id="mblock-input" role="tab" tabindex="0" type="button">
-         <span class="mnode-label">
-          Input Low-light Image
-         </span>
-         <span class="mtag neutral">
-          image
-         </span>
-        </button>
-        <div aria-hidden="true" class="mconn">
-         <svg fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewbox="0 0 24 24">
-          <path d="M12 5v14M6 13l6 6 6-6">
-          </path>
-         </svg>
-        </div>
-        <button aria-selected="false" class="mnode" data-key="forward" id="mblock-forward" role="tab" tabindex="-1" type="button">
-         <span class="mnode-label">
-          Forward Transform
-         </span>
-         <span class="mtag trained">
-          RGB → AdaLAB \(\ \cdot\ \) \(G\)
-         </span>
-        </button>
-        <div aria-hidden="true" class="mconn">
-         <svg fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewbox="0 0 24 24">
-          <path d="M12 5v14M6 13l6 6 6-6">
-          </path>
-         </svg>
-        </div>
-        <button aria-selected="false" class="mnode" data-key="backbone" id="mblock-backbone" role="tab" tabindex="-1" type="button">
-         <span class="mnode-label">
-          Low-light Image Enhancement Backbone
-         </span>
-         <span class="mtag frozen">
-          \(F_\theta\)
-         </span>
-        </button>
-        <div aria-hidden="true" class="mconn">
-         <svg fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewbox="0 0 24 24">
-          <path d="M12 5v14M6 13l6 6 6-6">
-          </path>
-         </svg>
-        </div>
-        <button aria-selected="false" class="mnode" data-key="inverse" id="mblock-inverse" role="tab" tabindex="-1" type="button">
-         <span class="mnode-label">
-          Inverse Transform
-         </span>
-         <span class="mtag trained">
-          AdaLAB → RGB \(\ \cdot\ \) \(G^{-1}\)
-         </span>
-        </button>
-        <div aria-hidden="true" class="mconn">
-         <svg fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewbox="0 0 24 24">
-          <path d="M12 5v14M6 13l6 6 6-6">
-          </path>
-         </svg>
-        </div>
-        <button aria-selected="false" class="mnode dashed" data-key="output" id="mblock-output" role="tab" tabindex="-1" type="button">
-         <span class="mnode-label">
-          Output Enhanced Image
-         </span>
-         <span class="mtag neutral">
-          image
-         </span>
-        </button>
-       </div>
-       <div class="mbranch parameter-branch">
-        <button aria-selected="false" class="mnode" data-key="cnn" id="mblock-cnn" role="tab" tabindex="-1" type="button">
-         <span class="mnode-label">
-          Lightweight CNN Backbone
-         </span>
-         <span class="mtag trained">
-          \(H\)
-         </span>
-        </button>
-        <div aria-hidden="true" class="mconn">
-         <svg fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewbox="0 0 24 24">
-          <path d="M12 5v14M6 13l6 6 6-6">
-          </path>
-         </svg>
-        </div>
-        <button aria-selected="false" class="mnode dashed" data-key="params" id="mblock-params" role="tab" tabindex="-1" type="button">
-         <span class="mnode-label">
-          Image-adaptive Cylindrical Parameters
-         </span>
-         <span class="mtag neutral">
-          parameters
-         </span>
-        </button>
-       </div>
+    </section>
+
+    <!-- Arena Image Viewer -->
+    <div class="arena-image-viewer" id="arena-image-viewer">
+      <div class="viewer-index" id="arena-viewer-index">
+        1 / 1
       </div>
-      <div class="mflow-hint">
-       <span>
-        Select a block to inspect its operation and equation.
-       </span>
-       <span>
-        <kbd>
-         &lt;
-        </kbd>
-        &nbsp;
-        <kbd>
-         &gt;
-        </kbd>
-        &nbsp;
-        to navigate.
-       </span>
-      </div>
-     </div>
-     <aside aria-labelledby="mblock-input" aria-live="polite" class="mdetail" id="mdetail" role="tabpanel" tabindex="0">
-      <div class="mdetail-top is-hidden">
-       <div class="md-index">
-        <span class="md-step-group">
-         <span id="mdStep">
-          1 / 7
-         </span>
-         <span class="md-stage" id="mdStage">
-          Input
-         </span>
+      <img alt="imageViewer" class="viewer-image" id="arena-viewer-img" />
+      <div class="viewer-tip">
+        <span>
+          <svg aria-label="Middle mouse button" class="mouse-icon" role="img" viewbox="0 0 16 16">
+            <rect class="mouse-body fill" height="14" rx="5" width="12" x="2" y="1"></rect>
+            <rect class="mouse-wheel active" height="6" rx="1.5" width="3" x="6.5" y="2"></rect>
+            <rect class="mouse-body" height="14" rx="5" width="12" x="2" y="1"></rect>
+          </svg>
+          Hold middle mouse to
+          <strong>pan</strong>
         </span>
         <span>
-         <kbd>
-          Home
-         </kbd>
-         <kbd>
-          End
-         </kbd>
+          <svg aria-label="Scroll mouse wheel to zoom" class="mouse-icon" role="img" viewbox="0 0 16 16">
+            <rect class="mouse-body fill" height="14" rx="5" width="11" x="1.5" y="1"></rect>
+            <rect class="mouse-wheel active" height="6" rx="1.5" width="3" x="5.75" y="2"></rect>
+            <rect class="mouse-body" height="14" rx="5" width="11" x="1.5" y="1"></rect>
+            <path class="scroll-mark" d="M15 4.5l1.5-1.5 1.5 1.5"></path>
+            <path class="scroll-mark" d="M18 3v4"></path>
+            <path class="scroll-mark" d="M15 7.5l1.5 1.5 1.5-1.5"></path>
+            <path class="scroll-mark" d="M18 9v4"></path>
+          </svg>
+          Scroll over image to
+          <strong>zoom</strong>
         </span>
-       </div>
-       <div aria-hidden="true" class="md-progress">
-        <span id="mdProgressBar">
+        <span>
+          <svg aria-label="Click blank area to close" class="cursor-click-icon" role="img" viewbox="0 0 15 15">
+            <path class="cursor-fill" d="M3 2.2L3.1 11.8L5.5 9.5L7.2 13L8.8 12.2L7.1 8.8H10.5L3 2.2Z">
+            </path>
+            <path class="click-rays" d="M10.9 3.3V1.9"></path>
+            <path class="click-rays" d="M12.1 4.2L13.4 2.9"></path>
+            <path class="click-rays" d="M12.6 5.8H14.1"></path>
+            <path class="click-rays" d="M12.1 7.2L13.4 8.5"></path>
+          </svg>
+          Click blank area to
+          <strong>close</strong>
         </span>
-       </div>
+        <span>
+          <svg aria-label="Scroll mouse wheel to zoom" class="mouse-icon" role="img" viewbox="0 0 16 16">
+            <rect class="mouse-body fill" height="14" rx="5" width="11" x="1.5" y="1"></rect>
+            <rect class="mouse-wheel active" height="6" rx="1.5" width="3" x="5.75" y="2"></rect>
+            <rect class="mouse-body" height="14" rx="5" width="11" x="1.5" y="1"></rect>
+            <path class="scroll-mark" d="M15 4.5l1.5-1.5 1.5 1.5"></path>
+            <path class="scroll-mark" d="M18 3v4"></path>
+            <path class="scroll-mark" d="M15 7.5l1.5 1.5 1.5-1.5"></path>
+            <path class="scroll-mark" d="M18 9v4"></path>
+          </svg>
+          Scroll over blank area or
+          <span>
+            <kbd>&lt;</kbd>
+            <kbd>&gt;</kbd>
+          </span>
+          Arrow keys or
+          <span>
+            <kbd>1</kbd>
+            <kbd>2</kbd>
+            <kbd>3</kbd>
+          </span>
+          Number keys to
+          <strong>switch</strong>
+        </span>
       </div>
-      <span class="md-tag neutral" id="mdTag">
-       image
-      </span>
-      <h3 class="md-title" id="mdTitle">
-       Input Low-light Image
-      </h3>
-      <p class="md-eq" id="mdEq">
-       \( x \in \mathbb{R}^{3 \times H \times W} \)
+    </div>
+
+    <canvas class="fireworks-canvas" id="fireworks-canvas"></canvas>
+
+    <!-- Problem -->
+    <section class="animate-on-scroll" id="problem">
+      <h2>The Problem</h2>
+      <div class="problem-cards">
+        <div class="problem-card">
+          <div class="card-index">01 · Input</div>
+          <h3>Embedded color bias</h3>
+          <p>
+            Low signal-to-noise ratio, camera hardware, and in-camera processing introduce color shift
+            during low-light image formation.
+          </p>
+          <div class="ghost-number">01</div>
+        </div>
+        <div class="problem-card">
+          <div class="card-index">02 · Pipeline</div>
+          <h3>Bias propagation</h3>
+          <p>
+            A color space can reorganize distorted colors, but the disturbance persists through enhancement
+            unless the chromatic distribution is corrected.
+          </p>
+          <div class="ghost-number">02</div>
+        </div>
+        <div class="problem-card">
+          <div class="card-index">03 · Output</div>
+          <h3>Chromatic distortion</h3>
+          <p>
+            Brightness enhancement amplifies chromatic responses, causing global color bias and regional
+            under-saturation and over-saturation.
+          </p>
+          <div class="ghost-number">03</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Method Overview -->
+    <section class="animate-on-scroll" data-feature="method" id="method">
+      <h2>Method Overview</h2>
+      <p class="method-lead">
+        <strong>CAGE</strong>
+        integrates a low-light image enhancement backbone with the forward and inverse
+        transforms of AdaCCT. The two transforms map images between RGB and AdaLAB while regulating the
+        chromatic distribution before and after backbone enhancement.
       </p>
-      <p class="md-text" id="mdText">
-       The low-light input image is captured under insufficient illumination. It contains embedded
-                            color bias due to the camera hardware and in-camera processing.
-      </p>
-      <div class="md-media" id="mdMedia">
+      <div class="method-modes">
+        <div aria-label="How to view the CAGE method" class="seg" id="methodSeg" role="tablist">
+          <button aria-controls="methodFigure" aria-selected="true" id="mode-figure" role="tab" tabindex="0">Full
+            Pipeline</button>
+          <button aria-controls="methodInteractive" aria-selected="false" id="mode-interactive" role="tab"
+            tabindex="-1">Interactive Architecture</button>
+        </div>
       </div>
-      <div class="md-child" hidden="" id="mdChild">
-       <span class="md-child-tag" id="mdChildTag">
-        image
-       </span>
-       <h4 class="md-child-title" id="mdChildTitle">
-        Input Low-light Image (RGB space)
-       </h4>
-       <p class="md-child-eq" id="mdChildEq">
-        \( x \in \mathbb{R}^{3 \times H \times W} \)
-       </p>
-       <p class="md-child-text" id="mdChildText">
-        The RGB low-light image enters the forward transform before chromatic correction.
-       </p>
-      </div>
-      <div class="md-actions is-hidden">
-       <button aria-label="Previous architecture block" class="md-nav-btn" id="mdPrev" type="button">
-        &lt; Previous
-       </button>
-       <button aria-label="Next architecture block" class="md-nav-btn primary" id="mdNext" type="button">
-        Next &gt;
-       </button>
-      </div>
-     </aside>
-    </div>
-    <figure class="method-figure animate-on-scroll" id="methodFigure">
-     <button aria-label="Explore the interactive architecture, a guided block-by-block walkthrough of this figure" class="mfig-frame" id="mfigOpen" type="button">
-      <img alt="CAGE architecture: a lightweight CNN predicts image-adaptive cylindrical parameters, while the input passes through the forward transform, low-light image enhancement backbone, and inverse transform to produce the enhanced image." class="lazy-media" data-placeholder-file="Methodology - CAGE.png" data-placeholder-label="CAGE architecture: a lightweight CNN predicts image-adaptive cylindrical parameters, while the input passes through the forward transform, low-light image enhancement backbone, and inverse transform to produce the enhanced image." data-src="figures/main/Methodology - CAGE.png" decoding="async" loading="lazy"/>
-      <span aria-hidden="true" class="mfig-cue">
-       <b>
-        <svg viewbox="0 0 24 24">
-         <path d="M9 3H5a2 2 0 0 0-2 2v4">
-         </path>
-         <path d="M15 3h4a2 2 0 0 1 2 2v4">
-         </path>
-         <path d="M9 21H5a2 2 0 0 1-2-2v-4">
-         </path>
-         <path d="M15 21h4a2 2 0 0 0 2-2v-4">
-         </path>
-        </svg>
-        Explore the interactive architecture
-       </b>
-      </span>
-     </button>
-     <figcaption>
-      Click the figure to step through each block interactively.
-     </figcaption>
-    </figure>
-    <h3 class="animate-on-scroll">
-     AdaCCT: Correct Before Enhancement, Rectify After Enhancement
-    </h3>
-    <figure class="fig animate-on-scroll">
-     <div class="img-container">
-      <img alt="Pipeline of AdaCCT. The forward transform converts RGB to LAB, applies chromatic debiasing and chroma scaling, and constructs AdaLAB. The inverse transform reverts chroma scaling, applies out-of-gamut lightness compensation, and converts LAB back to RGB." class="lazy-media" data-placeholder-file="Methodology - AdaCCT.png" data-placeholder-label="Pipeline of AdaCCT. The forward transform converts RGB to LAB, applies chromatic debiasing and chroma scaling, and constructs AdaLAB. The inverse transform reverts chroma scaling, applies out-of-gamut lightness compensation, and converts LAB back to RGB." data-src="figures/main/Methodology - AdaCCT.png" decoding="async" loading="lazy"/>
-      <div class="img-placeholder is-hidden">
-       <div class="icon">
-        <svg fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.6" viewbox="0 0 24 24">
-         <rect height="18" rx="2" width="18" x="3" y="3">
-         </rect>
-         <circle cx="9" cy="9" r="2">
-         </circle>
-         <path d="M21 15l-5-5L5 21">
-         </path>
-        </svg>
-       </div>
-       <div class="filename">
-       </div>
-       <div class="label">
-       </div>
-      </div>
-     </div>
-     <figcaption>
-      <strong>
-       Pipeline of AdaCCT.
-      </strong>
-      The forward transform converts RGB to LAB, applies
-                        chromatic debiasing and chroma scaling, and constructs AdaLAB. The inverse transform reverts
-                        chroma scaling, applies out-of-gamut lightness compensation, and converts LAB back to RGB.
-     </figcaption>
-    </figure>
-   </section>
-   <section class="animate-on-scroll" id="results">
-    <h2>
-     Qualitative Results
-    </h2>
-    <p>
-     Qualitative comparisons on paired and unpaired datasets show reduced global color bias, more stable
-                    local saturation, and more natural chromatic transitions.
-    </p>
-    <div class="accordion">
-     <div class="accordion-sticky-header" id="accordion-sticky">
-      <h3>
-      </h3>
-      <span class="accordion-icon">
-       <i class="fas fa-chevron-down">
-       </i>
-      </span>
-     </div>
-     <div class="accordion-item">
-      <div class="accordion-header">
-       <h3>
-        Paired Dataset Results
-       </h3>
-       <span class="accordion-icon">
-        <i class="fas fa-chevron-down">
-        </i>
-       </span>
-      </div>
-      <div class="accordion-content">
-       <div class="accordion-content-inner">
-        <figure class="fig result-figure-spacing">
-         <div class="img-container">
-          <img alt="Paired comparison on LOLv1 dataset. CAGE achieves more faithful color restoration with reduced color bias." class="lazy-media" data-placeholder-file="Supplementary - paired - LOLv1.png" data-placeholder-label="Paired comparison on LOLv1 dataset. CAGE achieves more faithful color restoration with reduced color bias." data-src="figures/supp/Supplementary - paired - LOLv1.png" decoding="async" loading="lazy"/>
-          <div class="img-placeholder is-hidden">
-           <div class="icon">
-            <svg fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.6" viewbox="0 0 24 24">
-             <rect height="18" rx="2" width="18" x="3" y="3">
-             </rect>
-             <circle cx="9" cy="9" r="2">
-             </circle>
-             <path d="M21 15l-5-5L5 21">
-             </path>
-            </svg>
-           </div>
-           <div class="filename">
-           </div>
-           <div class="label">
-           </div>
+      <div class="method-grid" hidden="" id="methodInteractive">
+        <div aria-label="CAGE pipeline blocks" class="mdiagram" id="mflow" role="tablist">
+          <div class="marchitecture-head">
+            <div>
+              <p class="marchitecture-eyebrow">Interactive Node Map</p>
+              <h3 class="marchitecture-title">CAGE processing architecture</h3>
+            </div>
           </div>
-         </div>
-         <figcaption>
-          <strong>
-           Paired comparison on LOLv1 dataset.
-          </strong>
-          CAGE achieves more faithful
-                                        color restoration with reduced color bias.
-         </figcaption>
-        </figure>
-        <figure class="fig result-figure-spacing">
-         <div class="img-container">
-          <img alt="Paired comparison on LOLv2-real dataset. Real-world low-light images with challenging color shifts." class="lazy-media" data-placeholder-file="Supplementary - paired - LOLv2-real.png" data-placeholder-label="Paired comparison on LOLv2-real dataset. Real-world low-light images with challenging color shifts." data-src="figures/supp/Supplementary - paired - LOLv2-real.png" decoding="async" loading="lazy"/>
-          <div class="img-placeholder is-hidden">
-           <div class="icon">
-            <svg fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.6" viewbox="0 0 24 24">
-             <rect height="18" rx="2" width="18" x="3" y="3">
-             </rect>
-             <circle cx="9" cy="9" r="2">
-             </circle>
-             <path d="M21 15l-5-5L5 21">
-             </path>
+          <div class="mbranches">
+            <svg aria-hidden="true" class="mconnections" id="mconnections">
+              <defs>
+                <marker id="mArrowHead" markerheight="16" markerunits="userSpaceOnUse" markerwidth="16" orient="auto"
+                  overflow="visible" refx="8" refy="8" viewbox="0 0 24 24">
+                  <path class="m-arrow-head" d="M2 2 L8 8 L2 14"></path>
+                </marker>
+              </defs>
+              <path id="mcurveInputCnn" marker-end="url(#mArrowHead)"></path>
+              <path id="mcurveParamsForward" marker-end="url(#mArrowHead)"></path>
+              <path id="mcurveParamsInverse" marker-end="url(#mArrowHead)"></path>
             </svg>
-           </div>
-           <div class="filename">
-           </div>
-           <div class="label">
-           </div>
+            <div class="mbranch main-branch">
+              <button aria-selected="true" class="mnode dashed" data-key="input" id="mblock-input" role="tab"
+                tabindex="0" type="button">
+                <span class="mnode-label">Input Low-light Image</span>
+                <span class="mtag neutral">image</span>
+              </button>
+              <div aria-hidden="true" class="mconn">
+                <svg fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                  viewbox="0 0 24 24">
+                  <path d="M12 5v14M6 13l6 6 6-6"></path>
+                </svg>
+              </div>
+              <button aria-selected="false" class="mnode" data-key="forward" id="mblock-forward" role="tab"
+                tabindex="-1" type="button">
+                <span class="mnode-label">Forward Transform</span>
+                <span class="mtag trained">RGB → AdaLAB \(\ \cdot\ \) \(G\)</span>
+              </button>
+              <div aria-hidden="true" class="mconn">
+                <svg fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                  viewbox="0 0 24 24">
+                  <path d="M12 5v14M6 13l6 6 6-6"></path>
+                </svg>
+              </div>
+              <button aria-selected="false" class="mnode" data-key="backbone" id="mblock-backbone" role="tab"
+                tabindex="-1" type="button">
+                <span class="mnode-label">Low-light Image Enhancement Backbone</span>
+                <span class="mtag frozen">\(F_\theta\)</span>
+              </button>
+              <div aria-hidden="true" class="mconn">
+                <svg fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                  viewbox="0 0 24 24">
+                  <path d="M12 5v14M6 13l6 6 6-6"></path>
+                </svg>
+              </div>
+              <button aria-selected="false" class="mnode" data-key="inverse" id="mblock-inverse" role="tab"
+                tabindex="-1" type="button">
+                <span class="mnode-label">Inverse Transform</span>
+                <span class="mtag trained">AdaLAB → RGB \(\ \cdot\ \) \(G^{-1}\)</span>
+              </button>
+              <div aria-hidden="true" class="mconn">
+                <svg fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                  viewbox="0 0 24 24">
+                  <path d="M12 5v14M6 13l6 6 6-6"></path>
+                </svg>
+              </div>
+              <button aria-selected="false" class="mnode dashed" data-key="output" id="mblock-output" role="tab"
+                tabindex="-1" type="button">
+                <span class="mnode-label">Output Enhanced Image</span>
+                <span class="mtag neutral">image</span>
+              </button>
+            </div>
+            <div class="mbranch parameter-branch">
+              <button aria-selected="false" class="mnode" data-key="cnn" id="mblock-cnn" role="tab" tabindex="-1"
+                type="button">
+                <span class="mnode-label">Lightweight CNN Backbone</span>
+                <span class="mtag trained">\(H\)</span>
+              </button>
+              <div aria-hidden="true" class="mconn">
+                <svg fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                  viewbox="0 0 24 24">
+                  <path d="M12 5v14M6 13l6 6 6-6"></path>
+                </svg>
+              </div>
+              <button aria-selected="false" class="mnode dashed" data-key="params" id="mblock-params" role="tab"
+                tabindex="-1" type="button">
+                <span class="mnode-label">Image-adaptive Cylindrical Parameters</span>
+                <span class="mtag neutral">parameters</span>
+              </button>
+            </div>
           </div>
-         </div>
-         <figcaption>
-          <strong>
-           Paired comparison on LOLv2-real dataset.
-          </strong>
-          Real-world low-light
-                                        images with challenging color shifts.
-         </figcaption>
-        </figure>
-        <figure class="fig result-figure-spacing">
-         <div class="img-container">
-          <img alt="Paired comparison on LOLv2-synthetic dataset. Synthetic low-light images with controlled color distortion." class="lazy-media" data-placeholder-file="Supplementary - paired - LOLv2-syn.png" data-placeholder-label="Paired comparison on LOLv2-synthetic dataset. Synthetic low-light images with controlled color distortion." data-src="figures/supp/Supplementary - paired - LOLv2-syn.png" decoding="async" loading="lazy"/>
+          <div class="mflow-hint">
+            <span>
+              Select a block to inspect its operation and equation.
+            </span>
+            <span>
+              <kbd>&lt;</kbd> <kbd>&gt;</kbd> to navigate.
+            </span>
+          </div>
+        </div>
+        <aside aria-labelledby="mblock-input" aria-live="polite" class="mdetail" id="mdetail" role="tabpanel"
+          tabindex="0">
+          <div class="mdetail-top is-hidden">
+            <div class="md-index">
+              <span class="md-step-group">
+                <span id="mdStep">
+                  1 / 7
+                </span>
+                <span class="md-stage" id="mdStage">Input</span>
+              </span>
+              <span>
+                <kbd>Home</kbd>
+                <kbd>End</kbd>
+              </span>
+            </div>
+            <div aria-hidden="true" class="md-progress">
+              <span id="mdProgressBar"></span>
+            </div>
+          </div>
+          <span class="md-tag neutral" id="mdTag">image</span>
+          <h3 class="md-title" id="mdTitle">Input Low-light Image</h3>
+          <p class="md-eq" id="mdEq">\( x \in \mathbb{R}^{3 \times H \times W} \)</p>
+          <p class="md-text" id="mdText">
+            The low-light input image is captured under insufficient illumination. It contains embedded
+            color bias due to the camera hardware and in-camera processing.
+          </p>
+          <div class="md-media" id="mdMedia"></div>
+          <div class="md-child" hidden="" id="mdChild">
+            <span class="md-child-tag" id="mdChildTag">image</span>
+            <h4 class="md-child-title" id="mdChildTitle">Input Low-light Image (RGB space)</h4>
+            <p class="md-child-eq" id="mdChildEq">\( x \in \mathbb{R}^{3 \times H \times W} \)</p>
+            <p class="md-child-text" id="mdChildText">
+              The RGB low-light image enters the forward transform before chromatic correction.
+            </p>
+          </div>
+          <div class="md-actions is-hidden">
+            <button aria-label="Previous architecture block" class="md-nav-btn" id="mdPrev" type="button">&lt;
+              Previous</button>
+            <button aria-label="Next architecture block" class="md-nav-btn primary" id="mdNext" type="button">Next
+              &gt;</button>
+          </div>
+        </aside>
+      </div>
+      <figure class="method-figure animate-on-scroll" id="methodFigure">
+        <button aria-label="Explore the interactive architecture, a guided block-by-block walkthrough of this figure"
+          class="mfig-frame" id="mfigOpen" type="button">
+          <img
+            alt="CAGE architecture: a lightweight CNN predicts image-adaptive cylindrical parameters, while the input passes through the forward transform, low-light image enhancement backbone, and inverse transform to produce the enhanced image."
+            class="lazy-media" data-placeholder-file="Methodology - CAGE.png"
+            data-placeholder-label="CAGE architecture: a lightweight CNN predicts image-adaptive cylindrical parameters, while the input passes through the forward transform, low-light image enhancement backbone, and inverse transform to produce the enhanced image."
+            data-src="figures/main/Methodology - CAGE.png" decoding="async" loading="lazy" />
+          <span aria-hidden="true" class="mfig-cue">
+            <b>
+              <svg viewbox="0 0 24 24">
+                <path d="M9 3H5a2 2 0 0 0-2 2v4"></path>
+                <path d="M15 3h4a2 2 0 0 1 2 2v4"></path>
+                <path d="M9 21H5a2 2 0 0 1-2-2v-4"></path>
+                <path d="M15 21h4a2 2 0 0 0 2-2v-4"></path>
+              </svg>
+              Explore the interactive architecture
+            </b>
+          </span>
+        </button>
+        <figcaption>Click the figure to step through each block interactively.</figcaption>
+      </figure>
+      <h3 class="animate-on-scroll">AdaCCT: Correct Before Enhancement, Rectify After Enhancement</h3>
+      <figure class="fig animate-on-scroll">
+        <div class="img-container">
+          <img
+            alt="Pipeline of AdaCCT. The forward transform converts RGB to LAB, applies chromatic debiasing and chroma scaling, and constructs AdaLAB. The inverse transform reverts chroma scaling, applies out-of-gamut lightness compensation, and converts LAB back to RGB."
+            class="lazy-media" data-placeholder-file="Methodology - AdaCCT.png"
+            data-placeholder-label="Pipeline of AdaCCT. The forward transform converts RGB to LAB, applies chromatic debiasing and chroma scaling, and constructs AdaLAB. The inverse transform reverts chroma scaling, applies out-of-gamut lightness compensation, and converts LAB back to RGB."
+            data-src="figures/main/Methodology - AdaCCT.png" decoding="async" loading="lazy" />
           <div class="img-placeholder is-hidden">
-           <div class="icon">
-            <svg fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.6" viewbox="0 0 24 24">
-             <rect height="18" rx="2" width="18" x="3" y="3">
-             </rect>
-             <circle cx="9" cy="9" r="2">
-             </circle>
-             <path d="M21 15l-5-5L5 21">
-             </path>
-            </svg>
-           </div>
-           <div class="filename">
-           </div>
-           <div class="label">
-           </div>
+            <div class="icon">
+              <svg fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.6"
+                viewbox="0 0 24 24">
+                <rect height="18" rx="2" width="18" x="3" y="3"></rect>
+                <circle cx="9" cy="9" r="2"></circle>
+                <path d="M21 15l-5-5L5 21"></path>
+              </svg>
+            </div>
+            <div class="filename"></div>
+            <div class="label"></div>
           </div>
-         </div>
-         <figcaption>
-          <strong>
-           Paired comparison on LOLv2-synthetic dataset.
-          </strong>
-          Synthetic
-                                        low-light images with controlled color distortion.
-         </figcaption>
-        </figure>
-        <figure class="fig result-figure-spacing">
-         <div class="img-container">
-          <img alt="Paired comparison on SDSD &amp; SID datasets. Additional real-world low-light benchmarks." class="lazy-media" data-placeholder-file="Supplementary - paired - SDSD+SID.png" data-placeholder-label="Paired comparison on SDSD &amp; SID datasets. Additional real-world low-light benchmarks." data-src="figures/supp/Supplementary - paired - SDSD+SID.png" decoding="async" loading="lazy"/>
-          <div class="img-placeholder is-hidden">
-           <div class="icon">
-            <svg fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.6" viewbox="0 0 24 24">
-             <rect height="18" rx="2" width="18" x="3" y="3">
-             </rect>
-             <circle cx="9" cy="9" r="2">
-             </circle>
-             <path d="M21 15l-5-5L5 21">
-             </path>
-            </svg>
-           </div>
-           <div class="filename">
-           </div>
-           <div class="label">
-           </div>
-          </div>
-         </div>
-         <figcaption>
-          <strong>
-           Paired comparison on SDSD &amp; SID datasets.
-          </strong>
-          Additional real-world
-                                        low-light benchmarks.
-         </figcaption>
-        </figure>
-       </div>
-      </div>
-     </div>
-     <div class="accordion-item">
-      <div class="accordion-header">
-       <h3>
-        Unpaired Dataset Results
-       </h3>
-       <span class="accordion-icon">
-        <i class="fas fa-chevron-down">
-        </i>
-       </span>
-      </div>
-      <div class="accordion-content">
-       <div class="accordion-content-inner">
-        <figure class="fig result-figure-spacing">
-         <div class="img-container">
-          <img alt="Unpaired comparison on real-world images. CAGE produces more faithful colors and more balanced saturation across varied low-light scenes." class="lazy-media" data-placeholder-file="Supplementary - unpaired - all.png" data-placeholder-label="Unpaired comparison on real-world images. CAGE produces more faithful colors and more balanced saturation across varied low-light scenes." data-src="figures/supp/Supplementary - unpaired - all.png" decoding="async" loading="lazy"/>
-          <div class="img-placeholder is-hidden">
-           <div class="icon">
-            <svg fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.6" viewbox="0 0 24 24">
-             <rect height="18" rx="2" width="18" x="3" y="3">
-             </rect>
-             <circle cx="9" cy="9" r="2">
-             </circle>
-             <path d="M21 15l-5-5L5 21">
-             </path>
-            </svg>
-           </div>
-           <div class="filename">
-           </div>
-           <div class="label">
-           </div>
-          </div>
-         </div>
-         <figcaption>
-          <strong>
-           Unpaired comparison on real-world images.
-          </strong>
-          CAGE produces more
-                                        faithful colors and more balanced saturation across varied low-light scenes.
-         </figcaption>
-        </figure>
-       </div>
-      </div>
-     </div>
-     <div class="accordion-item">
-      <div class="accordion-header">
-       <h3>
-        User Study
-       </h3>
-       <span class="accordion-icon">
-        <i class="fas fa-chevron-down">
-        </i>
-       </span>
-      </div>
-      <div class="accordion-content">
-       <div class="accordion-content-inner">
-        <figure class="fig result-figure-spacing">
-         <div class="img-container">
-          <img alt="User study results. Human preference evaluation of the visual quality of enhanced images." class="lazy-media" data-placeholder-file="UserStudy.png" data-placeholder-label="User study results. Human preference evaluation of the visual quality of enhanced images." data-src="figures/supp/UserStudy.png" decoding="async" loading="lazy"/>
-          <div class="img-placeholder is-hidden">
-           <div class="icon">
-            <svg fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.6" viewbox="0 0 24 24">
-             <rect height="18" rx="2" width="18" x="3" y="3">
-             </rect>
-             <circle cx="9" cy="9" r="2">
-             </circle>
-             <path d="M21 15l-5-5L5 21">
-             </path>
-            </svg>
-           </div>
-           <div class="filename">
-           </div>
-           <div class="label">
-           </div>
-          </div>
-         </div>
-         <figcaption>
-          <strong>
-           User study results.
-          </strong>
-          Human preference evaluation of the visual
-                                        quality of enhanced images.
-         </figcaption>
-        </figure>
-       </div>
-      </div>
-     </div>
-    </div>
-   </section>
-   <section>
-    <h2>
-     Quantitative Results
-    </h2>
-    <p>
-     CAGE consistently improves all backbones with only 0.07M additional parameters across multiple
-                    benchmarks.
-    </p>
-    <h3>
-     Main Results
-    </h3>
-    <div class="table-wrap animate-on-scroll">
-     <table class="results acc">
-      <caption>
-       Quantitative comparisons on LOLv1, LOLv2-real, and LOLv2-synthetic datasets.
-       <strong>
-        CAGE
-       </strong>
-       consistently improves all backbones with only 0.07M additional parameters and less than
-                            0.01G FLOPs. Metrics: PSNR (dB) / SSIM.
-       <strong>
-        Bold
-       </strong>
-       = best result. Following
-       <a href="https://openaccess.thecvf.com/content/CVPR2025/papers/Yan_HVI_A_New_Color_Space_for_Low-light_Image_Enhancement_CVPR_2025_paper.pdf" rel="noopener" target="_blank">
-        HVI-CIDNet
-       </a>
-       , we use GT-mean evaluation on LOLv1 dataset during testing. Since LOLv1 contains only 15
-                            testing pairs, and direct metric evaluation can be sensitive to global brightness
-                            fluctuation, which may obscure differences in color restoration and structural recovery.
-      </caption>
-      <thead>
-       <tr>
-        <th>
-         Method
-        </th>
-        <th>
-         LOLv1
-        </th>
-        <th>
-         LOLv2-real
-        </th>
-        <th>
-         LOLv2-synthetic
-        </th>
-       </tr>
-      </thead>
-      <tbody>
-       <tr>
-        <td>
-         <a href="http://bmvc2018.org/contents/papers/0451.pdf" target="_blank">
-          RetinexNet
-         </a>
-        </td>
-        <td>
-         17.56 / 0.645
-        </td>
-        <td>
-         17.68 / 0.642
-        </td>
-        <td>
-         15.61 / 0.449
-        </td>
-       </tr>
-       <tr>
-        <td>
-         <a href="https://openaccess.thecvf.com/content_CVPR_2020/papers/Xu_Learning_to_Restore_Low-Light_Images_via_Decomposition-and-Enhancement_CVPR_2020_paper.pdf" target="_blank">
-          KinD
-         </a>
-        </td>
-        <td>
-         17.64 / 0.777
-        </td>
-        <td>
-         20.59 / 0.818
-        </td>
-        <td>
-         16.26 / 0.591
-        </td>
-       </tr>
-       <tr>
-        <td>
-         <a href="https://openaccess.thecvf.com/content_CVPR_2020/papers/Yang_From_Fidelity_to_Perceptual_Quality_A_Semi-Supervised_Approach_for_Low-Light_CVPR_2020_paper.pdf" target="_blank">
-          DRBN
-         </a>
-        </td>
-        <td>
-         20.13 / 0.830
-        </td>
-        <td>
-         20.29 / 0.831
-        </td>
-        <td>
-         23.22 / 0.927
-        </td>
-       </tr>
-       <tr>
-        <td>
-         <a href="https://www.ecva.net/papers/eccv_2020/papers_ECCV/papers/123700494.pdf" target="_blank">
-          MIRNet
-         </a>
-        </td>
-        <td>
-         26.56 / 0.853
-        </td>
-        <td>
-         22.68 / 0.828
-        </td>
-        <td>
-         25.05 / 0.923
-        </td>
-       </tr>
-       <tr>
-        <td>
-         <a href="https://openaccess.thecvf.com/content_CVPR_2020/papers/Guo_Zero-Reference_Deep_Curve_Estimation_for_Low-Light_Image_Enhancement_CVPR_2020_paper.pdf" target="_blank">
-          ZeroDCE
-         </a>
-        </td>
-        <td>
-         21.88 / 0.640
-        </td>
-        <td>
-         16.06 / 0.580
-        </td>
-        <td>
-         17.71 / 0.815
-        </td>
-       </tr>
-       <tr>
-        <td>
-         <a href="https://ieeexplore.ieee.org/document/9334429" target="_blank">
-          EnlightenGAN
-         </a>
-        </td>
-        <td>
-         20.00 / 0.691
-        </td>
-        <td>
-         18.23 / 0.617
-        </td>
-        <td>
-         16.57 / 0.734
-        </td>
-       </tr>
-       <tr>
-        <td>
-         <a href="https://ojs.aaai.org/index.php/AAAI/article/view/20162" target="_blank">
-          LLFlow
-         </a>
-        </td>
-        <td>
-         25.53 / 0.870
-        </td>
-        <td>
-         17.43 / 0.831
-        </td>
-        <td>
-         23.43 / 0.933
-        </td>
-       </tr>
-       <tr>
-        <td>
-         <a href="https://jiaya.me/file/papers/cvpr22_xiaogang.pdf" target="_blank">
-          SNR-Net
-         </a>
-        </td>
-        <td>
-         26.81 / 0.855
-        </td>
-        <td>
-         21.48 / 0.849
-        </td>
-        <td>
-         24.14 / 0.927
-        </td>
-       </tr>
-       <tr>
-        <td>
-         <a href="https://link.springer.com/article/10.1007/s11263-022-01680-5" target="_blank">
-          BreaD
-         </a>
-        </td>
-        <td>
-         25.32 / 0.843
-        </td>
-        <td>
-         23.69 / 0.869
-        </td>
-        <td>
-         15.97 / 0.746
-        </td>
-       </tr>
-       <tr>
-        <td>
-         <a href="https://dl.acm.org/doi/10.1609/aaai.v37i3.25364" target="_blank">
-          LLFormer
-         </a>
-        </td>
-        <td>
-         26.12 / 0.827
-        </td>
-        <td>
-         21.65 / 0.816
-        </td>
-        <td>
-         25.26 / 0.923
-        </td>
-       </tr>
-       <tr>
-        <td>
-         <a href="https://openaccess.thecvf.com/content/ICCV2025/papers/Zhang_CWNet_Causal_Wavelet_Network_for_Low-Light_Image_Enhancement_ICCV_2025_paper.pdf" target="_blank">
-          CWNet
-         </a>
-        </td>
-        <td>
-         26.38 / 0.864
-        </td>
-        <td>
-         21.65 / 0.860
-        </td>
-        <td>
-         25.50 / 0.937
-        </td>
-       </tr>
-       <tr class="dashed-top">
-        <td>
-         <a href="https://openaccess.thecvf.com/content/ICCV2023/papers/Cai_Retinexformer_One-stage_Retinex-based_Transformer_for_Low-light_Image_Enhancement_ICCV_2023_paper.pdf" target="_blank">
-          Retinexformer
-         </a>
-        </td>
-        <td>
-         26.08 / 0.827
-        </td>
-        <td>
-         21.89 / 0.837
-        </td>
-        <td>
-         24.59 / 0.919
-        </td>
-       </tr>
-       <tr class="mine">
-        <td>
-         Retinexformer + Ours
-        </td>
-        <td>
-         <strong>
-          27.09
-         </strong>
-         /
-         <strong>
-          0.871
-         </strong>
-        </td>
-        <td>
-         <strong>
-          24.10
-         </strong>
-         /
-         <strong>
-          0.847
-         </strong>
-        </td>
-        <td>
-         <strong>
-          26.33
-         </strong>
-         /
-         <strong>
-          0.939
-         </strong>
-        </td>
-       </tr>
-       <tr class="mine delta">
-        <td>
-         Δ
-        </td>
-        <td>
-         <span class="metric-gain">
-          +1.01
-         </span>
-         /
-         <span class="metric-gain">
-          +0.044
-         </span>
-        </td>
-        <td>
-         <span class="metric-gain">
-          +2.21
-         </span>
-         /
-         <span class="metric-gain">
-          +0.010
-         </span>
-        </td>
-        <td>
-         <span class="metric-gain">
-          +1.74
-         </span>
-         /
-         <span class="metric-gain">
-          +0.020
-         </span>
-        </td>
-       </tr>
-       <tr class="dashed-top">
-        <td>
-         <a href="https://openaccess.thecvf.com/content/CVPR2025/papers/Feijoo_DarkIR_Robust_Low-Light_Image_Restoration_CVPR_2025_paper.pdf" target="_blank">
-          DarkIR
-         </a>
-        </td>
-        <td>
-         25.32 / 0.806
-        </td>
-        <td>
-         21.32 / 0.830
-        </td>
-        <td>
-         24.06 / 0.921
-        </td>
-       </tr>
-       <tr class="mine">
-        <td>
-         DarkIR + Ours
-        </td>
-        <td>
-         26.03 / 0.849
-        </td>
-        <td>
-         22.51 / 0.860
-        </td>
-        <td>
-         24.54 / 0.923
-        </td>
-       </tr>
-       <tr class="mine delta">
-        <td>
-         Δ
-        </td>
-        <td>
-         <span class="metric-gain">
-          +0.71
-         </span>
-         /
-         <span class="metric-gain">
-          +0.043
-         </span>
-        </td>
-        <td>
-         <span class="metric-gain">
-          +1.19
-         </span>
-         /
-         <span class="metric-gain">
-          +0.030
-         </span>
-        </td>
-        <td>
-         <span class="metric-gain">
-          +0.48
-         </span>
-         /
-         <span class="metric-gain">
-          +0.002
-         </span>
-        </td>
-       </tr>
-       <tr class="dashed-top">
-        <td>
-         <a href="https://openaccess.thecvf.com/content/CVPR2025/papers/Yan_HVI_A_New_Color_Space_for_Low-light_Image_Enhancement_CVPR_2025_paper.pdf" target="_blank">
-          HVI-CIDNet
-         </a>
-        </td>
-        <td>
-         26.03 / 0.832
-        </td>
-        <td>
-         23.94 / 0.870
-        </td>
-        <td>
-         25.32 / 0.929
-        </td>
-       </tr>
-       <tr class="mine">
-        <td>
-         HVI-CIDNet + Ours
-        </td>
-        <td>
-         <strong>
-          27.25
-         </strong>
-         /
-         <strong>
-          0.857
-         </strong>
-        </td>
-        <td>
-         <strong>
-          24.24
-         </strong>
-         /
-         <strong>
-          0.875
-         </strong>
-        </td>
-        <td>
-         <strong>
-          25.52
-         </strong>
-         /
-         <strong>
-          0.930
-         </strong>
-        </td>
-       </tr>
-       <tr class="mine delta">
-        <td>
-         Δ
-        </td>
-        <td>
-         <span class="metric-gain">
-          +1.22
-         </span>
-         /
-         <span class="metric-gain">
-          +0.025
-         </span>
-        </td>
-        <td>
-         <span class="metric-gain">
-          +0.30
-         </span>
-         /
-         <span class="metric-gain">
-          +0.005
-         </span>
-        </td>
-        <td>
-         <span class="metric-gain">
-          +0.20
-         </span>
-         /
-         <span class="metric-gain">
-          +0.001
-         </span>
-        </td>
-       </tr>
-      </tbody>
-     </table>
-    </div>
-    <h3>
-     Challenging Datasets
-    </h3>
-    <div class="table-wrap animate-on-scroll">
-     <table class="results acc">
-      <caption>
-       Quantitative comparisons on challenging datasets (SDSD-indoor, SDSD-outdoor, and SID).
-       <strong>
-        CAGE
-       </strong>
-       achieves consistent improvement with PSNR gains up to 1.78 dB on SDSD-indoor. Metrics: PSNR
-                            (dB) / SSIM.
-       <strong>
-        Bold
-       </strong>
-       = best result.
-      </caption>
-      <thead>
-       <tr>
-        <th>
-         Method
-        </th>
-        <th>
-         SDSD-indoor
-        </th>
-        <th>
-         SDSD-outdoor
-        </th>
-        <th>
-         SID
-        </th>
-       </tr>
-      </thead>
-      <tbody>
-       <tr>
-        <td>
-         <a href="https://www4.comp.polyu.edu.hk/~cslzhang/paper/PAMI_LUT.pdf" target="_blank">
-          3DLUT
-         </a>
-        </td>
-        <td>
-         24.78 / 0.718
-        </td>
-        <td>
-         23.29 / 0.703
-        </td>
-        <td>
-         16.97 / 0.591
-        </td>
-       </tr>
-       <tr>
-        <td>
-         <a href="https://jiaya.me/file/papers/cvpr22_xiaogang.pdf" target="_blank">
-          SNR-Net
-         </a>
-        </td>
-        <td>
-         26.13 / 0.815
-        </td>
-        <td>
-         19.22 / 0.657
-        </td>
-        <td>
-         21.35 / 0.550
-        </td>
-       </tr>
-       <tr>
-        <td>
-         <a href="https://www.ecva.net/papers/eccv_2022/papers_ECCV/papers/136660562.pdf" target="_blank">
-          LEDNet
-         </a>
-        </td>
-        <td>
-         27.29 / 0.876
-        </td>
-        <td>
-         26.66 / 0.850
-        </td>
-        <td>
-         21.47 / 0.638
-        </td>
-       </tr>
-       <tr>
-        <td>
-         <a href="https://dl.acm.org/doi/epdf/10.1145/3581783.3611909" target="_blank">
-          FourLLIE
-         </a>
-        </td>
-        <td>
-         24.74 / 0.826
-        </td>
-        <td>
-         24.67 / 0.787
-        </td>
-        <td>
-         18.42 / 0.513
-        </td>
-       </tr>
-       <tr>
-        <td>
-         <a href="https://link.springer.com/chapter/10.1007/978-981-96-6596-9_30" target="_blank">
-          RetinexMamba
-         </a>
-        </td>
-        <td>
-         28.44 / 0.894
-        </td>
-        <td>
-         28.52 / 0.859
-        </td>
-        <td>
-         22.45 / 0.656
-        </td>
-       </tr>
-       <tr>
-        <td>
-         <a href="https://www.ecva.net/papers/eccv_2020/papers_ECCV/papers/123700494.pdf" target="_blank">
-          MIRNet
-         </a>
-        </td>
-        <td>
-         28.64 / 0.888
-        </td>
-        <td>
-         28.99 / 0.869
-        </td>
-        <td>
-         21.36 / 0.632
-        </td>
-       </tr>
-       <tr>
-        <td>
-         <a href="https://openaccess.thecvf.com/content/CVPR2022/papers/Zamir_Restormer_Efficient_Transformer_for_High-Resolution_Image_Restoration_CVPR_2022_paper.pdf" target="_blank">
-          Restormer
-         </a>
-        </td>
-        <td>
-         28.49 / 0.892
-        </td>
-        <td>
-         27.99 / 0.868
-        </td>
-        <td>
-         22.01 / 0.645
-        </td>
-       </tr>
-       <tr>
-        <td>
-         <a href="https://www.ecva.net/papers/eccv_2024/papers_ECCV/papers/02740.pdf" target="_blank">
-          MambaIR
-         </a>
-        </td>
-        <td>
-         25.14 / 0.876
-        </td>
-        <td>
-         27.53 / 0.851
-        </td>
-        <td>
-         22.02 / 0.658
-        </td>
-       </tr>
-       <tr>
-        <td>
-         <a href="https://openaccess.thecvf.com/content/ICCV2025/papers/Zhang_CWNet_Causal_Wavelet_Network_for_Low-Light_Image_Enhancement_ICCV_2025_paper.pdf" target="_blank">
-          CWNet
-         </a>
-        </td>
-        <td>
-         30.28 / 0.904
-        </td>
-        <td>
-         28.54 / 0.857
-        </td>
-        <td>
-         20.97 / 0.623
-        </td>
-       </tr>
-       <tr class="dashed-top">
-        <td>
-         <a href="https://openaccess.thecvf.com/content/ICCV2023/papers/Cai_Retinexformer_One-stage_Retinex-based_Transformer_for_Low-light_Image_Enhancement_ICCV_2023_paper.pdf" target="_blank">
-          Retinexformer
-         </a>
-        </td>
-        <td>
-         28.20 / 0.877
-        </td>
-        <td>
-         29.57 / 0.874
-        </td>
-        <td>
-         22.05 / 0.636
-        </td>
-       </tr>
-       <tr class="mine">
-        <td>
-         Retinexformer + Ours
-        </td>
-        <td>
-         <strong>
-          29.98
-         </strong>
-         /
-         <strong>
-          0.906
-         </strong>
-        </td>
-        <td>
-         <strong>
-          30.12
-         </strong>
-         /
-         <strong>
-          0.877
-         </strong>
-        </td>
-        <td>
-         <strong>
-          22.64
-         </strong>
-         /
-         <strong>
-          0.660
-         </strong>
-        </td>
-       </tr>
-       <tr class="mine delta">
-        <td>
-         Δ
-        </td>
-        <td>
-         <span class="metric-gain">
-          +1.78
-         </span>
-         /
-         <span class="metric-gain">
-          +0.029
-         </span>
-        </td>
-        <td>
-         <span class="metric-gain">
-          +0.55
-         </span>
-         /
-         <span class="metric-gain">
-          +0.003
-         </span>
-        </td>
-        <td>
-         <span class="metric-gain">
-          +0.59
-         </span>
-         /
-         <span class="metric-gain">
-          +0.024
-         </span>
-        </td>
-       </tr>
-       <tr class="dashed-top">
-        <td>
-         <a href="https://openaccess.thecvf.com/content/CVPR2025/papers/Feijoo_DarkIR_Robust_Low-Light_Image_Restoration_CVPR_2025_paper.pdf" target="_blank">
-          DarkIR
-         </a>
-        </td>
-        <td>
-         29.94 / 0.897
-        </td>
-        <td>
-         28.81 / 0.848
-        </td>
-        <td>
-         21.50 / 0.588
-        </td>
-       </tr>
-       <tr class="mine">
-        <td>
-         DarkIR + Ours
-        </td>
-        <td>
-         <strong>
-          30.36
-         </strong>
-         /
-         <strong>
-          0.899
-         </strong>
-        </td>
-        <td>
-         29.36 / 0.858
-        </td>
-        <td>
-         22.33 / 0.639
-        </td>
-       </tr>
-       <tr class="mine delta">
-        <td>
-         Δ
-        </td>
-        <td>
-         <span class="metric-gain">
-          +0.42
-         </span>
-         /
-         <span class="metric-gain">
-          +0.002
-         </span>
-        </td>
-        <td>
-         <span class="metric-gain">
-          +0.55
-         </span>
-         /
-         <span class="metric-gain">
-          +0.010
-         </span>
-        </td>
-        <td>
-         <span class="metric-gain">
-          +0.83
-         </span>
-         /
-         <span class="metric-gain">
-          +0.051
-         </span>
-        </td>
-       </tr>
-       <tr class="dashed-top">
-        <td>
-         <a href="https://openaccess.thecvf.com/content/CVPR2025/papers/Yan_HVI_A_New_Color_Space_for_Low-light_Image_Enhancement_CVPR_2025_paper.pdf" target="_blank">
-          HVI-CIDNet
-         </a>
-        </td>
-        <td>
-         28.74 / 0.895
-        </td>
-        <td>
-         28.70 / 0.866
-        </td>
-        <td>
-         22.21 / 0.631
-        </td>
-       </tr>
-       <tr class="mine">
-        <td>
-         HVI-CIDNet + Ours
-        </td>
-        <td>
-         29.91 / 0.900
-        </td>
-        <td>
-         <strong>
-          29.80
-         </strong>
-         /
-         <strong>
-          0.877
-         </strong>
-        </td>
-        <td>
-         <strong>
-          22.46
-         </strong>
-         / 0.653
-        </td>
-       </tr>
-       <tr class="mine delta">
-        <td>
-         Δ
-        </td>
-        <td>
-         <span class="metric-gain">
-          +1.17
-         </span>
-         /
-         <span class="metric-gain">
-          +0.005
-         </span>
-        </td>
-        <td>
-         <span class="metric-gain">
-          +1.10
-         </span>
-         /
-         <span class="metric-gain">
-          +0.011
-         </span>
-        </td>
-        <td>
-         <span class="metric-gain">
-          +0.25
-         </span>
-         /
-         <span class="metric-gain">
-          +0.022
-         </span>
-        </td>
-       </tr>
-      </tbody>
-     </table>
-    </div>
-   </section>
-   <section class="animate-on-scroll" id="takeaways">
-    <h2>
-     Key Takeaways
-    </h2>
-    <div class="takeaways-grid custom-width">
-     <div class="takeaway" style="--takeaway-flex: 7">
-      <h3>
-       Handling Embedded Color Bias
-      </h3>
+        </div>
+        <figcaption>
+          <strong>Pipeline of AdaCCT.</strong>
+          The forward transform converts RGB to LAB, applies
+          chromatic debiasing and chroma scaling, and constructs AdaLAB. The inverse transform reverts
+          chroma scaling, applies out-of-gamut lightness compensation, and converts LAB back to RGB.
+        </figcaption>
+      </figure>
+    </section>
+
+    <!-- Qualitative Results -->
+    <section class="animate-on-scroll" id="results">
+      <h2>Qualitative Results</h2>
       <p>
-       CAGE explicitly suppresses the color bias embedded during low-light image formation before
-                            backbone enhancement and rectifies saturation abnormality after enhancement.
+        Qualitative comparisons on paired and unpaired datasets show reduced global color bias, more stable
+        local saturation, and more natural chromatic transitions.
       </p>
-     </div>
-     <div class="takeaway" style="--takeaway-flex: 6">
-      <h3>
-       Minimal Tradeoff, Max Gain
-      </h3>
+      <div class="accordion">
+        <div class="accordion-sticky-header" id="accordion-sticky">
+          <h3>
+          </h3>
+          <span class="accordion-icon">
+            <i class="fas fa-chevron-down"></i>
+          </span>
+        </div>
+        <div class="accordion-item">
+          <div class="accordion-header">
+            <h3>Paired Dataset Results</h3>
+            <span class="accordion-icon">
+              <i class="fas fa-chevron-down"></i>
+            </span>
+          </div>
+          <div class="accordion-content">
+            <div class="accordion-content-inner">
+              <figure class="fig result-figure-spacing">
+                <div class="img-container">
+                  <img
+                    alt="Paired comparison on LOLv1 dataset. CAGE achieves more faithful color restoration with reduced color bias."
+                    class="lazy-media" data-placeholder-file="Supplementary - paired - LOLv1.png"
+                    data-placeholder-label="Paired comparison on LOLv1 dataset. CAGE achieves more faithful color restoration with reduced color bias."
+                    data-src="figures/supp/Supplementary - paired - LOLv1.png" decoding="async" loading="lazy" />
+                  <div class="img-placeholder is-hidden">
+                    <div class="icon">
+                      <svg fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"
+                        stroke-width="1.6" viewbox="0 0 24 24">
+                        <rect height="18" rx="2" width="18" x="3" y="3"></rect>
+                        <circle cx="9" cy="9" r="2"></circle>
+                        <path d="M21 15l-5-5L5 21"></path>
+                      </svg>
+                    </div>
+                    <div class="filename"></div>
+                    <div class="label"></div>
+                  </div>
+                </div>
+                <figcaption>
+                  <strong>Paired comparison on LOLv1 dataset.</strong> CAGE achieves more faithful
+                  color restoration with reduced color bias.
+                </figcaption>
+              </figure>
+              <figure class="fig result-figure-spacing">
+                <div class="img-container">
+                  <img
+                    alt="Paired comparison on LOLv2-real dataset. Real-world low-light images with challenging color shifts."
+                    class="lazy-media" data-placeholder-file="Supplementary - paired - LOLv2-real.png"
+                    data-placeholder-label="Paired comparison on LOLv2-real dataset. Real-world low-light images with challenging color shifts."
+                    data-src="figures/supp/Supplementary - paired - LOLv2-real.png" decoding="async" loading="lazy" />
+                  <div class="img-placeholder is-hidden">
+                    <div class="icon">
+                      <svg fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"
+                        stroke-width="1.6" viewbox="0 0 24 24">
+                        <rect height="18" rx="2" width="18" x="3" y="3"></rect>
+                        <circle cx="9" cy="9" r="2"></circle>
+                        <path d="M21 15l-5-5L5 21"></path>
+                      </svg>
+                    </div>
+                    <div class="filename"></div>
+                    <div class="label"></div>
+                  </div>
+                </div>
+                <figcaption>
+                  <strong>Paired comparison on LOLv2-real dataset.</strong> Real-world low-light
+                  images with challenging color shifts.
+                </figcaption>
+              </figure>
+              <figure class="fig result-figure-spacing">
+                <div class="img-container">
+                  <img
+                    alt="Paired comparison on LOLv2-synthetic dataset. Synthetic low-light images with controlled color distortion."
+                    class="lazy-media" data-placeholder-file="Supplementary - paired - LOLv2-syn.png"
+                    data-placeholder-label="Paired comparison on LOLv2-synthetic dataset. Synthetic low-light images with controlled color distortion."
+                    data-src="figures/supp/Supplementary - paired - LOLv2-syn.png" decoding="async" loading="lazy" />
+                  <div class="img-placeholder is-hidden">
+                    <div class="icon">
+                      <svg fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"
+                        stroke-width="1.6" viewbox="0 0 24 24">
+                        <rect height="18" rx="2" width="18" x="3" y="3"></rect>
+                        <circle cx="9" cy="9" r="2"></circle>
+                        <path d="M21 15l-5-5L5 21"></path>
+                      </svg>
+                    </div>
+                    <div class="filename"></div>
+                    <div class="label"></div>
+                  </div>
+                </div>
+                <figcaption>
+                  <strong>Paired comparison on LOLv2-synthetic dataset.</strong> Synthetic low-light
+                  images with controlled color distortion.
+                </figcaption>
+              </figure>
+              <figure class="fig result-figure-spacing">
+                <div class="img-container">
+                  <img alt="Paired comparison on SDSD &amp; SID datasets. Additional real-world low-light benchmarks."
+                    class="lazy-media" data-placeholder-file="Supplementary - paired - SDSD+SID.png"
+                    data-placeholder-label="Paired comparison on SDSD &amp; SID datasets. Additional real-world low-light benchmarks."
+                    data-src="figures/supp/Supplementary - paired - SDSD+SID.png" decoding="async" loading="lazy" />
+                  <div class="img-placeholder is-hidden">
+                    <div class="icon">
+                      <svg fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"
+                        stroke-width="1.6" viewbox="0 0 24 24">
+                        <rect height="18" rx="2" width="18" x="3" y="3"></rect>
+                        <circle cx="9" cy="9" r="2"></circle>
+                        <path d="M21 15l-5-5L5 21"></path>
+                      </svg>
+                    </div>
+                    <div class="filename"></div>
+                    <div class="label"></div>
+                  </div>
+                </div>
+                <figcaption>
+                  <strong>Paired comparison on SDSD &amp; SID datasets.</strong> Additional real-world
+                  low-light benchmarks.
+                </figcaption>
+              </figure>
+            </div>
+          </div>
+        </div>
+        <div class="accordion-item">
+          <div class="accordion-header">
+            <h3>Unpaired Dataset Results</h3>
+            <span class="accordion-icon">
+              <i class="fas fa-chevron-down"></i>
+            </span>
+          </div>
+          <div class="accordion-content">
+            <div class="accordion-content-inner">
+              <figure class="fig result-figure-spacing">
+                <div class="img-container">
+                  <img
+                    alt="Unpaired comparison on real-world images. CAGE produces more faithful colors and more balanced saturation across varied low-light scenes."
+                    class="lazy-media" data-placeholder-file="Supplementary - unpaired - all.png"
+                    data-placeholder-label="Unpaired comparison on real-world images. CAGE produces more faithful colors and more balanced saturation across varied low-light scenes."
+                    data-src="figures/supp/Supplementary - unpaired - all.png" decoding="async" loading="lazy" />
+                  <div class="img-placeholder is-hidden">
+                    <div class="icon">
+                      <svg fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"
+                        stroke-width="1.6" viewbox="0 0 24 24">
+                        <rect height="18" rx="2" width="18" x="3" y="3"></rect>
+                        <circle cx="9" cy="9" r="2"></circle>
+                        <path d="M21 15l-5-5L5 21"></path>
+                      </svg>
+                    </div>
+                    <div class="filename"></div>
+                    <div class="label"></div>
+                  </div>
+                </div>
+                <figcaption>
+                  <strong>Unpaired comparison on real-world images.</strong> CAGE produces more
+                  faithful colors and more balanced saturation across varied low-light scenes.
+                </figcaption>
+              </figure>
+            </div>
+          </div>
+        </div>
+        <div class="accordion-item">
+          <div class="accordion-header">
+            <h3>User Study</h3>
+            <span class="accordion-icon">
+              <i class="fas fa-chevron-down"></i>
+            </span>
+          </div>
+          <div class="accordion-content">
+            <div class="accordion-content-inner">
+              <figure class="fig result-figure-spacing">
+                <div class="img-container">
+                  <img alt="User study results. Human preference evaluation of the visual quality of enhanced images."
+                    class="lazy-media" data-placeholder-file="UserStudy.png"
+                    data-placeholder-label="User study results. Human preference evaluation of the visual quality of enhanced images."
+                    data-src="figures/supp/UserStudy.png" decoding="async" loading="lazy" />
+                  <div class="img-placeholder is-hidden">
+                    <div class="icon">
+                      <svg fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"
+                        stroke-width="1.6" viewbox="0 0 24 24">
+                        <rect height="18" rx="2" width="18" x="3" y="3"></rect>
+                        <circle cx="9" cy="9" r="2"></circle>
+                        <path d="M21 15l-5-5L5 21"></path>
+                      </svg>
+                    </div>
+                    <div class="filename"></div>
+                    <div class="label"></div>
+                  </div>
+                </div>
+                <figcaption>
+                  <strong>User study results.</strong> Human preference evaluation of the visual
+                  quality of enhanced images.
+                </figcaption>
+              </figure>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Quantitative Results -->
+    <section class="animate-on-scroll" id="results">
+      <h2>Quantitative Results</h2>
       <p>
-       CAGE adds 0.07M parameters and less than 0.01G FLOPs, while providing up to +2.21 dB PSNR on
-                            the evaluated standard benchmarks.
+        CAGE consistently improves all backbones with only 0.07M additional parameters across multiple
+        benchmarks.
       </p>
-     </div>
-     <div class="takeaway" style="--takeaway-flex: 6">
-      <h3>
-       Plug &amp; Play Integration
-      </h3>
+      <h3>Main Results</h3>
+      <div class="table-wrap animate-on-scroll">
+        <table class="results acc">
+          <caption>
+            Quantitative comparisons on LOLv1, LOLv2-real, and LOLv2-synthetic datasets.
+            <strong>CAGE</strong> consistently improves all backbones with only 0.07M additional parameters
+            and less than 0.01G FLOPs. Metrics: PSNR (dB) / SSIM.
+            <strong>Bold</strong> = best result. Following
+            <a href="https://openaccess.thecvf.com/content/CVPR2025/papers/Yan_HVI_A_New_Color_Space_for_Low-light_Image_Enhancement_CVPR_2025_paper.pdf"
+              rel="noopener" target="_blank">HVI-CIDNet</a>
+            , we use GT-mean evaluation on LOLv1 dataset during testing. Since LOLv1 contains only 15
+            testing pairs, and direct metric evaluation can be sensitive to global brightness
+            fluctuation, which may obscure differences in color restoration and structural recovery.
+          </caption>
+          <thead>
+            <tr>
+              <th>Method</th>
+              <th>LOLv1</th>
+              <th>LOLv2-real</th>
+              <th>LOLv2-synthetic</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>
+                <a href="http://bmvc2018.org/contents/papers/0451.pdf" target="_blank">RetinexNet</a>
+              </td>
+              <td>
+                17.56 / 0.645
+              </td>
+              <td>
+                17.68 / 0.642
+              </td>
+              <td>
+                15.61 / 0.449
+              </td>
+            </tr>
+            <tr>
+              <td>
+                <a href="https://openaccess.thecvf.com/content_CVPR_2020/papers/Xu_Learning_to_Restore_Low-Light_Images_via_Decomposition-and-Enhancement_CVPR_2020_paper.pdf"
+                  target="_blank">KinD</a>
+              </td>
+              <td>
+                17.64 / 0.777
+              </td>
+              <td>
+                20.59 / 0.818
+              </td>
+              <td>
+                16.26 / 0.591
+              </td>
+            </tr>
+            <tr>
+              <td>
+                <a href="https://openaccess.thecvf.com/content_CVPR_2020/papers/Yang_From_Fidelity_to_Perceptual_Quality_A_Semi-Supervised_Approach_for_Low-Light_CVPR_2020_paper.pdf"
+                  target="_blank">DRBN</a>
+              </td>
+              <td>
+                20.13 / 0.830
+              </td>
+              <td>
+                20.29 / 0.831
+              </td>
+              <td>
+                23.22 / 0.927
+              </td>
+            </tr>
+            <tr>
+              <td>
+                <a href="https://www.ecva.net/papers/eccv_2020/papers_ECCV/papers/123700494.pdf"
+                  target="_blank">MIRNet</a>
+              </td>
+              <td>
+                26.56 / 0.853
+              </td>
+              <td>
+                22.68 / 0.828
+              </td>
+              <td>
+                25.05 / 0.923
+              </td>
+            </tr>
+            <tr>
+              <td>
+                <a href="https://openaccess.thecvf.com/content_CVPR_2020/papers/Guo_Zero-Reference_Deep_Curve_Estimation_for_Low-Light_Image_Enhancement_CVPR_2020_paper.pdf"
+                  target="_blank">ZeroDCE</a>
+              </td>
+              <td>
+                21.88 / 0.640
+              </td>
+              <td>
+                16.06 / 0.580
+              </td>
+              <td>
+                17.71 / 0.815
+              </td>
+            </tr>
+            <tr>
+              <td>
+                <a href="https://ieeexplore.ieee.org/document/9334429" target="_blank">EnlightenGAN</a>
+              </td>
+              <td>
+                20.00 / 0.691
+              </td>
+              <td>
+                18.23 / 0.617
+              </td>
+              <td>
+                16.57 / 0.734
+              </td>
+            </tr>
+            <tr>
+              <td>
+                <a href="https://ojs.aaai.org/index.php/AAAI/article/view/20162" target="_blank">LLFlow</a>
+              </td>
+              <td>
+                25.53 / 0.870
+              </td>
+              <td>
+                17.43 / 0.831
+              </td>
+              <td>
+                23.43 / 0.933
+              </td>
+            </tr>
+            <tr>
+              <td>
+                <a href="https://jiaya.me/file/papers/cvpr22_xiaogang.pdf" target="_blank">SNR-Net</a>
+              </td>
+              <td>
+                26.81 / 0.855
+              </td>
+              <td>
+                21.48 / 0.849
+              </td>
+              <td>
+                24.14 / 0.927
+              </td>
+            </tr>
+            <tr>
+              <td>
+                <a href="https://link.springer.com/article/10.1007/s11263-022-01680-5" target="_blank">BreaD</a>
+              </td>
+              <td>
+                25.32 / 0.843
+              </td>
+              <td>
+                23.69 / 0.869
+              </td>
+              <td>
+                15.97 / 0.746
+              </td>
+            </tr>
+            <tr>
+              <td>
+                <a href="https://dl.acm.org/doi/10.1609/aaai.v37i3.25364" target="_blank">LLFormer</a>
+              </td>
+              <td>
+                26.12 / 0.827
+              </td>
+              <td>
+                21.65 / 0.816
+              </td>
+              <td>
+                25.26 / 0.923
+              </td>
+            </tr>
+            <tr>
+              <td>
+                <a href="https://openaccess.thecvf.com/content/ICCV2025/papers/Zhang_CWNet_Causal_Wavelet_Network_for_Low-Light_Image_Enhancement_ICCV_2025_paper.pdf"
+                  target="_blank">CWNet</a>
+              </td>
+              <td>
+                26.38 / 0.864
+              </td>
+              <td>
+                21.65 / 0.860
+              </td>
+              <td>
+                25.50 / 0.937
+              </td>
+            </tr>
+            <tr class="dashed-top">
+              <td>
+                <a href="https://openaccess.thecvf.com/content/ICCV2023/papers/Cai_Retinexformer_One-stage_Retinex-based_Transformer_for_Low-light_Image_Enhancement_ICCV_2023_paper.pdf"
+                  target="_blank">Retinexformer</a>
+              </td>
+              <td>
+                26.08 / 0.827
+              </td>
+              <td>
+                21.89 / 0.837
+              </td>
+              <td>
+                24.59 / 0.919
+              </td>
+            </tr>
+            <tr class="mine">
+              <td>Retinexformer + Ours</td>
+              <td>
+                <strong>27.09</strong>
+                /
+                <strong>0.871</strong>
+              </td>
+              <td>
+                <strong>24.10</strong>
+                /
+                <strong>0.847</strong>
+              </td>
+              <td>
+                <strong>26.33</strong>
+                /
+                <strong>0.939</strong>
+              </td>
+            </tr>
+            <tr class="mine delta">
+              <td>Δ</td>
+              <td>
+                <span class="metric-gain">+1.01</span>
+                /
+                <span class="metric-gain">+0.044</span>
+              </td>
+              <td>
+                <span class="metric-gain">+2.21</span>
+                /
+                <span class="metric-gain">+0.010</span>
+              </td>
+              <td>
+                <span class="metric-gain">+1.74</span>
+                /
+                <span class="metric-gain">+0.020</span>
+              </td>
+            </tr>
+            <tr class="dashed-top">
+              <td>
+                <a href="https://openaccess.thecvf.com/content/CVPR2025/papers/Feijoo_DarkIR_Robust_Low-Light_Image_Restoration_CVPR_2025_paper.pdf"
+                  target="_blank">DarkIR</a>
+              </td>
+              <td>
+                25.32 / 0.806
+              </td>
+              <td>
+                21.32 / 0.830
+              </td>
+              <td>
+                24.06 / 0.921
+              </td>
+            </tr>
+            <tr class="mine">
+              <td>DarkIR + Ours</td>
+              <td>
+                26.03 / 0.849
+              </td>
+              <td>
+                22.51 / 0.860
+              </td>
+              <td>
+                24.54 / 0.923
+              </td>
+            </tr>
+            <tr class="mine delta">
+              <td>Δ</td>
+              <td>
+                <span class="metric-gain">+0.71</span>
+                /
+                <span class="metric-gain">+0.043</span>
+              </td>
+              <td>
+                <span class="metric-gain">+1.19</span>
+                /
+                <span class="metric-gain">+0.030</span>
+              </td>
+              <td>
+                <span class="metric-gain">+0.48</span>
+                /
+                <span class="metric-gain">+0.002</span>
+              </td>
+            </tr>
+            <tr class="dashed-top">
+              <td>
+                <a href="https://openaccess.thecvf.com/content/CVPR2025/papers/Yan_HVI_A_New_Color_Space_for_Low-light_Image_Enhancement_CVPR_2025_paper.pdf"
+                  target="_blank">HVI-CIDNet</a>
+              </td>
+              <td>
+                26.03 / 0.832
+              </td>
+              <td>
+                23.94 / 0.870
+              </td>
+              <td>
+                25.32 / 0.929
+              </td>
+            </tr>
+            <tr class="mine">
+              <td>HVI-CIDNet + Ours</td>
+              <td>
+                <strong>27.25</strong>
+                /
+                <strong>0.857</strong>
+              </td>
+              <td>
+                <strong>24.24</strong>
+                /
+                <strong>0.875</strong>
+              </td>
+              <td>
+                <strong>25.52</strong>
+                /
+                <strong>0.930</strong>
+              </td>
+            </tr>
+            <tr class="mine delta">
+              <td>Δ</td>
+              <td>
+                <span class="metric-gain">+1.22</span>
+                /
+                <span class="metric-gain">+0.025</span>
+              </td>
+              <td>
+                <span class="metric-gain">+0.30</span>
+                /
+                <span class="metric-gain">+0.005</span>
+              </td>
+              <td>
+                <span class="metric-gain">+0.20</span>
+                /
+                <span class="metric-gain">+0.001</span>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      <h3>Challenging Datasets</h3>
+      <div class="table-wrap animate-on-scroll">
+        <table class="results acc">
+          <caption>
+            Quantitative comparisons on challenging datasets (SDSD-indoor, SDSD-outdoor, and SID).
+            <strong>CAGE</strong>
+            achieves consistent improvement with PSNR gains up to 1.78 dB on SDSD-indoor. Metrics: PSNR
+            (dB) / SSIM.
+            <strong>Bold</strong> = best result.
+          </caption>
+          <thead>
+            <tr>
+              <th>Method</th>
+              <th>SDSD-indoor</th>
+              <th>SDSD-outdoor</th>
+              <th>SID</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>
+                <a href="https://www4.comp.polyu.edu.hk/~cslzhang/paper/PAMI_LUT.pdf" target="_blank">3DLUT</a>
+              </td>
+              <td>
+                24.78 / 0.718
+              </td>
+              <td>
+                23.29 / 0.703
+              </td>
+              <td>
+                16.97 / 0.591
+              </td>
+            </tr>
+            <tr>
+              <td>
+                <a href="https://jiaya.me/file/papers/cvpr22_xiaogang.pdf" target="_blank">SNR-Net</a>
+              </td>
+              <td>
+                26.13 / 0.815
+              </td>
+              <td>
+                19.22 / 0.657
+              </td>
+              <td>
+                21.35 / 0.550
+              </td>
+            </tr>
+            <tr>
+              <td>
+                <a href="https://www.ecva.net/papers/eccv_2022/papers_ECCV/papers/136660562.pdf"
+                  target="_blank">LEDNet</a>
+              </td>
+              <td>
+                27.29 / 0.876
+              </td>
+              <td>
+                26.66 / 0.850
+              </td>
+              <td>
+                21.47 / 0.638
+              </td>
+            </tr>
+            <tr>
+              <td>
+                <a href="https://dl.acm.org/doi/epdf/10.1145/3581783.3611909" target="_blank">FourLLIE</a>
+              </td>
+              <td>
+                24.74 / 0.826
+              </td>
+              <td>
+                24.67 / 0.787
+              </td>
+              <td>
+                18.42 / 0.513
+              </td>
+            </tr>
+            <tr>
+              <td>
+                <a href="https://link.springer.com/chapter/10.1007/978-981-96-6596-9_30"
+                  target="_blank">RetinexMamba</a>
+              </td>
+              <td>
+                28.44 / 0.894
+              </td>
+              <td>
+                28.52 / 0.859
+              </td>
+              <td>
+                22.45 / 0.656
+              </td>
+            </tr>
+            <tr>
+              <td>
+                <a href="https://www.ecva.net/papers/eccv_2020/papers_ECCV/papers/123700494.pdf"
+                  target="_blank">MIRNet</a>
+              </td>
+              <td>
+                28.64 / 0.888
+              </td>
+              <td>
+                28.99 / 0.869
+              </td>
+              <td>
+                21.36 / 0.632
+              </td>
+            </tr>
+            <tr>
+              <td>
+                <a href="https://openaccess.thecvf.com/content/CVPR2022/papers/Zamir_Restormer_Efficient_Transformer_for_High-Resolution_Image_Restoration_CVPR_2022_paper.pdf"
+                  target="_blank">Restormer</a>
+              </td>
+              <td>
+                28.49 / 0.892
+              </td>
+              <td>
+                27.99 / 0.868
+              </td>
+              <td>
+                22.01 / 0.645
+              </td>
+            </tr>
+            <tr>
+              <td>
+                <a href="https://www.ecva.net/papers/eccv_2024/papers_ECCV/papers/02740.pdf" target="_blank">MambaIR</a>
+              </td>
+              <td>
+                25.14 / 0.876
+              </td>
+              <td>
+                27.53 / 0.851
+              </td>
+              <td>
+                22.02 / 0.658
+              </td>
+            </tr>
+            <tr>
+              <td>
+                <a href="https://openaccess.thecvf.com/content/ICCV2025/papers/Zhang_CWNet_Causal_Wavelet_Network_for_Low-Light_Image_Enhancement_ICCV_2025_paper.pdf"
+                  target="_blank">CWNet</a>
+              </td>
+              <td>
+                30.28 / 0.904
+              </td>
+              <td>
+                28.54 / 0.857
+              </td>
+              <td>
+                20.97 / 0.623
+              </td>
+            </tr>
+            <tr class="dashed-top">
+              <td>
+                <a href="https://openaccess.thecvf.com/content/ICCV2023/papers/Cai_Retinexformer_One-stage_Retinex-based_Transformer_for_Low-light_Image_Enhancement_ICCV_2023_paper.pdf"
+                  target="_blank">Retinexformer</a>
+              </td>
+              <td>
+                28.20 / 0.877
+              </td>
+              <td>
+                29.57 / 0.874
+              </td>
+              <td>
+                22.05 / 0.636
+              </td>
+            </tr>
+            <tr class="mine">
+              <td>Retinexformer + Ours</td>
+              <td>
+                <strong>29.98</strong>
+                /
+                <strong>0.906</strong>
+              </td>
+              <td>
+                <strong>30.12</strong>
+                /
+                <strong>0.877</strong>
+              </td>
+              <td>
+                <strong>22.64</strong>
+                /
+                <strong>0.660</strong>
+              </td>
+            </tr>
+            <tr class="mine delta">
+              <td>Δ</td>
+              <td>
+                <span class="metric-gain">+1.78</span>
+                /
+                <span class="metric-gain">+0.029</span>
+              </td>
+              <td>
+                <span class="metric-gain">+0.55</span>
+                /
+                <span class="metric-gain">+0.003</span>
+              </td>
+              <td>
+                <span class="metric-gain">+0.59</span>
+                /
+                <span class="metric-gain">+0.024</span>
+              </td>
+            </tr>
+            <tr class="dashed-top">
+              <td>
+                <a href="https://openaccess.thecvf.com/content/CVPR2025/papers/Feijoo_DarkIR_Robust_Low-Light_Image_Restoration_CVPR_2025_paper.pdf"
+                  target="_blank">DarkIR</a>
+              </td>
+              <td>
+                29.94 / 0.897
+              </td>
+              <td>
+                28.81 / 0.848
+              </td>
+              <td>
+                21.50 / 0.588
+              </td>
+            </tr>
+            <tr class="mine">
+              <td>DarkIR + Ours</td>
+              <td>
+                <strong>30.36</strong>
+                /
+                <strong>0.899</strong>
+              </td>
+              <td>
+                29.36 / 0.858
+              </td>
+              <td>
+                22.33 / 0.639
+              </td>
+            </tr>
+            <tr class="mine delta">
+              <td>Δ</td>
+              <td>
+                <span class="metric-gain">+0.42</span>
+                /
+                <span class="metric-gain">+0.002</span>
+              </td>
+              <td>
+                <span class="metric-gain">+0.55</span>
+                /
+                <span class="metric-gain">+0.010</span>
+              </td>
+              <td>
+                <span class="metric-gain">+0.83</span>
+                /
+                <span class="metric-gain">+0.051</span>
+              </td>
+            </tr>
+            <tr class="dashed-top">
+              <td>
+                <a href="https://openaccess.thecvf.com/content/CVPR2025/papers/Yan_HVI_A_New_Color_Space_for_Low-light_Image_Enhancement_CVPR_2025_paper.pdf"
+                  target="_blank">HVI-CIDNet</a>
+              </td>
+              <td>
+                28.74 / 0.895
+              </td>
+              <td>
+                28.70 / 0.866
+              </td>
+              <td>
+                22.21 / 0.631
+              </td>
+            </tr>
+            <tr class="mine">
+              <td>HVI-CIDNet + Ours</td>
+              <td>
+                29.91 / 0.900
+              </td>
+              <td>
+                <strong>29.80</strong>
+                /
+                <strong>0.877</strong>
+              </td>
+              <td>
+                <strong>22.46</strong>
+                / 0.653
+              </td>
+            </tr>
+            <tr class="mine delta">
+              <td>Δ</td>
+              <td>
+                <span class="metric-gain">+1.17</span>
+                /
+                <span class="metric-gain">+0.005</span>
+              </td>
+              <td>
+                <span class="metric-gain">+1.10</span>
+                /
+                <span class="metric-gain">+0.011</span>
+              </td>
+              <td>
+                <span class="metric-gain">+0.25</span>
+                /
+                <span class="metric-gain">+0.022</span>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- Summarys -->
+    <section class="animate-on-scroll" id="takeaways">
+      <h2>Key Takeaways</h2>
+      <div class="takeaways-grid custom-width">
+        <div class="takeaway" style="--takeaway-flex: 7">
+          <h3>Handling Embedded Color Bias</h3>
+          <p>
+            CAGE explicitly suppresses the color bias embedded during low-light image formation before
+            backbone enhancement and rectifies saturation abnormality after enhancement.
+          </p>
+        </div>
+        <div class="takeaway" style="--takeaway-flex: 6">
+          <h3>Minimal Tradeoff, Max Gain</h3>
+          <p>
+            CAGE adds 0.07M parameters and less than 0.01G FLOPs, while providing up to +2.21 dB PSNR on
+            the evaluated standard benchmarks.
+          </p>
+        </div>
+        <div class="takeaway" style="--takeaway-flex: 6">
+          <h3>Plug &amp; Play Integration</h3>
+          <p>
+            CAGE surrounds rather than replaces the enhancement backbone that seamlessly integrates with
+            existing low-light enhancement backbones without requiring architectural changes.
+          </p>
+        </div>
+      </div>
+    </section>
+
+    <!-- BibTeX -->
+    <section class="animate-on-scroll" id="bibtex">
+      <h2>BibTeX</h2>
       <p>
-       CAGE surrounds rather than replaces the enhancement backbone that seamlessly integrates with
-                            existing low-light enhancement backbones without requiring architectural changes.
+        For the implementation and project materials, visit the
+        <a href="https://github.com/Yangzhichen763/CAGE" rel="noopener" target="_blank">project repository</a>.
+        If you find the work useful, please cite:
       </p>
-     </div>
-    </div>
-   </section>
-   <section class="animate-on-scroll" id="bibtex">
-    <h2>
-     BibTeX
-    </h2>
-    <p>
-     For the implementation and project materials, visit the
-     <a href="https://github.com/Yangzhichen763/CAGE" rel="noopener" target="_blank">
-      project repository
-     </a>
-     . If you find the work useful, please cite:
-    </p>
-    <div class="bibtex-box">
-     <pre>
+      <div class="bibtex-box">
+        <pre>
 @inproceedings{yang2026cage,
   title     = {Towards color-faithful low-light image enhancement via adaptive color debiasing and saturation rectification},
   author    = {Yang, Zhichen and Xu, Rui and Niu, Yuzhen and Li, Fusheng and Da, Hui and Cheng, Ri},
   booktitle = {Proceedings of the ACM International Conference on Multimedia},
   year      = {2026}
 }</pre>
-     <button class="copy-btn" id="copy-bibtex">
-      <i class="fas fa-copy">
-      </i>
-      Copy
-     </button>
-    </div>
-   </section>
-   <section class="animate-on-scroll" id="acknowledgement">
-    <div class="collapsible-header" data-action="toggle-acknowledgement">
-     <h2>
-      Acknowledgement
-     </h2>
-     <span class="collapsible-icon">
-      <i class="fas fa-chevron-down">
-      </i>
-     </span>
-    </div>
-    <div class="collapsible-content" id="ack-content">
-     <p>
-      If you find our work helpful, please also consider citing the following related work:
-     </p>
-     <div class="bibtex-box">
-      <pre>
+        <button class="copy-btn" id="copy-bibtex">
+          <i class="fas fa-copy"></i>Copy
+        </button>
+      </div>
+    </section>
+
+    <!-- Acknowledgement -->
+    <section class="animate-on-scroll" id="acknowledgement">
+      <div class="collapsible-header" data-action="toggle-acknowledgement">
+        <h2>Acknowledgement</h2>
+        <span class="collapsible-icon">
+          <i class="fas fa-chevron-down"></i>
+        </span>
+      </div>
+      <div class="collapsible-content" id="ack-content">
+        <p>If you find our work helpful, please also consider citing the following related work:</p>
+        <div class="bibtex-box">
+          <pre>
 @inproceedings{xu2025urwkv,
   title     = {{URWKV}: Unified {RWKV} model with multi-state perspective for low-light image restoration},
   author    = {Xu, Rui and Niu, Yuzhen and Li, Yuezhou and Xu, Huangbiao and Liu, Wenxi and Chen, Yuzhong},
@@ -2511,61 +1835,37 @@
   pages     = {21267--21276},
   year      = {2025}
 }</pre>
-      <button class="copy-btn" id="copy-bibtex-urwkv">
-       <i class="fas fa-copy">
-       </i>
-       Copy
-      </button>
-     </div>
-     <p class="page-credit">
-      We thank the authors of the
-      <a href="https://haofeixu.github.io/pointdit/" rel="noopener" target="_blank">
-        PointDiT
-      </a>
-      ,
-      <a href="https://alaradirik.github.io/reasonx/" rel="noopener" target="_blank">
-       ReasonX
-      </a>
-      , and
-      <a href="https://yingfan-bot.github.io/lotus/" rel="noopener" target="_blank">
-       Lotus
-      </a>
-      project pages, whose page designs inspired this website.
-     </p>
-     <p class="page-credit">
-      CAGE is heavily inspired by
-      <a href="https://openaccess.thecvf.com/content/CVPR2025/papers/Yan_HVI_A_New_Color_Space_for_Low-light_Image_Enhancement_CVPR_2025_paper.pdf" target="_blank">
-       HVI-CIDNet
-      </a>
-      and
-      <a href="https://bottosson.github.io/posts/oklab/" rel="noopener" target="_blank">
-       OKLab
-      </a>
-      . We sincerely thank the authors for their elegant work.
-     </p>
-    </div>
-   </section>
+          <button class="copy-btn" id="copy-bibtex-urwkv">
+            <i class="fas fa-copy"></i>Copy
+          </button>
+        </div>
+        <p class="page-credit">We thank the authors of the <a href="https://haofeixu.github.io/pointdit/" rel="noopener"
+            target="_blank">PointDiT</a>, <a href="https://alaradirik.github.io/reasonx/" rel="noopener"
+            target="_blank">ReasonX</a>, and <a href="https://yingfan-bot.github.io/lotus/" rel="noopener"
+            target="_blank">Lotus</a> project pages, whose page designs inspired this
+          website.</p>
+        <p class="page-credit"> CAGE is heavily inspired by <a
+            href="https://openaccess.thecvf.com/content/CVPR2025/papers/Yan_HVI_A_New_Color_Space_for_Low-light_Image_Enhancement_CVPR_2025_paper.pdf"
+            target="_blank">HVI-CIDNet</a> and <a href="https://bottosson.github.io/posts/oklab/" rel="noopener"
+            target="_blank">OKLab</a>. We sincerely thank the authors for their elegant work.
+        </p>
+      </div>
+    </section>
   </div>
-  <footer>
-   <p>
-    CAGE: Color-faithful Low-light Image Enhancement · ACM MM 2026
-   </p>
-   <p>
-    <a href="https://github.com/Yangzhichen763/CAGE" rel="noopener" target="_blank">
-     <i class="fab fa-github">
-     </i>
-     GitHub
-    </a>
-    <span class="footer-separator">
-     ·
-    </span>
-    <a href="mailto:zhichenyang47@gmail.com" rel="noopener" target="_blank">
-     <i class="fas fa-envelope">
-     </i>
-     Contact
-    </a>
-   </p>
-  </footer>
- </body>
-</html>
 
+  <!-- Footer -->
+  <footer>
+    <p>CAGE: Color-faithful Low-light Image Enhancement · ACM MM 2026</p>
+    <p>
+      <a href="https://github.com/Yangzhichen763/CAGE" rel="noopener" target="_blank">
+        <i class="fab fa-github"></i>GitHub
+      </a>
+      <span class="footer-separator">·</span>
+      <a href="mailto:zhichenyang47@gmail.com" rel="noopener" target="_blank">
+        <i class="fas fa-envelope"></i>Contact
+      </a>
+    </p>
+  </footer>
+</body>
+
+</html>

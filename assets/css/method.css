@@ -1,1561 +1,1567 @@
 :root {
-                --frozen-bg: #eef1f6;
-                --frozen-ink: #42597e;
-                --frozen-line: #cdd8e8;
-            }
-
-            [data-theme="dark"] {
-                --frozen-bg: #161b23;
-                --frozen-ink: #98a8c4;
-                --frozen-line: #2b3340;
-            }
-
-            #method .method-modes {
-                display: flex;
-                justify-content: center;
-                margin: 0 0 18px;
-            }
-
-            #method .seg {
-                display: inline-flex;
-                gap: 3px;
-                padding: 3px;
-                border: 1px solid var(--line);
-                border-radius: 999px;
-                background: var(--surface);
-                box-shadow: 0 2px 10px -6px rgba(0, 0, 0, 0.1);
-            }
-
-            #method .seg button {
-                min-height: 34px;
-                padding: 0 16px;
-                border: 0;
-                border-radius: 999px;
-                color: var(--muted);
-                background: transparent;
-                cursor: pointer;
-                font-size: 0.8rem;
-                font-weight: 600;
-                transition:
-                    color 0.18s ease,
-                    background 0.18s ease,
-                    box-shadow 0.18s ease;
-                font-family:
-                    "Noto Sans",
-                    -apple-system,
-                    BlinkMacSystemFont,
-                    "Segoe UI",
-                    Roboto,
-                    Helvetica,
-                    Arial,
-                    sans-serif;
-            }
-
-            #method .seg button:hover {
-                color: var(--ink);
-                background: var(--surface-2);
-            }
-
-            #method .seg button:focus-visible {
-                outline: 2px solid var(--accent);
-                outline-offset: 2px;
-            }
-
-            #method .seg button[aria-selected="true"] {
-                color: #fff;
-                background: var(--accent);
-                box-shadow: 0 4px 14px -6px var(--accent);
-            }
-
-            #method {
-                max-width: none;
-            }
-
-            #method > p.method-lead,
-            #method > .method-modes {
-                max-width: var(--max);
-                margin: 0 auto;
-                padding: 0 22px;
-            }
-
-            #method .method-grid {
-                display: grid;
-                grid-template-columns: minmax(0, 1fr) minmax(0, 420px);
-                gap: 40px;
-                align-items: start;
-                margin-top: 8px;
-                justify-content: center;
-                padding: 0 22px;
-            }
-
-            #method .method-grid[hidden] {
-                display: none;
-            }
-
-            #method .method-grid.has-child {
-                grid-template-columns: minmax(0, 1fr) minmax(0, 320px) minmax(0, 280px);
-            }
-
-            #method .mdiagram {
-                display: flex;
-                flex-direction: column;
-                gap: 0;
-                margin: 0;
-                transform: translateX(0);
-                transition: transform 0.4s ease;
-            }
-
-            #method .method-grid.has-child .mdiagram {
-                transform: translateX(-10px);
-            }
-
-            #method .mbranches {
-                display: grid;
-                grid-template-columns: 1fr 1fr;
-                gap: 18px;
-                position: relative;
-            }
-
-            #method .mbranch {
-                display: flex;
-                flex-direction: column;
-                gap: 0;
-            }
-
-            #method .mbranch:nth-child(2) {
-                display: grid;
-                grid-template-rows: repeat(5, auto);
-                gap: 0;
-                align-items: center;
-            }
-
-            #method .mbranch:nth-child(2) #mblock-cnn {
-                grid-row: 1;
-            }
-
-            #method .mbranch:nth-child(2) #mblock-params {
-                grid-row: 3;
-            }
-
-            #method .mcurves {
-                position: absolute;
-                inset: 0;
-                pointer-events: none;
-                z-index: 1;
-            }
-
-            #method .mcurve-x {
-                position: absolute;
-                color: var(--muted);
-            }
-
-            #method .mcurve-x svg {
-                width: 100%;
-                height: auto;
-            }
-
-            #method .mbranch-cap {
-                font-family:
-                    "Noto Sans",
-                    -apple-system,
-                    BlinkMacSystemFont,
-                    "Segoe UI",
-                    Roboto,
-                    Helvetica,
-                    Arial,
-                    sans-serif;
-                font-size: 9.5px;
-                letter-spacing: 0.04em;
-                color: var(--muted);
-                text-align: center;
-                margin: 0 0 8px;
-            }
-
-            #method .mtrunk {
-                display: flex;
-                flex-direction: column;
-                gap: 0;
-            }
-
-            #method .mnode {
-                position: relative;
-                appearance: none;
-                text-align: left;
-                cursor: pointer;
-                width: 100%;
-                border: 1px solid var(--line);
-                background: var(--surface);
-                border-radius: 11px;
-                padding: 11px 14px;
-                display: flex;
-                align-items: center;
-                justify-content: space-between;
-                gap: 10px;
-                transition:
-                    border-color 0.16s ease,
-                    box-shadow 0.16s ease,
-                    transform 0.16s ease;
-            }
-
-            #method .mnode:hover {
-                transform: translateY(-1px);
-                border-color: var(--line-strong);
-            }
-
-            #method .mnode[aria-selected="true"] {
-                border-color: var(--accent);
-                box-shadow: 0 12px 28px -22px rgba(0, 0, 0, 0.5);
-            }
-
-            #method .mnode.dashed {
-                border-style: dashed;
-            }
-
-            #method .mnode.dashed[aria-selected="true"] {
-                border-style: dashed;
-                border-color: var(--accent);
-            }
-
-            #method .mnode-label {
-                font-size: 13px;
-                font-weight: 600;
-                color: var(--ink);
-                letter-spacing: -0.01em;
-                line-height: 1.25;
-            }
-
-            #method .mnode[aria-selected="true"] .mnode-label {
-                color: var(--accent);
-            }
-
-            #method .mtag {
-                font-family:
-                    "Noto Sans",
-                    -apple-system,
-                    BlinkMacSystemFont,
-                    "Segoe UI",
-                    Roboto,
-                    Helvetica,
-                    Arial,
-                    sans-serif;
-                font-size: 9.5px;
-                padding: 2px 7px;
-                border-radius: 5px;
-                white-space: nowrap;
-                border: 1px solid var(--line);
-                flex: none;
-            }
-
-            #method .mtag.frozen {
-                background: var(--frozen-bg);
-                color: var(--frozen-ink);
-                border-color: var(--frozen-line);
-            }
-
-            #method .mtag.trained {
-                background: var(--accent-soft);
-                color: var(--accent);
-                border-color: color-mix(in srgb, var(--accent) 30%, transparent);
-            }
-
-            #method .mtag.neutral {
-                background: var(--surface-2);
-                color: var(--muted);
-            }
-
-            #method .mconn {
-                height: 20px;
-                display: flex;
-                align-items: center;
-                justify-content: center;
-                color: var(--muted);
-            }
-
-            #method .mconn svg {
-                width: 18px;
-                height: 18px;
-            }
-
-            #method .mdetail {
-                position: sticky;
-                top: 84px;
-                border: 1px solid var(--line);
-                border-radius: 16px;
-                background: var(--surface);
-                padding: 20px 22px 20px;
-                min-height: 260px;
-                transform: translateX(0);
-                transition: transform 0.4s ease;
-            }
-
-            #method .method-grid.has-child .mdetail {
-                transform: translateX(-15px);
-            }
-
-            #method .md-tag {
-                display: inline-block;
-                font-family:
-                    "Noto Sans",
-                    -apple-system,
-                    BlinkMacSystemFont,
-                    "Segoe UI",
-                    Roboto,
-                    Helvetica,
-                    Arial,
-                    sans-serif;
-                font-size: 11px;
-                padding: 3px 10px;
-                border-radius: 6px;
-                margin-bottom: 10px;
-                border: 1px solid var(--line);
-                background: var(--surface-2);
-                color: var(--muted);
-            }
-
-            #method .md-tag.frozen {
-                background: var(--frozen-bg);
-                color: var(--frozen-ink);
-                border-color: var(--frozen-line);
-            }
-
-            #method .md-tag.trained {
-                background: var(--accent-soft);
-                color: var(--accent);
-                border-color: color-mix(in srgb, var(--accent) 30%, transparent);
-            }
-
-            #method .md-tag.neutral {
-                background: var(--surface-2);
-                color: var(--muted);
-            }
-
-            #method .md-title {
-                font-size: 1.22rem;
-                font-weight: 700;
-                letter-spacing: -0.02em;
-                margin: 0 0 9px;
-                color: var(--ink);
-            }
-
-            #method .md-eq {
-                font-family:
-                    "Noto Sans",
-                    -apple-system,
-                    BlinkMacSystemFont,
-                    "Segoe UI",
-                    Roboto,
-                    Helvetica,
-                    Arial,
-                    sans-serif;
-                font-size: 13.5px;
-                color: var(--accent);
-                background: var(--surface-2);
-                border: 1px solid var(--line);
-                border-radius: 9px;
-                padding: 9px 12px;
-                margin: 0 0 11px;
-                overflow-x: auto;
-                white-space: nowrap;
-            }
-
-            #method .md-text {
-                font-size: 15px;
-                color: var(--muted);
-                line-height: 1.62;
-                margin: 0;
-            }
-
-            #method .md-media {
-                margin: 0 0 12px;
-                text-align: center;
-            }
-
-            #method .md-media:empty {
-                display: none;
-            }
-
-            #method .md-shot {
-                max-width: 100%;
-                max-height: 122px;
-                width: auto;
-                border: 1px solid var(--line);
-                border-radius: 10px;
-                background: var(--surface-2);
-                display: inline-block;
-            }
-
-            #method .md-index {
-                display: flex;
-                justify-content: space-between;
-                gap: 12px;
-                margin-bottom: 9px;
-                align-items: center;
-                color: var(--muted);
-                font-size: 0.67rem;
-                font-weight: 700;
-                letter-spacing: 0.07em;
-                text-transform: uppercase;
-            }
-
-            kbd {
-                padding: 2px 6px;
-                border: 1px solid var(--muted);
-                border-bottom-width: 2px;
-                border-radius: 5px;
-                color: var(--muted);
-                background: var(--bg);
-                font-family: inherit;
-                font-size: 0.7rem;
-            }
-
-            kbd.thin {
-                padding-inline: 4.5px;
-            }
-
-            #method .md-step {
-                font-size: 0.68rem;
-                color: var(--muted);
-                font-weight: 600;
-                letter-spacing: 0.04em;
-            }
-
-            #method .md-simple-visual {
-                display: flex;
-                flex-wrap: wrap;
-                width: min(100%, 310px);
-                min-height: 155px;
-                align-items: center;
-                justify-content: center;
-                gap: 10px;
-                margin: 0 auto 12px;
-            }
-
-            #method .md-simple-node {
-                display: grid;
-                min-width: 112px;
-                min-height: 62px;
-                padding: 9px;
-                place-items: center;
-                border: 1.5px solid color-mix(in srgb, var(--ink) 72%, transparent);
-                border-radius: 10px;
-                color: var(--ink);
-                background: var(--bg);
-                font-size: 0.75rem;
-                font-weight: 700;
-                line-height: 1.25;
-                text-align: center;
-                appearance: none;
-                cursor: pointer;
-                font-family: inherit;
-            }
-
-            #method .md-simple-node:hover {
-                border-color: var(--accent);
-                transform: translateY(-1px);
-            }
-
-            #method .md-simple-node[aria-selected="true"] {
-                border-color: var(--accent);
-                background: var(--accent-soft);
-            }
-
-            #method .md-simple-node.dashed {
-                border-style: dashed;
-            }
-
-            #method .md-simple-arrow {
-                color: var(--muted);
-                font-size: 1.15rem;
-            }
-
-            #method .md-image-visual {
-                width: 100%;
-            }
-
-            #method .md-image-node {
-                display: flex;
-                min-width: 200px;
-                min-height: 140px;
-                padding: 0;
-                position: relative;
-                align-items: stretch;
-                justify-content: center;
-            }
-
-            #method .md-image-node img {
-                width: 100%;
-                height: 100%;
-                object-fit: cover;
-                border-radius: 8px;
-            }
-
-            #method .md-image-label {
-                position: absolute;
-                bottom: 8px;
-                left: 8px;
-                right: 8px;
-                padding: 4px 8px;
-                background: rgba(0, 0, 0, 0.6);
-                color: white;
-                font-size: 11px;
-                font-weight: 600;
-                border-radius: 4px;
-                text-align: left;
-            }
-
-            #method .md-static-node {
-                cursor: default;
-            }
-
-            #method .md-static-node:hover {
-                transform: none;
-                border-color: color-mix(in srgb, var(--ink) 72%, transparent);
-            }
-
-            #method .md-param-visual {
-                display: grid;
-                width: 100%;
-                grid-template-columns: repeat(3, minmax(0, 1fr));
-                gap: 8px;
-                margin-bottom: 12px;
-            }
-
-            #method .md-param-visual .md-simple-node {
-                min-width: 0;
-                min-height: 78px;
-            }
-
-            #method .md-subflow {
-                display: flex;
-                width: min(100%, 300px);
-                flex-direction: column;
-                align-items: stretch;
-                gap: 7px;
-                margin: 0 auto 12px;
-            }
-
-            #method .msubnode {
-                display: flex;
-                width: 100%;
-                min-height: 52px;
-                padding: 8px 10px;
-                border: 1.5px solid color-mix(in srgb, var(--ink) 75%, transparent);
-                border-radius: 9px;
-                align-items: center;
-                justify-content: center;
-                color: var(--ink);
-                background: var(--bg);
-                cursor: pointer;
-                font-size: 0.76rem;
-                font-weight: 700;
-                line-height: 1.2;
-                text-align: center;
-                transition:
-                    border-color 0.14s ease,
-                    box-shadow 0.14s ease,
-                    transform 0.14s ease;
-                font-family:
-                    "Noto Sans",
-                    -apple-system,
-                    BlinkMacSystemFont,
-                    "Segoe UI",
-                    Roboto,
-                    Helvetica,
-                    Arial,
-                    sans-serif;
-            }
-
-            #method .msubnode:hover {
-                transform: translateY(-1px);
-            }
-
-            #method .msubnode.image-node {
-                border-style: dashed;
-            }
-
-            #method .msubnode[aria-selected="true"] {
-                border-color: var(--accent);
-                box-shadow: 0 0 0 2px color-mix(in srgb, var(--accent) 20%, transparent);
-            }
-
-            #method .msubconn {
-                display: grid;
-                height: 16px;
-                place-items: center;
-                color: var(--muted);
-            }
-
-            #method .msubconn svg {
-                width: 16px;
-                height: 16px;
-            }
-
-            #method .md-child {
-                padding: 14px;
-                border: 1px solid var(--line);
-                border-left: 3px solid var(--accent);
-                border-radius: 0 12px 12px 0;
-                background: var(--surface-2);
-                opacity: 0;
-                transform: translateX(20px);
-                transition: all 0.4s ease;
-            }
-
-            #method .md-child:not([hidden]) {
-                opacity: 1;
-                transform: translateX(0);
-            }
-
-            #method .md-child-kicker {
-                margin: 0 0 7px;
-                color: var(--muted);
-                font-size: 0.62rem;
-                font-weight: 700;
-                letter-spacing: 0.08em;
-                text-transform: uppercase;
-            }
-
-            #method .md-child-tag {
-                display: inline-block;
-                font-size: 0.68rem;
-                padding: 2px 7px;
-                border-radius: 5px;
-                margin-bottom: 8px;
-                border: 1px solid color-mix(in srgb, var(--accent) 30%, transparent);
-                background: var(--accent-soft);
-                color: var(--accent);
-                font-weight: 600;
-            }
-
-            
-
-            #method .md-child-title {
-                font-size: 0.9rem;
-                font-weight: 700;
-                margin: 0 0 7px;
-                color: var(--ink);
-            }
-
-            #method .md-child-eq {
-                font-size: 0.8rem;
-                color: var(--accent);
-                background: var(--surface-2);
-                border: 1px solid var(--line);
-                border-radius: 7px;
-                padding: 7px 10px;
-                margin: 0 0 8px;
-                overflow-x: auto;
-                white-space: nowrap;
-            }
-
-            #method .md-child-text {
-                font-size: 0.82rem;
-                color: var(--muted);
-                line-height: 1.55;
-                margin: 0;
-            }
-
-            #method .method-figure {
-                margin: 0;
-            }
-
-            #method .mfig-frame {
-                position: relative;
-                display: block;
-                appearance: none;
-                cursor: pointer;
-                background: #fff;
-                border: 1px solid var(--line-strong);
-                border-radius: 14px;
-                padding: 14px;
-                width: fit-content;
-                max-width: 100%;
-                margin: 8px auto 0px;
-                overflow: hidden;
-                transition:
-                    border-color 0.18s ease,
-                    box-shadow 0.18s ease,
-                    transform 0.18s ease;
-            }
-
-            #method .mfig-frame img {
-                display: block;
-                max-height: 560px;
-                width: auto;
-                max-width: 100%;
-                height: auto;
-                border-radius: 4px;
-            }
-
-            #method .mfig-frame:hover,
-            #method .mfig-frame:focus-visible {
-                border-color: var(--accent);
-                box-shadow: 0 20px 44px -26px color-mix(in srgb, var(--accent) 60%, transparent);
-                transform: translateY(-2px);
-                outline: none;
-            }
-
-            #method .mfig-cue {
-                position: absolute;
-                inset: 0;
-                display: flex;
-                align-items: center;
-                justify-content: center;
-                border-radius: 14px;
-                background: color-mix(in srgb, var(--accent) 13%, transparent);
-                opacity: 0;
-                transition: opacity 0.18s ease;
-                pointer-events: none;
-            }
-
-            #method .mfig-cue b {
-                display: inline-flex;
-                align-items: center;
-                gap: 9px;
-                font-family:
-                    "Noto Sans",
-                    -apple-system,
-                    BlinkMacSystemFont,
-                    "Segoe UI",
-                    Roboto,
-                    Helvetica,
-                    Arial,
-                    sans-serif;
-                font-size: 12.5px;
-                font-weight: 600;
-                letter-spacing: 0.01em;
-                color: #fff;
-                background: var(--accent);
-                border-radius: 11px;
-                padding: 10px 17px;
-                box-shadow: 0 12px 30px -10px rgba(0, 0, 0, 0.5);
-                transform: translateY(6px);
-                transition: transform 0.18s ease;
-            }
-
-            #method .mfig-cue svg {
-                width: 15px;
-                height: 15px;
-                stroke: #fff;
-                fill: none;
-                stroke-width: 2;
-                stroke-linecap: round;
-                stroke-linejoin: round;
-                flex: none;
-            }
-
-            #method .mfig-frame:hover .mfig-cue,
-            #method .mfig-frame:focus-visible .mfig-cue {
-                opacity: 1;
-            }
-
-            #method .mfig-frame:hover .mfig-cue b,
-            #method .mfig-frame:focus-visible .mfig-cue b {
-                transform: translateY(0);
-            }
-
-            @media (max-width: 980px) {
-                #method .method-grid {
-                    grid-template-columns: 1fr;
-                }
-
-                #method .mdetail {
-                    position: static;
-                }
-
-                #method .mcurves {
-                    display: none;
-                }
-            }
-
-            @media (max-width: 660px) {
-                #method .method-modes {
-                    justify-content: stretch;
-                }
-
-                #method .seg {
-                    width: 100%;
-                }
-
-                #method .seg button {
-                    flex: 1;
-                    padding-inline: 9px;
-                }
-
-                #method .mtag {
-                    display: none;
-                }
-
-                #method .mfig-cue {
-                    left: 10px;
-                    right: 10px;
-                    justify-content: center;
-                }
-            }
-
-            :root {
-                --ia-inverse: var(--accent);
-                --ia-inverse-soft: var(--accent-soft);
-            }
-
-            #method .method-modes {
-                margin-top: 18px;
-                margin-bottom: 18px;
-            }
-
-            #method .seg {
-                display: inline-grid;
-                grid-template-columns: repeat(2, minmax(0, 1fr));
-                gap: 4px;
-                padding: 4px;
-                border: 1px solid var(--line);
-                border-radius: 999px;
-                background: var(--surface);
-                box-shadow: 0 8px 24px -20px rgba(0, 0, 0, 0.45);
-            }
-
-            #method .seg button {
-                min-height: 37px;
-                padding: 0 18px;
-                font-weight: 700;
-            }
-
-            #method .method-grid,
-            #method .method-grid.has-child {
-                width: min(1120px, calc(100vw - 40px));
-                display: grid;
-                grid-template-columns: minmax(0, 1.18fr) minmax(340px, 0.82fr) !important;
-                gap: 26px;
-                align-items: start;
-                margin: 18px 50% 28px;
-                padding: 0;
-                transform: translateX(-50%);
-                border: 0;
-                border-radius: 0;
-                background: transparent;
-                box-shadow: none;
-                overflow: visible;
-            }
-
-            #method .method-grid[hidden] {
-                display: none;
-            }
-
-            #method .method-grid:not([hidden]) {
-                animation: iaPanelIn 0.22s ease both;
-            }
-
-            @keyframes iaPanelIn {
-                from {
-                    opacity: 0;
-                    transform: translate(-50%, 6px);
-                }
-                to {
-                    opacity: 1;
-                    transform: translate(-50%, 0);
-                }
-            }
-
-            #method .mdiagram,
-            #method .method-grid.has-child .mdiagram {
-                min-width: 0;
-                margin: 0;
-                padding: 0;
-                transform: none !important;
-            }
-
-            #method .marchitecture-head {
-                display: flex;
-                align-items: flex-start;
-                justify-content: space-between;
-                gap: 18px;
-                margin-bottom: 14px;
-                padding-bottom: 12px;
-                border-bottom: 1px solid var(--line);
-            }
-
-            #method .marchitecture-eyebrow {
-                margin: 0 0 3px;
-                color: var(--accent);
-                font-size: 0.64rem;
-                font-weight: 800;
-                letter-spacing: 0.09em;
-                text-transform: uppercase;
-            }
-
-            #method .marchitecture-title {
-                margin: 0;
-                color: var(--ink);
-                font-size: 1rem;
-                font-weight: 750;
-                letter-spacing: -0.015em;
-            }
-
-            #method .mlegend {
-                display: flex;
-                flex-wrap: wrap;
-                justify-content: flex-end;
-                gap: 6px 10px;
-                color: var(--muted);
-                font-size: 0.66rem;
-                line-height: 1.25;
-            }
-
-            #method .mlegend-item {
-                display: inline-flex;
-                align-items: center;
-                gap: 5px;
-                white-space: nowrap;
-            }
-
-            #method .mlegend-dot {
-                width: 8px;
-                height: 8px;
-                border: 1px solid var(--line-strong);
-                border-radius: 50%;
-                background: var(--surface-2);
-            }
-
-            #method .mlegend-dot.trained {
-                border-color: color-mix(in srgb, var(--accent) 38%, transparent);
-                background: var(--accent-soft);
-            }
-
-            #method .mlegend-dot.retrain {
-                border-color: var(--frozen-line);
-                background: var(--frozen-bg);
-            }
-
-            #method .mlegend-dot.image {
-                border-style: dashed;
-                background: transparent;
-            }
-
-            #method .mbranches {
-                position: relative;
-                display: grid;
-                grid-template-columns: minmax(310px, 1.08fr) minmax(250px, 0.92fr);
-                gap: 62px;
-                align-items: start;
-                min-width: 0;
-            }
-
-            #method .mbranch,
-            #method .mbranch.parameter-branch {
-                position: relative;
-                z-index: 2;
-                min-width: 0;
-                display: flex;
-                flex-direction: column;
-                gap: 0;
-                padding: 0;
-                border: 0;
-                border-radius: 0;
-                background: transparent !important;
-                box-shadow: none;
-            }
-
-            #method .mbranch-cap,
-            #method .mparameter-route {
-                display: none !important;
-            }
-
-            #method .mconnections {
-                position: absolute;
-                inset: 0;
-                z-index: 0;
-                width: 100%;
-                height: 100%;
-                overflow: visible;
-                pointer-events: none;
-                color: var(--muted);
-            }
-
-            #method .mconnections > path {
-                fill: none;
-                stroke: color-mix(in srgb, var(--muted) 70%, transparent);
-                stroke-width: 1.25;
-                stroke-linecap: round;
-                stroke-linejoin: round;
-                vector-effect: non-scaling-stroke;
-            }
-
-            #method .mconnections path.dashed {
-                stroke-dasharray: 5 5;
-            }
-
-            #method #mArrowHead .m-arrow-head {
-                fill: none;
-                stroke: color-mix(in srgb, var(--muted) 70%, transparent);
-                stroke-width: 1.25;
-                stroke-linecap: round;
-                stroke-linejoin: round;
-                vector-effect: non-scaling-stroke;
-            }
-
-            #method .mnode {
-                position: relative;
-                z-index: 2;
-                width: 100%;
-                min-height: 56px;
-                display: grid;
-                grid-template-columns: minmax(0, 1fr) auto;
-                align-items: center;
-                gap: 10px;
-                padding: 11px 13px;
-                appearance: none;
-                border: 1px solid var(--line);
-                border-radius: 11px;
-                color: var(--ink);
-                background: var(--surface);
-                cursor: pointer;
-                font-family: inherit;
-                text-align: left;
-                transition:
-                    border-color 0.16s ease,
-                    background 0.16s ease,
-                    box-shadow 0.16s ease,
-                    transform 0.16s ease;
-            }
-
-            #method .mnode::before {
-                content: none !important;
-                display: none !important;
-            }
-
-            #method .mnode::after {
-                content: "";
-                position: absolute;
-                left: -1px;
-                top: 10px;
-                bottom: 10px;
-                width: 3px;
-                border-radius: 0 4px 4px 0;
-                background: transparent;
-                transition: background 0.16s ease;
-            }
-
-            #method .mnode:hover {
-                transform: translateY(-1px);
-                border-color: color-mix(in srgb, var(--accent) 38%, var(--line));
-                background: color-mix(in srgb, var(--accent) 2.5%, var(--surface));
-            }
-
-            #method .mnode:focus-visible {
-                outline: 2px solid var(--accent);
-                outline-offset: 2px;
-            }
-
-            #method .mnode[aria-selected="true"] {
-                border-color: var(--accent);
-                background: color-mix(in srgb, var(--accent) 8%, var(--surface));
-                box-shadow:
-                    0 0 0 1px color-mix(in srgb, var(--accent) 12%, transparent),
-                    0 14px 28px -24px color-mix(in srgb, var(--accent) 78%, transparent);
-            }
-
-            #method .mnode[aria-selected="true"]::after {
-                background: var(--accent);
-            }
-
-            #method .mnode.dashed {
-                border-style: dashed;
-            }
-
-            #method .mnode-label {
-                min-width: 0;
-                color: var(--ink);
-                font-size: 0.8rem;
-                font-weight: 700;
-                line-height: 1.3;
-            }
-
-            #method .mnode[aria-selected="true"] .mnode-label {
-                color: var(--accent);
-            }
-
-            #method .mtag {
-                min-height: 23px;
-                display: inline-flex;
-                align-items: center;
-                padding: 2px 7px;
-                border: 1px solid var(--line);
-                border-radius: 6px;
-                color: var(--muted);
-                background: var(--surface-2);
-                font-size: 0.58rem;
-                font-weight: 700;
-                white-space: nowrap;
-            }
-
-            #method .mtag.frozen {
-                color: var(--frozen-ink);
-                border-color: var(--frozen-line);
-                background: var(--frozen-bg);
-            }
-
-            #method .mtag.trained {
-                color: var(--accent);
-                border-color: color-mix(in srgb, var(--accent) 28%, transparent);
-                background: var(--accent-soft);
-            }
-
-            #method .mconn {
-                height: 24px;
-                display: grid;
-                place-items: center;
-                color: color-mix(in srgb, var(--muted) 75%, transparent);
-            }
-
-            #method .mconn svg {
-                width: 15px;
-                height: 15px;
-            }
-
-            #method .mflow-hint {
-                display: flex;
-                align-items: center;
-                justify-content: space-between;
-                gap: 14px;
-                margin-top: 14px;
-                padding-top: 12px;
-                border-top: 1px solid var(--line);
-                color: var(--muted);
-                font-size: 0.67rem;
-                line-height: 1.45;
-            }
-
-            .viewer-tip kbd {
-                min-width: 22px;
-                height: 22px;
-                display: inline-grid;
-                place-items: center;
-                font-weight: 700;
-                line-height: 1;
-                vertical-align: middle;
-            }
-
-            .viewer-tip kbd + kbd {
-                margin-left: 2px;
-            }
-
-            #method .mdetail,
-            #method .method-grid.has-child .mdetail {
-                position: sticky;
-                top: 74px;
-                min-width: 0;
-                min-height: 0;
-                height: var(--ia-detail-height, auto);
-                max-height: var(--ia-detail-height, none);
-                padding: 18px;
-                overflow-x: hidden;
-                overflow-y: auto;
-                overscroll-behavior: auto;
-                scrollbar-gutter: stable;
-                border: 1px solid var(--line);
-                border-radius: 16px;
-                background: var(--surface);
-                transform: none !important;
-            }
-
-            #method .mdetail::-webkit-scrollbar {
-                width: 8px;
-            }
-
-            #method .mdetail::-webkit-scrollbar-track {
-                background: transparent;
-            }
-
-            #method .mdetail::-webkit-scrollbar-thumb {
-                border: 2px solid transparent;
-                border-radius: 999px;
-                background: color-mix(in srgb, var(--muted) 38%, transparent);
-                background-clip: padding-box;
-            }
-
-            #method .mdetail {
-                scrollbar-width: thin;
-                scrollbar-color: color-mix(in srgb, var(--muted) 38%, transparent) transparent;
-            }
-
-            #method .mdetail.is-updating {
-                animation: iaDetailIn 0.18s ease both;
-            }
-
-            @keyframes iaDetailIn {
-                from {
-                    opacity: 0.72;
-                    transform: translateY(3px);
-                }
-                to {
-                    opacity: 1;
-                    transform: translateY(0);
-                }
-            }
-
-            #method .mdetail-top {
-                margin-bottom: 15px;
-                padding-bottom: 13px;
-                border-bottom: 1px solid var(--line);
-            }
-
-            #method .md-step-group {
-                display: inline-flex;
-                align-items: center;
-                gap: 8px;
-            }
-
-            #method .md-stage {
-                color: var(--accent);
-            }
-
-            #method .md-progress {
-                height: 4px;
-                overflow: hidden;
-                border-radius: 999px;
-                background: var(--surface-2);
-            }
-
-            #method .md-progress span {
-                display: block;
-                width: 14.285%;
-                height: 100%;
-                border-radius: inherit;
-                background: var(--accent);
-                transition: width 0.22s ease;
-            }
-
-            #method .md-title {
-                margin: 0 0 9px;
-                color: var(--ink);
-                font-size: 1.18rem;
-                line-height: 1.25;
-            }
-
-            #method .md-text {
-                margin: 0;
-                color: var(--muted);
-                font-size: 0.86rem;
-                line-height: 1.68;
-                text-align: left;
-            }
-
-            #method .md-media {
-                margin: 16px 0 0;
-                padding-top: 14px;
-                border-top: 1px solid var(--line);
-                text-align: center;
-            }
-
-            #method .md-media:empty {
-                display: none;
-            }
-
-            #method .md-simple-visual {
-                width: min(100%, 300px);
-                min-height: 118px;
-                display: flex;
-                flex-wrap: wrap;
-                align-items: center;
-                justify-content: center;
-                gap: 8px;
-                margin: 0 auto;
-            }
-
-            #method .md-simple-visual.vertical-flow {
-                width: min(100%, 250px);
-                min-height: 0;
-                flex-direction: column;
-                flex-wrap: nowrap;
-                align-items: stretch;
-            }
-
-            #method .md-simple-visual.vertical-flow .md-simple-node {
-                width: 100%;
-                min-width: 0;
-            }
-
-            #method .md-simple-node,
-            #method .msubnode {
-                appearance: none;
-                border: 1px solid var(--line-strong);
-                color: var(--ink);
-                background: var(--surface);
-                cursor: pointer;
-                font-family: inherit;
-                text-align: center;
-                transition:
-                    border-color 0.15s ease,
-                    background 0.15s ease,
-                    box-shadow 0.15s ease,
-                    transform 0.15s ease;
-            }
-
-            #method .md-simple-node {
-                min-width: 104px;
-                min-height: 58px;
-                display: grid;
-                place-items: center;
-                padding: 8px;
-                border-radius: 10px;
-                font-size: 0.67rem;
-                font-weight: 700;
-                line-height: 1.3;
-            }
-
-            #method .md-simple-node:hover,
-            #method .msubnode:hover {
-                transform: translateY(-1px);
-                border-color: var(--accent);
-            }
-
-            #method .md-simple-node:focus-visible,
-            #method .msubnode:focus-visible {
-                outline: 2px solid var(--accent);
-                outline-offset: 2px;
-            }
-
-            #method .md-simple-node[aria-selected="true"],
-            #method .msubnode[aria-selected="true"] {
-                border-color: var(--accent);
-                background: var(--accent-soft);
-                box-shadow: 0 0 0 2px color-mix(in srgb, var(--accent) 14%, transparent);
-            }
-
-            #method .md-simple-node.dashed,
-            #method .msubnode.image-node {
-                border-style: dashed;
-            }
-
-            #method .md-simple-arrow {
-                color: var(--muted);
-                font-size: 1rem;
-                line-height: 1;
-            }
-
-            #method .md-param-visual {
-                display: grid;
-                grid-template-columns: repeat(3, minmax(0, 1fr));
-                gap: 7px;
-                width: 100%;
-                margin: 0;
-            }
-
-            #method .md-param-visual .md-simple-node {
-                min-width: 0;
-                min-height: 82px;
-            }
-
-            #method .md-subflow {
-                display: grid;
-                grid-template-columns: 1fr;
-                gap: 0;
-                width: min(100%, 290px);
-                margin: 0 auto;
-            }
-
-            #method .msubnode {
-                width: 100%;
-                min-height: 48px;
-                display: flex;
-                align-items: center;
-                justify-content: center;
-                padding: 8px 10px;
-                border-radius: 9px;
-                font-size: 0.68rem;
-                font-weight: 700;
-                line-height: 1.25;
-            }
-
-            #method .msubconn {
-                height: 15px;
-                display: grid;
-                place-items: center;
-                color: var(--muted);
-            }
-
-            #method .msubconn svg {
-                width: 14px;
-                height: 14px;
-            }
-
-            #method .md-child,
-            #method .md-child:not([hidden]) {
-                margin-top: 14px;
-                padding: 13px 14px;
-                border: 1px solid color-mix(in srgb, var(--accent) 32%, var(--line));
-                border-left: 3px solid var(--accent);
-                border-radius: 0 11px 11px 0;
-                background: color-mix(in srgb, var(--accent) 7%, var(--surface));
-                opacity: 1;
-                transform: none;
-                animation: iaChildIn 0.2s ease both;
-            }
-
-            #method .md-child[hidden] {
-                display: none;
-            }
-
-            @keyframes iaChildIn {
-                from {
-                    opacity: 0;
-                    transform: translateY(5px);
-                }
-                to {
-                    opacity: 1;
-                    transform: translateY(0);
-                }
-            }
-
-            #method .md-child-eq {
-                color: var(--accent);
-                border-color: color-mix(in srgb, var(--accent) 20%, var(--line));
-                background: color-mix(in srgb, var(--accent) 5%, var(--surface));
-            }
-
-            #method .md-actions {
-                display: flex;
-                justify-content: space-between;
-                gap: 10px;
-                margin-top: 16px;
-                padding-top: 14px;
-                border-top: 1px solid var(--line);
-            }
-
-            #method .md-nav-btn {
-                min-height: 34px;
-                display: inline-flex;
-                align-items: center;
-                justify-content: center;
-                gap: 7px;
-                padding: 0 13px;
-                border: 1px solid var(--line);
-                border-radius: 9px;
-                color: var(--ink);
-                background: var(--surface);
-                cursor: pointer;
-                font-family: inherit;
-                font-size: 0.68rem;
-                font-weight: 750;
-                transition:
-                    border-color 0.15s ease,
-                    color 0.15s ease,
-                    background 0.15s ease,
-                    transform 0.15s ease;
-            }
-
-            #method .md-nav-btn:hover:not(:disabled) {
-                color: var(--accent);
-                border-color: var(--accent);
-                background: var(--accent-soft);
-                transform: translateY(-1px);
-            }
-
-            #method .md-nav-btn:disabled {
-                opacity: 0.38;
-                cursor: not-allowed;
-            }
-
-            #method .md-nav-btn.primary {
-                color: #fff;
-                border-color: var(--accent);
-                background: var(--accent);
-            }
-
-            #method .md-nav-btn.primary:hover:not(:disabled) {
-                color: #fff;
-                background: color-mix(in srgb, var(--accent) 88%, #000);
-            }
-
-            @media (max-width: 1020px) {
-                #method .method-grid,
-                #method .method-grid.has-child {
-                    width: min(760px, calc(100vw - 32px));
-                    grid-template-columns: 1fr !important;
-                    gap: 18px;
-                }
-
-                #method .mdetail,
-                #method .method-grid.has-child .mdetail {
-                    position: static;
-                    height: auto !important;
-                    max-height: none !important;
-                    overflow-y: visible;
-                }
-            }
-
-            @media (max-width: 700px) {
-                #method .method-grid,
-                #method .method-grid.has-child {
-                    width: calc(100vw - 24px);
-                }
-
-                #method .marchitecture-head {
-                    display: block;
-                }
-
-                #method .mlegend {
-                    justify-content: flex-start;
-                    margin-top: 9px;
-                }
-
-                #method .mbranches {
-                    grid-template-columns: 1fr;
-                    gap: 18px;
-                }
-
-                #method .mconnections {
-                    display: none;
-                }
-
-                #method .mbranch.parameter-branch {
-                    padding-top: 0 !important;
-                }
-
-                #method .mflow-hint {
-                    align-items: flex-start;
-                    flex-direction: column;
-                }
-
-                #method .seg {
-                    width: 100%;
-                }
-
-                #method .seg button {
-                    padding-inline: 9px;
-                }
-            }
-
-            @media (max-width: 460px) {
-                #method .mtag {
-                    display: none;
-                }
-
-                #method .mnode {
-                    grid-template-columns: 1fr;
-                    padding-right: 10px;
-                }
-
-                #method .md-param-visual {
-                    grid-template-columns: 1fr;
-                }
-
-                #method .md-actions {
-                    display: grid;
-                    grid-template-columns: 1fr 1fr;
-                }
-
-                #method .md-nav-btn {
-                    width: 100%;
-                }
-            }
-
-            @media (prefers-reduced-motion: reduce) {
-                #method *,
-                #method *::before,
-                #method *::after {
-                    animation-duration: 0.01ms !important;
-                    animation-iteration-count: 1 !important;
-                    transition-duration: 0.01ms !important;
-                }
-            }
+    --frozen-bg: #eef1f6;
+    --frozen-ink: #42597e;
+    --frozen-line: #cdd8e8;
+}
+
+[data-theme="dark"] {
+    --frozen-bg: #161b23;
+    --frozen-ink: #98a8c4;
+    --frozen-line: #2b3340;
+}
+
+#method .method-modes {
+    display: flex;
+    justify-content: center;
+    margin: 0 0 18px;
+}
+
+#method .seg {
+    display: inline-flex;
+    gap: 3px;
+    padding: 3px;
+    border: 1px solid var(--line);
+    border-radius: 999px;
+    background: var(--surface);
+    box-shadow: 0 2px 10px -6px rgba(0, 0, 0, 0.1);
+}
+
+#method .seg button {
+    min-height: 34px;
+    padding: 0 16px;
+    border: 0;
+    border-radius: 999px;
+    color: var(--muted);
+    background: transparent;
+    cursor: pointer;
+    font-size: 0.8rem;
+    font-weight: 600;
+    transition:
+        color 0.18s ease,
+        background 0.18s ease,
+        box-shadow 0.18s ease;
+    font-family:
+        "Noto Sans",
+        -apple-system,
+        BlinkMacSystemFont,
+        "Segoe UI",
+        Roboto,
+        Helvetica,
+        Arial,
+        sans-serif;
+}
+
+#method .seg button:hover {
+    color: var(--ink);
+    background: var(--surface-2);
+}
+
+#method .seg button:focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 2px;
+}
+
+#method .seg button[aria-selected="true"] {
+    color: #fff;
+    background: var(--accent);
+    box-shadow: 0 4px 14px -6px var(--accent);
+}
+
+#method {
+    max-width: none;
+}
+
+#method>p.method-lead,
+#method>.method-modes {
+    max-width: var(--max);
+    margin: 0 auto;
+    padding: 0 22px;
+}
+
+#method .method-grid {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 420px);
+    gap: 40px;
+    align-items: start;
+    margin-top: 8px;
+    justify-content: center;
+    padding: 0 22px;
+}
+
+#method .method-grid[hidden] {
+    display: none;
+}
+
+#method .method-grid.has-child {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 320px) minmax(0, 280px);
+}
+
+#method .mdiagram {
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+    margin: 0;
+    transform: translateX(0);
+    transition: transform 0.4s ease;
+}
+
+#method .method-grid.has-child .mdiagram {
+    transform: translateX(-10px);
+}
+
+#method .mbranches {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 18px;
+    position: relative;
+}
+
+#method .mbranch {
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+}
+
+#method .mbranch:nth-child(2) {
+    display: grid;
+    grid-template-rows: repeat(5, auto);
+    gap: 0;
+    align-items: center;
+}
+
+#method .mbranch:nth-child(2) #mblock-cnn {
+    grid-row: 1;
+}
+
+#method .mbranch:nth-child(2) #mblock-params {
+    grid-row: 3;
+}
+
+#method .mcurves {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    z-index: 1;
+}
+
+#method .mcurve-x {
+    position: absolute;
+    color: var(--muted);
+}
+
+#method .mcurve-x svg {
+    width: 100%;
+    height: auto;
+}
+
+#method .mbranch-cap {
+    font-family:
+        "Noto Sans",
+        -apple-system,
+        BlinkMacSystemFont,
+        "Segoe UI",
+        Roboto,
+        Helvetica,
+        Arial,
+        sans-serif;
+    font-size: 9.5px;
+    letter-spacing: 0.04em;
+    color: var(--muted);
+    text-align: center;
+    margin: 0 0 8px;
+}
+
+#method .mtrunk {
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+}
+
+#method .mnode {
+    position: relative;
+    appearance: none;
+    text-align: left;
+    cursor: pointer;
+    width: 100%;
+    border: 1px solid var(--line);
+    background: var(--surface);
+    border-radius: 11px;
+    padding: 11px 14px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    transition:
+        border-color 0.16s ease,
+        box-shadow 0.16s ease,
+        transform 0.16s ease;
+}
+
+#method .mnode:hover {
+    transform: translateY(-1px);
+    border-color: var(--line-strong);
+}
+
+#method .mnode[aria-selected="true"] {
+    border-color: var(--accent);
+    box-shadow: 0 12px 28px -22px rgba(0, 0, 0, 0.5);
+}
+
+#method .mnode.dashed {
+    border-style: dashed;
+}
+
+#method .mnode.dashed[aria-selected="true"] {
+    border-style: dashed;
+    border-color: var(--accent);
+}
+
+#method .mnode-label {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--ink);
+    letter-spacing: -0.01em;
+    line-height: 1.25;
+}
+
+#method .mnode[aria-selected="true"] .mnode-label {
+    color: var(--accent);
+}
+
+#method .mtag {
+    font-family:
+        "Noto Sans",
+        -apple-system,
+        BlinkMacSystemFont,
+        "Segoe UI",
+        Roboto,
+        Helvetica,
+        Arial,
+        sans-serif;
+    font-size: 9.5px;
+    padding: 2px 7px;
+    border-radius: 5px;
+    white-space: nowrap;
+    border: 1px solid var(--line);
+    flex: none;
+}
+
+#method .mtag.frozen {
+    background: var(--frozen-bg);
+    color: var(--frozen-ink);
+    border-color: var(--frozen-line);
+}
+
+#method .mtag.trained {
+    background: var(--accent-soft);
+    color: var(--accent);
+    border-color: color-mix(in srgb, var(--accent) 30%, transparent);
+}
+
+#method .mtag.neutral {
+    background: var(--surface-2);
+    color: var(--muted);
+}
+
+#method .mconn {
+    height: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--muted);
+}
+
+#method .mconn svg {
+    width: 18px;
+    height: 18px;
+}
+
+#method .mdetail {
+    position: sticky;
+    top: 84px;
+    border: 1px solid var(--line);
+    border-radius: 16px;
+    background: var(--surface);
+    padding: 20px 22px 20px;
+    min-height: 260px;
+    transform: translateX(0);
+    transition: transform 0.4s ease;
+}
+
+#method .method-grid.has-child .mdetail {
+    transform: translateX(-15px);
+}
+
+#method .md-tag {
+    display: inline-block;
+    font-family:
+        "Noto Sans",
+        -apple-system,
+        BlinkMacSystemFont,
+        "Segoe UI",
+        Roboto,
+        Helvetica,
+        Arial,
+        sans-serif;
+    font-size: 11px;
+    padding: 3px 10px;
+    border-radius: 6px;
+    margin-bottom: 10px;
+    border: 1px solid var(--line);
+    background: var(--surface-2);
+    color: var(--muted);
+}
+
+#method .md-tag.frozen {
+    background: var(--frozen-bg);
+    color: var(--frozen-ink);
+    border-color: var(--frozen-line);
+}
+
+#method .md-tag.trained {
+    background: var(--accent-soft);
+    color: var(--accent);
+    border-color: color-mix(in srgb, var(--accent) 30%, transparent);
+}
+
+#method .md-tag.neutral {
+    background: var(--surface-2);
+    color: var(--muted);
+}
+
+#method .md-title {
+    font-size: 1.22rem;
+    font-weight: 700;
+    letter-spacing: -0.02em;
+    margin: 0 0 9px;
+    color: var(--ink);
+}
+
+#method .md-eq {
+    font-family:
+        "Noto Sans",
+        -apple-system,
+        BlinkMacSystemFont,
+        "Segoe UI",
+        Roboto,
+        Helvetica,
+        Arial,
+        sans-serif;
+    font-size: 13.5px;
+    color: var(--accent);
+    background: var(--surface-2);
+    border: 1px solid var(--line);
+    border-radius: 9px;
+    padding: 9px 12px;
+    margin: 0 0 11px;
+    overflow-x: auto;
+    white-space: nowrap;
+}
+
+#method .md-text {
+    font-size: 15px;
+    color: var(--muted);
+    line-height: 1.62;
+    margin: 0;
+}
+
+#method .md-media {
+    margin: 0 0 12px;
+    text-align: center;
+}
+
+#method .md-media:empty {
+    display: none;
+}
+
+#method .md-shot {
+    max-width: 100%;
+    max-height: 122px;
+    width: auto;
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    background: var(--surface-2);
+    display: inline-block;
+}
+
+#method .md-index {
+    display: flex;
+    justify-content: space-between;
+    gap: 12px;
+    margin-bottom: 9px;
+    align-items: center;
+    color: var(--muted);
+    font-size: 0.67rem;
+    font-weight: 700;
+    letter-spacing: 0.07em;
+    text-transform: uppercase;
+}
+
+kbd {
+    padding: 2px 6px;
+    border: 1px solid var(--muted);
+    border-bottom-width: 2px;
+    border-radius: 5px;
+    color: var(--muted);
+    background: var(--bg);
+    font-family: inherit;
+    font-size: 0.7rem;
+}
+
+kbd.thin {
+    padding-inline: 4.5px;
+}
+
+#method .md-step {
+    font-size: 0.68rem;
+    color: var(--muted);
+    font-weight: 600;
+    letter-spacing: 0.04em;
+}
+
+#method .md-simple-visual {
+    display: flex;
+    flex-wrap: wrap;
+    width: min(100%, 310px);
+    min-height: 155px;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    margin: 0 auto 12px;
+}
+
+#method .md-simple-node {
+    display: grid;
+    min-width: 112px;
+    min-height: 62px;
+    padding: 9px;
+    place-items: center;
+    border: 1.5px solid color-mix(in srgb, var(--ink) 72%, transparent);
+    border-radius: 10px;
+    color: var(--ink);
+    background: var(--bg);
+    font-size: 0.75rem;
+    font-weight: 700;
+    line-height: 1.25;
+    text-align: center;
+    appearance: none;
+    cursor: pointer;
+    font-family: inherit;
+}
+
+#method .md-simple-node:hover {
+    border-color: var(--accent);
+    transform: translateY(-1px);
+}
+
+#method .md-simple-node[aria-selected="true"] {
+    border-color: var(--accent);
+    background: var(--accent-soft);
+}
+
+#method .md-simple-node.dashed {
+    border-style: dashed;
+}
+
+#method .md-simple-arrow {
+    color: var(--muted);
+    font-size: 1.15rem;
+}
+
+#method .md-image-visual {
+    width: 100%;
+}
+
+#method .md-image-node {
+    display: flex;
+    min-width: 200px;
+    min-height: 140px;
+    padding: 0;
+    position: relative;
+    align-items: stretch;
+    justify-content: center;
+}
+
+#method .md-image-node img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    border-radius: 8px;
+}
+
+#method .md-image-label {
+    position: absolute;
+    bottom: 8px;
+    left: 8px;
+    right: 8px;
+    padding: 4px 8px;
+    background: rgba(0, 0, 0, 0.6);
+    color: white;
+    font-size: 11px;
+    font-weight: 600;
+    border-radius: 4px;
+    text-align: left;
+}
+
+#method .md-static-node {
+    cursor: default;
+}
+
+#method .md-static-node:hover {
+    transform: none;
+    border-color: color-mix(in srgb, var(--ink) 72%, transparent);
+}
+
+#method .md-param-visual {
+    display: grid;
+    width: 100%;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 8px;
+    margin-bottom: 12px;
+}
+
+#method .md-param-visual .md-simple-node {
+    min-width: 0;
+    min-height: 78px;
+}
+
+#method .md-subflow {
+    display: flex;
+    width: min(100%, 300px);
+    flex-direction: column;
+    align-items: stretch;
+    gap: 7px;
+    margin: 0 auto 12px;
+}
+
+#method .msubnode {
+    display: flex;
+    width: 100%;
+    min-height: 52px;
+    padding: 8px 10px;
+    border: 1.5px solid color-mix(in srgb, var(--ink) 75%, transparent);
+    border-radius: 9px;
+    align-items: center;
+    justify-content: center;
+    color: var(--ink);
+    background: var(--bg);
+    cursor: pointer;
+    font-size: 0.76rem;
+    font-weight: 700;
+    line-height: 1.2;
+    text-align: center;
+    transition:
+        border-color 0.14s ease,
+        box-shadow 0.14s ease,
+        transform 0.14s ease;
+    font-family:
+        "Noto Sans",
+        -apple-system,
+        BlinkMacSystemFont,
+        "Segoe UI",
+        Roboto,
+        Helvetica,
+        Arial,
+        sans-serif;
+}
+
+#method .msubnode:hover {
+    transform: translateY(-1px);
+}
+
+#method .msubnode.image-node {
+    border-style: dashed;
+}
+
+#method .msubnode[aria-selected="true"] {
+    border-color: var(--accent);
+    box-shadow: 0 0 0 2px color-mix(in srgb, var(--accent) 20%, transparent);
+}
+
+#method .msubconn {
+    display: grid;
+    height: 16px;
+    place-items: center;
+    color: var(--muted);
+}
+
+#method .msubconn svg {
+    width: 16px;
+    height: 16px;
+}
+
+#method .md-child {
+    padding: 14px;
+    border: 1px solid var(--line);
+    border-left: 3px solid var(--accent);
+    border-radius: 0 12px 12px 0;
+    background: var(--surface-2);
+    opacity: 0;
+    transform: translateX(20px);
+    transition: all 0.4s ease;
+}
+
+#method .md-child:not([hidden]) {
+    opacity: 1;
+    transform: translateX(0);
+}
+
+#method .md-child-kicker {
+    margin: 0 0 7px;
+    color: var(--muted);
+    font-size: 0.62rem;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+}
+
+#method .md-child-tag {
+    display: inline-block;
+    font-size: 0.68rem;
+    padding: 2px 7px;
+    border-radius: 5px;
+    margin-bottom: 8px;
+    border: 1px solid color-mix(in srgb, var(--accent) 30%, transparent);
+    background: var(--accent-soft);
+    color: var(--accent);
+    font-weight: 600;
+}
+
+
+
+#method .md-child-title {
+    font-size: 0.9rem;
+    font-weight: 700;
+    margin: 0 0 7px;
+    color: var(--ink);
+}
+
+#method .md-child-eq {
+    font-size: 0.8rem;
+    color: var(--accent);
+    background: var(--surface-2);
+    border: 1px solid var(--line);
+    border-radius: 7px;
+    padding: 7px 10px;
+    margin: 0 0 8px;
+    overflow-x: auto;
+    white-space: nowrap;
+}
+
+#method .md-child-text {
+    font-size: 0.82rem;
+    color: var(--muted);
+    line-height: 1.55;
+    margin: 0;
+}
+
+#method .method-figure {
+    margin: 0;
+}
+
+#method .mfig-frame {
+    position: relative;
+    display: block;
+    appearance: none;
+    cursor: pointer;
+    background: #fff;
+    border: 1px solid var(--line-strong);
+    border-radius: 14px;
+    padding: 14px;
+    width: fit-content;
+    max-width: 100%;
+    margin: 8px auto 0px;
+    overflow: hidden;
+    transition:
+        border-color 0.18s ease,
+        box-shadow 0.18s ease,
+        transform 0.18s ease;
+}
+
+#method .mfig-frame img {
+    display: block;
+    max-height: 560px;
+    width: auto;
+    max-width: 100%;
+    height: auto;
+    border-radius: 4px;
+}
+
+#method .mfig-frame:hover,
+#method .mfig-frame:focus-visible {
+    border-color: var(--accent);
+    box-shadow: 0 20px 44px -26px color-mix(in srgb, var(--accent) 60%, transparent);
+    transform: translateY(-2px);
+    outline: none;
+}
+
+#method .mfig-cue {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 14px;
+    background: color-mix(in srgb, var(--accent) 13%, transparent);
+    opacity: 0;
+    transition: opacity 0.18s ease;
+    pointer-events: none;
+}
+
+#method .mfig-cue b {
+    display: inline-flex;
+    align-items: center;
+    gap: 9px;
+    font-family:
+        "Noto Sans",
+        -apple-system,
+        BlinkMacSystemFont,
+        "Segoe UI",
+        Roboto,
+        Helvetica,
+        Arial,
+        sans-serif;
+    font-size: 12.5px;
+    font-weight: 600;
+    letter-spacing: 0.01em;
+    color: #fff;
+    background: var(--accent);
+    border-radius: 11px;
+    padding: 10px 17px;
+    box-shadow: 0 12px 30px -10px rgba(0, 0, 0, 0.5);
+    transform: translateY(6px);
+    transition: transform 0.18s ease;
+}
+
+#method .mfig-cue svg {
+    width: 15px;
+    height: 15px;
+    stroke: #fff;
+    fill: none;
+    stroke-width: 2;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    flex: none;
+}
+
+#method .mfig-frame:hover .mfig-cue,
+#method .mfig-frame:focus-visible .mfig-cue {
+    opacity: 1;
+}
+
+#method .mfig-frame:hover .mfig-cue b,
+#method .mfig-frame:focus-visible .mfig-cue b {
+    transform: translateY(0);
+}
+
+@media (max-width: 980px) {
+    #method .method-grid {
+        grid-template-columns: 1fr;
+    }
+
+    #method .mdetail {
+        position: static;
+    }
+
+    #method .mcurves {
+        display: none;
+    }
+}
+
+@media (max-width: 660px) {
+    #method .method-modes {
+        justify-content: stretch;
+    }
+
+    #method .seg {
+        width: 100%;
+    }
+
+    #method .seg button {
+        flex: 1;
+        padding-inline: 9px;
+    }
+
+    #method .mtag {
+        display: none;
+    }
+
+    #method .mfig-cue {
+        left: 10px;
+        right: 10px;
+        justify-content: center;
+    }
+}
+
+:root {
+    --ia-inverse: var(--accent);
+    --ia-inverse-soft: var(--accent-soft);
+}
+
+#method .method-modes {
+    margin-top: 18px;
+    margin-bottom: 18px;
+}
+
+#method .seg {
+    display: inline-grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 4px;
+    padding: 4px;
+    border: 1px solid var(--line);
+    border-radius: 999px;
+    background: var(--surface);
+    box-shadow: 0 8px 24px -20px rgba(0, 0, 0, 0.45);
+}
+
+#method .seg button {
+    min-height: 37px;
+    padding: 0 18px;
+    font-weight: 700;
+}
+
+#method .method-grid,
+#method .method-grid.has-child {
+    width: min(1120px, calc(100vw - 40px));
+    display: grid;
+    grid-template-columns: minmax(0, 1.18fr) minmax(340px, 0.82fr) !important;
+    gap: 26px;
+    align-items: start;
+    margin: 18px 50% 28px;
+    padding: 0;
+    transform: translateX(-50%);
+    border: 0;
+    border-radius: 0;
+    background: transparent;
+    box-shadow: none;
+    overflow: visible;
+}
+
+#method .method-grid[hidden] {
+    display: none;
+}
+
+#method .method-grid:not([hidden]) {
+    animation: iaPanelIn 0.22s ease both;
+}
+
+@keyframes iaPanelIn {
+    from {
+        opacity: 0;
+        transform: translate(-50%, 6px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translate(-50%, 0);
+    }
+}
+
+#method .mdiagram,
+#method .method-grid.has-child .mdiagram {
+    min-width: 0;
+    margin: 0;
+    padding: 0;
+    transform: none !important;
+}
+
+#method .marchitecture-head {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 18px;
+    margin-bottom: 14px;
+    padding-bottom: 12px;
+    border-bottom: 1px solid var(--line);
+}
+
+#method .marchitecture-eyebrow {
+    margin: 0 0 3px;
+    color: var(--accent);
+    font-size: 0.64rem;
+    font-weight: 800;
+    letter-spacing: 0.09em;
+    text-transform: uppercase;
+}
+
+#method .marchitecture-title {
+    margin: 0;
+    color: var(--ink);
+    font-size: 1rem;
+    font-weight: 750;
+    letter-spacing: -0.015em;
+}
+
+#method .mlegend {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: flex-end;
+    gap: 6px 10px;
+    color: var(--muted);
+    font-size: 0.66rem;
+    line-height: 1.25;
+}
+
+#method .mlegend-item {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    white-space: nowrap;
+}
+
+#method .mlegend-dot {
+    width: 8px;
+    height: 8px;
+    border: 1px solid var(--line-strong);
+    border-radius: 50%;
+    background: var(--surface-2);
+}
+
+#method .mlegend-dot.trained {
+    border-color: color-mix(in srgb, var(--accent) 38%, transparent);
+    background: var(--accent-soft);
+}
+
+#method .mlegend-dot.retrain {
+    border-color: var(--frozen-line);
+    background: var(--frozen-bg);
+}
+
+#method .mlegend-dot.image {
+    border-style: dashed;
+    background: transparent;
+}
+
+#method .mbranches {
+    position: relative;
+    display: grid;
+    grid-template-columns: minmax(310px, 1.08fr) minmax(250px, 0.92fr);
+    gap: 62px;
+    align-items: start;
+    min-width: 0;
+}
+
+#method .mbranch,
+#method .mbranch.parameter-branch {
+    position: relative;
+    z-index: 2;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+    padding: 0;
+    border: 0;
+    border-radius: 0;
+    background: transparent !important;
+    box-shadow: none;
+}
+
+#method .mbranch-cap,
+#method .mparameter-route {
+    display: none !important;
+}
+
+#method .mconnections {
+    position: absolute;
+    inset: 0;
+    z-index: 0;
+    width: 100%;
+    height: 100%;
+    overflow: visible;
+    pointer-events: none;
+    color: var(--muted);
+}
+
+#method .mconnections>path {
+    fill: none;
+    stroke: color-mix(in srgb, var(--muted) 70%, transparent);
+    stroke-width: 1.25;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    vector-effect: non-scaling-stroke;
+}
+
+#method .mconnections path.dashed {
+    stroke-dasharray: 5 5;
+}
+
+#method #mArrowHead .m-arrow-head {
+    fill: none;
+    stroke: color-mix(in srgb, var(--muted) 70%, transparent);
+    stroke-width: 1.25;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    vector-effect: non-scaling-stroke;
+}
+
+#method .mnode {
+    position: relative;
+    z-index: 2;
+    width: 100%;
+    min-height: 56px;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    align-items: center;
+    gap: 10px;
+    padding: 11px 13px;
+    appearance: none;
+    border: 1px solid var(--line);
+    border-radius: 11px;
+    color: var(--ink);
+    background: var(--surface);
+    cursor: pointer;
+    font-family: inherit;
+    text-align: left;
+    transition:
+        border-color 0.16s ease,
+        background 0.16s ease,
+        box-shadow 0.16s ease,
+        transform 0.16s ease;
+}
+
+#method .mnode::before {
+    content: none !important;
+    display: none !important;
+}
+
+#method .mnode::after {
+    content: "";
+    position: absolute;
+    left: -1px;
+    top: 10px;
+    bottom: 10px;
+    width: 3px;
+    border-radius: 0 4px 4px 0;
+    background: transparent;
+    transition: background 0.16s ease;
+}
+
+#method .mnode:hover {
+    transform: translateY(-1px);
+    border-color: color-mix(in srgb, var(--accent) 38%, var(--line));
+    background: color-mix(in srgb, var(--accent) 2.5%, var(--surface));
+}
+
+#method .mnode:focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 2px;
+}
+
+#method .mnode[aria-selected="true"] {
+    border-color: var(--accent);
+    background: color-mix(in srgb, var(--accent) 8%, var(--surface));
+    box-shadow:
+        0 0 0 1px color-mix(in srgb, var(--accent) 12%, transparent),
+        0 14px 28px -24px color-mix(in srgb, var(--accent) 78%, transparent);
+}
+
+#method .mnode[aria-selected="true"]::after {
+    background: var(--accent);
+}
+
+#method .mnode.dashed {
+    border-style: dashed;
+}
+
+#method .mnode-label {
+    min-width: 0;
+    color: var(--ink);
+    font-size: 0.8rem;
+    font-weight: 700;
+    line-height: 1.3;
+}
+
+#method .mnode[aria-selected="true"] .mnode-label {
+    color: var(--accent);
+}
+
+#method .mtag {
+    min-height: 23px;
+    display: inline-flex;
+    align-items: center;
+    padding: 2px 7px;
+    border: 1px solid var(--line);
+    border-radius: 6px;
+    color: var(--muted);
+    background: var(--surface-2);
+    font-size: 0.58rem;
+    font-weight: 700;
+    white-space: nowrap;
+}
+
+#method .mtag.frozen {
+    color: var(--frozen-ink);
+    border-color: var(--frozen-line);
+    background: var(--frozen-bg);
+}
+
+#method .mtag.trained {
+    color: var(--accent);
+    border-color: color-mix(in srgb, var(--accent) 28%, transparent);
+    background: var(--accent-soft);
+}
+
+#method .mconn {
+    height: 24px;
+    display: grid;
+    place-items: center;
+    color: color-mix(in srgb, var(--muted) 75%, transparent);
+}
+
+#method .mconn svg {
+    width: 15px;
+    height: 15px;
+}
+
+#method .mflow-hint {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 14px;
+    margin-top: 14px;
+    padding-top: 12px;
+    border-top: 1px solid var(--line);
+    color: var(--muted);
+    font-size: 0.67rem;
+    line-height: 1.45;
+}
+
+.viewer-tip kbd {
+    min-width: 22px;
+    height: 22px;
+    display: inline-grid;
+    place-items: center;
+    font-weight: 700;
+    line-height: 1;
+    vertical-align: middle;
+}
+
+.viewer-tip kbd+kbd {
+    margin-left: 2px;
+}
+
+#method .mdetail,
+#method .method-grid.has-child .mdetail {
+    position: sticky;
+    top: 74px;
+    min-width: 0;
+    min-height: 0;
+    height: var(--ia-detail-height, auto);
+    max-height: var(--ia-detail-height, none);
+    padding: 18px;
+    overflow-x: hidden;
+    overflow-y: auto;
+    overscroll-behavior: auto;
+    scrollbar-gutter: stable;
+    border: 1px solid var(--line);
+    border-radius: 16px;
+    background: var(--surface);
+    transform: none !important;
+}
+
+#method .mdetail::-webkit-scrollbar {
+    width: 8px;
+}
+
+#method .mdetail::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+#method .mdetail::-webkit-scrollbar-thumb {
+    border: 2px solid transparent;
+    border-radius: 999px;
+    background: color-mix(in srgb, var(--muted) 38%, transparent);
+    background-clip: padding-box;
+}
+
+#method .mdetail {
+    scrollbar-width: thin;
+    scrollbar-color: color-mix(in srgb, var(--muted) 38%, transparent) transparent;
+}
+
+#method .mdetail.is-updating {
+    animation: iaDetailIn 0.18s ease both;
+}
+
+@keyframes iaDetailIn {
+    from {
+        opacity: 0.72;
+        transform: translateY(3px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+#method .mdetail-top {
+    margin-bottom: 15px;
+    padding-bottom: 13px;
+    border-bottom: 1px solid var(--line);
+}
+
+#method .md-step-group {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+}
+
+#method .md-stage {
+    color: var(--accent);
+}
+
+#method .md-progress {
+    height: 4px;
+    overflow: hidden;
+    border-radius: 999px;
+    background: var(--surface-2);
+}
+
+#method .md-progress span {
+    display: block;
+    width: 14.285%;
+    height: 100%;
+    border-radius: inherit;
+    background: var(--accent);
+    transition: width 0.22s ease;
+}
+
+#method .md-title {
+    margin: 0 0 9px;
+    color: var(--ink);
+    font-size: 1.18rem;
+    line-height: 1.25;
+}
+
+#method .md-text {
+    margin: 0;
+    color: var(--muted);
+    font-size: 0.86rem;
+    line-height: 1.68;
+    text-align: left;
+}
+
+#method .md-media {
+    margin: 16px 0 0;
+    padding-top: 14px;
+    border-top: 1px solid var(--line);
+    text-align: center;
+}
+
+#method .md-media:empty {
+    display: none;
+}
+
+#method .md-simple-visual {
+    width: min(100%, 300px);
+    min-height: 118px;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    margin: 0 auto;
+}
+
+#method .md-simple-visual.vertical-flow {
+    width: min(100%, 250px);
+    min-height: 0;
+    flex-direction: column;
+    flex-wrap: nowrap;
+    align-items: stretch;
+}
+
+#method .md-simple-visual.vertical-flow .md-simple-node {
+    width: 100%;
+    min-width: 0;
+}
+
+#method .md-simple-node,
+#method .msubnode {
+    appearance: none;
+    border: 1px solid var(--line-strong);
+    color: var(--ink);
+    background: var(--surface);
+    cursor: pointer;
+    font-family: inherit;
+    text-align: center;
+    transition:
+        border-color 0.15s ease,
+        background 0.15s ease,
+        box-shadow 0.15s ease,
+        transform 0.15s ease;
+}
+
+#method .md-simple-node {
+    min-width: 104px;
+    min-height: 58px;
+    display: grid;
+    place-items: center;
+    padding: 8px;
+    border-radius: 10px;
+    font-size: 0.67rem;
+    font-weight: 700;
+    line-height: 1.3;
+}
+
+#method .md-simple-node:hover,
+#method .msubnode:hover {
+    transform: translateY(-1px);
+    border-color: var(--accent);
+}
+
+#method .md-simple-node:focus-visible,
+#method .msubnode:focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 2px;
+}
+
+#method .md-simple-node[aria-selected="true"],
+#method .msubnode[aria-selected="true"] {
+    border-color: var(--accent);
+    background: var(--accent-soft);
+    box-shadow: 0 0 0 2px color-mix(in srgb, var(--accent) 14%, transparent);
+}
+
+#method .md-simple-node.dashed,
+#method .msubnode.image-node {
+    border-style: dashed;
+}
+
+#method .md-simple-arrow {
+    color: var(--muted);
+    font-size: 1rem;
+    line-height: 1;
+}
+
+#method .md-param-visual {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 7px;
+    width: 100%;
+    margin: 0;
+}
+
+#method .md-param-visual .md-simple-node {
+    min-width: 0;
+    min-height: 82px;
+}
+
+#method .md-subflow {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 0;
+    width: min(100%, 290px);
+    margin: 0 auto;
+}
+
+#method .msubnode {
+    width: 100%;
+    min-height: 48px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 8px 10px;
+    border-radius: 9px;
+    font-size: 0.68rem;
+    font-weight: 700;
+    line-height: 1.25;
+}
+
+#method .msubconn {
+    height: 15px;
+    display: grid;
+    place-items: center;
+    color: var(--muted);
+}
+
+#method .msubconn svg {
+    width: 14px;
+    height: 14px;
+}
+
+#method .md-child,
+#method .md-child:not([hidden]) {
+    margin-top: 14px;
+    padding: 13px 14px;
+    border: 1px solid color-mix(in srgb, var(--accent) 32%, var(--line));
+    border-left: 3px solid var(--accent);
+    border-radius: 0 11px 11px 0;
+    background: color-mix(in srgb, var(--accent) 7%, var(--surface));
+    opacity: 1;
+    transform: none;
+    animation: iaChildIn 0.2s ease both;
+}
+
+#method .md-child[hidden] {
+    display: none;
+}
+
+@keyframes iaChildIn {
+    from {
+        opacity: 0;
+        transform: translateY(5px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+#method .md-child-eq {
+    color: var(--accent);
+    border-color: color-mix(in srgb, var(--accent) 20%, var(--line));
+    background: color-mix(in srgb, var(--accent) 5%, var(--surface));
+}
+
+#method .md-actions {
+    display: flex;
+    justify-content: space-between;
+    gap: 10px;
+    margin-top: 16px;
+    padding-top: 14px;
+    border-top: 1px solid var(--line);
+}
+
+#method .md-nav-btn {
+    min-height: 34px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 7px;
+    padding: 0 13px;
+    border: 1px solid var(--line);
+    border-radius: 9px;
+    color: var(--ink);
+    background: var(--surface);
+    cursor: pointer;
+    font-family: inherit;
+    font-size: 0.68rem;
+    font-weight: 750;
+    transition:
+        border-color 0.15s ease,
+        color 0.15s ease,
+        background 0.15s ease,
+        transform 0.15s ease;
+}
+
+#method .md-nav-btn:hover:not(:disabled) {
+    color: var(--accent);
+    border-color: var(--accent);
+    background: var(--accent-soft);
+    transform: translateY(-1px);
+}
+
+#method .md-nav-btn:disabled {
+    opacity: 0.38;
+    cursor: not-allowed;
+}
+
+#method .md-nav-btn.primary {
+    color: #fff;
+    border-color: var(--accent);
+    background: var(--accent);
+}
+
+#method .md-nav-btn.primary:hover:not(:disabled) {
+    color: #fff;
+    background: color-mix(in srgb, var(--accent) 88%, #000);
+}
+
+@media (max-width: 1020px) {
+
+    #method .method-grid,
+    #method .method-grid.has-child {
+        width: min(760px, calc(100vw - 32px));
+        grid-template-columns: 1fr !important;
+        gap: 18px;
+    }
+
+    #method .mdetail,
+    #method .method-grid.has-child .mdetail {
+        position: static;
+        height: auto !important;
+        max-height: none !important;
+        overflow-y: visible;
+    }
+}
+
+@media (max-width: 700px) {
+
+    #method .method-grid,
+    #method .method-grid.has-child {
+        width: calc(100vw - 24px);
+    }
+
+    #method .marchitecture-head {
+        display: block;
+    }
+
+    #method .mlegend {
+        justify-content: flex-start;
+        margin-top: 9px;
+    }
+
+    #method .mbranches {
+        grid-template-columns: 1fr;
+        gap: 18px;
+    }
+
+    #method .mconnections {
+        display: none;
+    }
+
+    #method .mbranch.parameter-branch {
+        padding-top: 0 !important;
+    }
+
+    #method .mflow-hint {
+        align-items: flex-start;
+        flex-direction: column;
+    }
+
+    #method .seg {
+        width: 100%;
+    }
+
+    #method .seg button {
+        padding-inline: 9px;
+    }
+}
+
+@media (max-width: 460px) {
+    #method .mtag {
+        display: none;
+    }
+
+    #method .mnode {
+        grid-template-columns: 1fr;
+        padding-right: 10px;
+    }
+
+    #method .md-param-visual {
+        grid-template-columns: 1fr;
+    }
+
+    #method .md-actions {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+    }
+
+    #method .md-nav-btn {
+        width: 100%;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+
+    #method *,
+    #method *::before,
+    #method *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+    }
+}

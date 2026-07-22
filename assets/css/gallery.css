@@ -1,1020 +1,1035 @@
 #gallery {
-                --gallery-shell-max: 840px;
-                --gallery-shell-gutter: 32px;
-                --gallery-feature-gap: 22px;
-                --gallery-heading-gap: 12px;
-
-                --cs-controls-width: 380px;
-                --cs-visual-min-width: 520px;
-                --cs-layout-gap: 18px;
-                --cs-stack-gap: 16px;
-                --cs-control-gap: 8px;
-                --cs-panel-padding: 15px;
-                --cs-panel-radius: 16px;
-                --cs-stage-radius: 13px;
-                --cs-field-radius: 10px;
-                --cs-pill-radius: 999px;
-                --cs-source-min-height: 220px;
-                --cs-source-max-height: 460px;
-                --cs-viewer-aspect: 1 / 1;
-                --cs-sticky-top: 72px;
-                --cs-border: 1px solid var(--line);
-                --cs-strong-border: 1px solid var(--line-strong);
-                --cs-transition: 0.16s ease;
-
-                overflow: visible;
-            }
-
-            #gallery .gallery-shell {
-                width: min(var(--gallery-shell-max), calc(100vw - var(--gallery-shell-gutter)));
-                margin: 0 50%;
-                transform: translateX(-50%);
-            }
-
-            #gallery .gallery-feature-heading {
-                display: flex;
-                align-items: baseline;
-                justify-content: space-between;
-                gap: var(--gallery-heading-gap);
-                margin: var(--gallery-feature-gap) 0 16px;
-                padding-bottom: 10px;
-            }
-
-            #gallery .gallery-feature-heading-color {
-                margin-top: 28px;
-            }
-
-            #gallery .gallery-feature-title {
-                min-width: 0;
-                display: flex;
-                align-items: baseline;
-                gap: 9px;
-            }
-
-            #gallery .gallery-feature-number {
-                flex: 0 0 auto;
-                color: var(--accent);
-                font-size: 0.67rem;
-                font-weight: 750;
-                letter-spacing: 0.06em;
-            }
-
-            #gallery .gallery-feature-heading h3 {
-                margin: 0;
-                color: var(--ink);
-                font-size: 1.02rem;
-                line-height: 1.3;
-            }
-
-            #gallery .gallery-feature-heading > p {
-                max-width: 620px;
-                margin: 0;
-                color: var(--muted);
-                font-size: 0.78rem;
-                line-height: 1.45;
-                text-align: right;
-            }
-
-            #galleryArena {
-                max-width: 1120px;
-                margin: 0 auto;
-            }
-
-            #galleryArena .arena-container {
-                margin: 0 auto;
-                padding-top: 6px;
-            }
-
-            #galleryColorSpace {
-                width: 100%;
-            }
-
-            #gallery .cs-atlas,
-            #gallery .cs-atlas * {
-                box-sizing: border-box;
-            }
-
-            #gallery .cs-atlas button,
-            #gallery .cs-atlas select,
-            #gallery .cs-atlas input {
-                font: inherit;
-            }
-
-            #gallery .cs-four-column {
-                display: grid;
-                grid-template-columns:
-                    minmax(260px, var(--cs-controls-width))
-                    minmax(var(--cs-visual-min-width), 1fr);
-                grid-template-areas: "mapping visual";
-                gap: var(--cs-layout-gap);
-                align-items: start;
-            }
-
-            #gallery .cs-visual-column {
-                grid-area: visual;
-                min-width: 0;
-                display: grid;
-                grid-template-columns: minmax(0, 1fr);
-                gap: var(--cs-stack-gap);
-            }
-
-            #gallery .cs-mapping-panel {
-                grid-area: mapping;
-                position: sticky;
-                top: var(--cs-sticky-top);
-                max-height: calc(100vh - var(--cs-sticky-top) - 16px);
-                overflow-x: hidden;
-                overflow-y: auto;
-                overscroll-behavior: auto;
-                scrollbar-gutter: stable;
-                scrollbar-width: thin;
-                scrollbar-color: color-mix(in srgb, var(--muted) 35%, transparent) transparent;
-            }
-
-            #gallery .cs-input-panel,
-            #gallery .cs-viewer-panel,
-            #gallery .cs-mapping-panel {
-                width: 100%;
-                min-width: 0;
-            }
-
-            #gallery .cs-panel {
-                padding: var(--cs-panel-padding);
-                border: var(--cs-border);
-                border-radius: var(--cs-panel-radius);
-                background: var(--surface);
-                box-shadow: 0 16px 38px -34px var(--shadow);
-            }
-
-            #gallery .cs-combined-panel {
-                display: flex;
-                flex-direction: column;
-                gap: var(--cs-stack-gap);
-            }
-
-            #gallery .cs-point-cloud-row {
-                display: grid;
-                grid-template-columns: 1fr 1fr;
-                gap: var(--cs-stack-gap);
-            }
-
-            #gallery .cs-point-cloud-col {
-                display: flex;
-                flex-direction: column;
-                gap: 11px;
-                min-height: 0;
-            }
-
-            #gallery .cs-point-cloud-col .cs-viewer-stage {
-                margin-top: auto;
-            }
-
-            #gallery .cs-point-cloud-col .cs-panel-head {
-                margin-bottom: 0;
-            }
-
-            #gallery .cs-panel-head {
-                display: flex;
-                align-items: flex-start;
-                justify-content: space-between;
-                gap: 10px;
-                margin-bottom: 11px;
-            }
-
-            #gallery .cs-panel-head h3 {
-                margin: 0;
-                color: var(--ink);
-                font-size: 0.92rem;
-                line-height: 1.25;
-            }
-
-            #gallery .cs-pill,
-            #gallery .cs-live-pill {
-                flex: 0 0 auto;
-                max-width: 180px;
-                overflow: hidden;
-                border: var(--cs-border);
-                border-radius: var(--cs-pill-radius);
-                color: var(--muted);
-                background: var(--surface-2);
-                font-size: 0.62rem;
-                font-weight: 700;
-                line-height: 1;
-                padding: 6px 8px;
-                text-overflow: ellipsis;
-                white-space: nowrap;
-            }
-
-            #gallery .cs-live-pill {
-                display: inline-flex;
-                align-items: center;
-                gap: 5px;
-                color: var(--accent);
-                border-color: color-mix(in srgb, var(--accent) 24%, var(--line));
-                background: var(--accent-soft);
-            }
-
-            #gallery .cs-live-pill i,
-            #gallery .cs-status span {
-                width: 6px;
-                height: 6px;
-                border-radius: 50%;
-                background: var(--accent);
-                box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 14%, transparent);
-            }
-
-            #gallery .cs-drop-zone {
-                position: relative;
-                width: 100%;
-                height: clamp(var(--cs-source-min-height), 18.5vw, var(--cs-source-max-height));
-                display: grid;
-                place-items: center;
-                padding: 12px;
-                overflow: hidden;
-                border: var(--cs-strong-border);
-                border-radius: var(--cs-stage-radius);
-                background: var(--surface-2);
-                cursor: pointer;
-            }
-
-            #gallery .cs-drop-zone.is-dragging {
-                outline: 2px solid var(--accent);
-                outline-offset: 3px;
-            }
-
-            #gallery #previewCanvas {
-                display: block;
-                width: auto;
-                height: auto;
-                max-width: 100%;
-                max-height: 100%;
-                flex: none;
-                border-radius: calc(var(--cs-stage-radius) - 3px);
-                object-fit: contain;
-            }
-
-            #gallery .cs-drop-overlay {
-                position: absolute;
-                left: 9px;
-                right: 9px;
-                bottom: 9px;
-                display: grid;
-                gap: 1px;
-                padding: 6px 9px;
-                border: 1px solid rgba(255, 255, 255, 0.18);
-                border-radius: 9px;
-                color: #fff;
-                background: rgba(10, 11, 14, 0.36);
-                backdrop-filter: blur(10px);
-            }
-
-            #gallery #previewCanvas {
-                cursor: zoom-in;
-            }
-
-            .cs-image-lightbox {
-                position: fixed !important;
-                top: 0 !important;
-                left: 0 !important;
-                right: 0 !important;
-                width: 100vw !important;
-                height: 100vh !important;
-                z-index: 9999 !important;
-                display: none !important;
-                align-items: center !important;
-                justify-content: center !important;
-                overflow: hidden !important;
-                background: rgba(250, 250, 250, 0.85) !important;
-                backdrop-filter: blur(20px) saturate(180%) !important;
-                -webkit-backdrop-filter: blur(20px) saturate(180%) !important;
-                cursor: zoom-out;
-            }
-
-            [data-theme="dark"] .cs-image-lightbox {
-                background: rgba(34, 34, 40, 0.85) !important;
-            }
-
-            .cs-image-lightbox.is-active {
-                display: flex !important;
-            }
-
-            .cs-image-lightbox img {
-                max-width: 92vw !important;
-                max-height: calc(100% - 60px) !important;
-                width: auto !important;
-                height: auto !important;
-                object-fit: contain !important;
-                transform-origin: center center;
-                cursor: grab;
-                user-select: none;
-                -webkit-user-drag: none;
-            }
-
-            .cs-image-lightbox img:active {
-                cursor: grabbing;
-            }
-
-            #gallery .cs-drop-overlay strong {
-                font-size: 0.72rem;
-            }
-
-            #gallery .cs-drop-overlay small {
-                color: rgba(255, 255, 255, 0.68);
-                font-size: 0.6rem;
-            }
-
-            #gallery .cs-panel-note {
-                min-height: 42px;
-                margin: 0 0 10px;
-                color: var(--muted);
-                font-size: 0.68rem;
-                line-height: 1.5;
-                text-align: left;
-            }
-
-            #gallery .cs-viewer-stage {
-                position: relative;
-                width: 100%;
-                height: auto;
-                min-height: 0;
-                aspect-ratio: var(--cs-viewer-aspect);
-                flex: none;
-                overflow: hidden;
-                border: 1px solid #292d33;
-                border-radius: var(--cs-stage-radius);
-                background: #0d0f12;
-                cursor: grab;
-                touch-action: none;
-            }
-
-            #gallery .cs-viewer-stage.is-light {
-                border-color: var(--line-strong);
-                background: #f3f3ef;
-            }
-
-            #gallery .cs-viewer-stage:active {
-                cursor: grabbing;
-            }
-
-            #gallery .cs-viewer-stage canvas {
-                display: block;
-                width: 100%;
-                height: 100%;
-            }
-
-            #gallery .cs-viewer-hint {
-                position: absolute;
-                top: 9px;
-                left: 9px;
-                z-index: 2;
-                max-width: calc(100% - 18px);
-                overflow: hidden;
-                border: 1px solid rgba(255, 255, 255, 0.12);
-                border-radius: var(--cs-pill-radius);
-                color: rgba(255, 255, 255, 0.66);
-                background: rgba(8, 9, 11, 0.62);
-                font-size: 0.56rem;
-                font-weight: 700;
-                line-height: 1;
-                padding: 6px 8px;
-                pointer-events: none;
-                text-overflow: ellipsis;
-                white-space: nowrap;
-            }
-
-            #gallery .cs-viewer-stage.is-light .cs-viewer-hint {
-                color: rgba(20, 20, 18, 0.62);
-                border-color: rgba(20, 20, 18, 0.1);
-                background: rgba(255, 255, 255, 0.8);
-            }
-
-            #gallery .cs-axis-gizmo {
-                position: absolute;
-                right: 8px;
-                bottom: 8px;
-                z-index: 2;
-                display: none;
-                width: 64px;
-                height: 64px;
-                pointer-events: none;
-            }
-
-            #gallery .cs-viewer-stage.show-axis-labels .cs-axis-gizmo {
-                display: block;
-            }
-
-            #gallery .cs-axis-gizmo svg {
-                width: 100%;
-                height: 100%;
-                overflow: visible;
-            }
-
-            #gallery .cs-axis-gizmo {
-                --axis-x: #ff3553;
-                --axis-y: #8adb00;
-                --axis-z: #2a8fff;
-            }
-
-            #gallery .cs-axis-gizmo .axis-dot[data-dir="positive"] {
-                r: 5;
-            }
-            #gallery .cs-axis-gizmo .axis-dot[data-dir="negative"] {
-                r: 4;
-            }
-
-            #gallery .cs-axis-gizmo .axis-line {
-                stroke-width: 2;
-                stroke-linecap: round;
-            }
-
-            #gallery .cs-axis-gizmo .axis-x {
-                color: var(--axis-x);
-                stroke: var(--axis-x);
-                fill: var(--axis-x);
-            }
-
-            #gallery .cs-axis-gizmo .axis-y {
-                color: var(--axis-y);
-                stroke: var(--axis-y);
-                fill: var(--axis-y);
-            }
-
-            #gallery .cs-axis-gizmo .axis-z {
-                color: var(--axis-z);
-                stroke: var(--axis-z);
-                fill: var(--axis-z);
-            }
-
-            #gallery .cs-axis-gizmo .axis-label {
-                font-size: 10px;
-                /* font-weight: bold; */
-                pointer-events: none;
-                fill: var(--bg) !important;
-
-                stroke: none !important;
-                stroke-width: 0;
-            }
-            #gallery .cs-viewer-stage.is-light .cs-axis-gizmo {
-                --axis-x: #d9363e;
-                --axis-y: #389e0d;
-                --axis-z: #096dd9;
-            }
-
-            #gallery .cs-viewer-stage.is-light .cs-axis-gizmo .axis-x {
-                color: var(--axis-x);
-                stroke: var(--axis-x);
-                fill: var(--axis-x);
-            }
-
-            #gallery .cs-viewer-stage.is-light .cs-axis-gizmo .axis-y {
-                color: var(--axis-y);
-                stroke: var(--axis-y);
-                fill: var(--axis-y);
-            }
-
-            #gallery .cs-viewer-stage.is-light .cs-axis-gizmo .axis-z {
-                color: var(--axis-z);
-                stroke: var(--axis-z);
-                fill: var(--axis-z);
-            }
-
-            
-
-            #gallery .cs-segmented {
-                display: grid;
-                grid-template-columns: repeat(3, minmax(0, 1fr));
-                gap: 4px;
-                padding: 4px;
-                border: var(--cs-border);
-                border-radius: 11px;
-                background: var(--surface-2);
-            }
-
-            #gallery .cs-space-tabs-top {
-                grid-template-columns: repeat(5, minmax(0, 1fr));
-                margin-bottom: 12px;
-            }
-
-            #gallery .cs-seg-button {
-                min-height: 30px;
-                padding: 4px 6px;
-                border: 0;
-                border-radius: 8px;
-                color: var(--muted);
-                background: transparent;
-                cursor: pointer;
-                font-size: 0.64rem;
-                font-weight: 750;
-                position: relative;
-            }
-
-            #gallery .cs-seg-button::after {
-                content: "";
-                position: absolute;
-                bottom: 0;
-                left: 50%;
-                transform: translateX(-50%);
-                width: 0;
-                height: 2px;
-                background: var(--accent);
-                border-radius: 1px;
-                transition: width 0.25s ease;
-            }
-
-            #gallery .cs-seg-button:hover {
-                color: var(--ink);
-            }
-
-            #gallery .cs-seg-button:hover::after {
-                width: 60%;
-            }
-
-            #gallery .cs-seg-button.is-active {
-                color: var(--accent);
-                background: transparent;
-                box-shadow: none;
-            }
-
-            #gallery .cs-seg-button.is-active::after {
-                width: 80%;
-            }
-
-            #gallery .cs-summary {
-                margin-top: 10px;
-                padding: 11px;
-                border: var(--cs-border);
-                border-radius: 11px;
-                background: color-mix(in srgb, var(--accent) 4%, var(--surface));
-            }
-
-            #gallery .cs-summary h4 {
-                margin: 0 0 8px;
-                color: var(--ink);
-                font-size: 0.78rem;
-                line-height: 1.35;
-            }
-
-            #gallery .cs-axis-chips {
-                display: flex;
-                flex-wrap: wrap;
-                gap: 4px;
-            }
-
-            #gallery .cs-axis-chips span {
-                border: var(--cs-border);
-                border-radius: var(--cs-pill-radius);
-                color: var(--muted);
-                background: var(--surface);
-                font-size: 0.54rem;
-                font-weight: 700;
-                padding: 5px 6px;
-                font-variant: small-caps;
-            }
-
-            #gallery .cs-summary p {
-                margin: 8px 0;
-                color: var(--muted);
-                font-size: 0.63rem;
-                line-height: 1.5;
-                text-align: left;
-            }
-
-            #gallery .cs-formula-toggle {
-                display: flex;
-                align-items: center;
-                justify-content: center;
-                margin: 4px auto 0;
-                padding: 2px;
-                border: none;
-                background: transparent;
-                color: var(--muted);
-                cursor: pointer;
-                transition: color 0.15s ease;
-            }
-            #gallery .cs-formula-toggle:hover {
-                color: var(--accent);
-            }
-            #gallery .cs-formula-toggle .cs-toggle-icon {
-                transition: transform 0.2s ease;
-            }
-            #gallery .cs-formula-toggle[aria-expanded="true"] .cs-toggle-icon {
-                transform: rotate(180deg);
-            }
-
-            #gallery .cs-conversion-grid {
-                max-height: 600px;
-                overflow: hidden;
-                transition: max-height 0.3s ease, opacity 0.3s ease, margin-top 0.3s ease;
-                opacity: 1;
-                margin-top: 6px;
-            }
-            #gallery .cs-conversion-grid.cs-is-collapsed {
-                max-height: 0;
-                opacity: 0;
-                margin-top: 0;
-            }
-
-            #gallery .cs-formula-box {
-                display: grid;
-                gap: 2px;
-                overflow-x: auto;
-                border: var(--cs-border);
-                border-radius: 9px;
-                color: var(--ink);
-                background: var(--surface);
-                font-size: 0.66rem;
-                line-height: 1.45;
-                padding: 8px 10px;
-            }
-
-            #gallery .cs-formula-line {
-                display: block;
-                min-width: max-content;
-                text-align: left;
-            }
-
-            #gallery .cs-formula-line mjx-container[display="true"] {
-                margin: 0.18em 0 !important;
-                text-align: left !important;
-            }
-
-            #gallery .cs-control-label {
-                margin: 16px 1px 8px;
-                padding-top: 16px;
-                border-top: 1px solid var(--line);
-                color: var(--muted);
-                font-size: 0.58rem;
-                font-weight: 800;
-                letter-spacing: 0.08em;
-                line-height: 1.2;
-                text-transform: uppercase;
-            }
-
-
-
-            #gallery .cs-settings-stack,
-            #gallery .cs-mini-grid {
-                display: grid;
-                gap: var(--cs-control-gap);
-                margin-top: 0;
-            }
-
-            #gallery .cs-field {
-                min-width: 0;
-                display: grid;
-                gap: 5px;
-                padding: 9px 10px;
-                border: var(--cs-border);
-                border-radius: var(--cs-field-radius);
-                background: var(--surface-2);
-            }
-
-            #gallery .cs-field > span {
-                color: var(--muted);
-                font-size: 0.64rem;
-                font-weight: 700;
-            }
-
-            #gallery .cs-field select {
-                width: 100%;
-                border: 1px solid var(--line);
-                outline: 0;
-                color: var(--ink);
-                background: var(--surface);
-                cursor: pointer;
-                font-size: 0.72rem;
-                font-weight: 700;
-                padding: 8px 12px 8px 12px;
-                border-radius: var(--cs-field-radius);
-                appearance: none;
-                position: relative;
-                transition: border-color var(--cs-transition), box-shadow var(--cs-transition);
-            }
-
-            #gallery .cs-field select::-ms-expand {
-                display: none;
-            }
-
-            #gallery .cs-field {
-                position: relative;
-            }
-
-            #gallery .cs-field select:hover {
-                border-color: var(--accent);
-            }
-
-            #gallery .cs-field select:focus {
-                border-color: var(--accent);
-                box-shadow: 0 0 0 2px color-mix(in srgb, var(--accent) 20%, transparent);
-            }
-
-            #gallery .cs-field select option {
-                padding: 8px 12px;
-                background: var(--surface);
-                color: var(--ink);
-                font-size: 0.72rem;
-                font-weight: 500;
-            }
-
-            #gallery .cs-field select option:hover {
-                background: var(--accent);
-                color: white;
-            }
-
-            #gallery .cs-field select option:checked {
-                background: var(--accent);
-                color: white;
-            }
-
-            #gallery .cs-grouped-select {
-                padding-right: 30px;
-            }
-
-            #gallery .cs-grouped-select optgroup {
-                font-weight: 700;
-                font-size: 0.65rem;
-                color: var(--muted);
-                text-transform: uppercase;
-                letter-spacing: 0.5px;
-                padding: 6px 0 4px 4px;
-                border-bottom: 1px solid var(--line);
-            }
-
-            #gallery .cs-grouped-select optgroup:last-child {
-                border-bottom: none;
-            }
-
-            #gallery .cs-grouped-select optgroup option {
-                font-weight: normal;
-                font-size: 0.82rem;
-                color: var(--text);
-                text-transform: none;
-                letter-spacing: normal;
-                padding: 4px 8px;
-                margin-left: 4px;
-            }
-
-            #gallery .cs-lattice-field {
-                gap: 7px;
-                padding: 10px;
-                border-color: color-mix(in srgb, var(--accent) 18%, var(--line));
-                background: color-mix(in srgb, var(--accent) 3%, var(--surface));
-            }
-
-            #gallery .cs-select-shell {
-                position: relative;
-                display: grid;
-                grid-template-columns: 28px minmax(0, 1fr) 20px;
-                align-items: center;
-                min-height: 40px;
-                overflow: hidden;
-                border: var(--cs-strong-border);
-                border-radius: var(--cs-field-radius);
-                background: var(--surface);
-                transition:
-                    border-color var(--cs-transition),
-                    box-shadow var(--cs-transition),
-                    transform var(--cs-transition);
-            }
-
-            #gallery .cs-select-shell:hover,
-            #gallery .cs-select-shell:focus-within {
-                border-color: var(--accent);
-                box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 11%, transparent);
-                transform: translateY(-1px);
-            }
-
-            #gallery .cs-select-icon,
-            #gallery .cs-select-chevron {
-                display: grid;
-                place-items: center;
-                color: var(--accent);
-                pointer-events: none;
-            }
-
-            #gallery .cs-select-icon svg {
-                width: 15px;
-                height: 15px;
-            }
-
-            #gallery .cs-select-chevron svg {
-                width: 12px;
-                height: 12px;
-            }
-
-            #gallery .cs-select-shell select {
-                height: 38px;
-                appearance: none;
-                -webkit-appearance: none;
-                padding: 0 4px;
-                color: var(--ink);
-                background: transparent;
-                font-size: 0.72rem;
-                font-weight: 750;
-            }
-
-            #gallery .cs-field-hint {
-                color: var(--muted);
-                font-size: 0.57rem;
-                line-height: 1.45;
-            }
-
-            #gallery .cs-range-row {
-                display: grid;
-                grid-template-columns: minmax(0, 1fr) auto;
-                align-items: center;
-                gap: 7px;
-            }
-
-            #gallery .cs-range-row input[type="range"] {
-                width: 100%;
-                accent-color: var(--accent);
-            }
-
-            #gallery .cs-range-row output {
-                min-width: 48px;
-                color: var(--ink);
-                font-size: 0.65rem;
-                font-variant-numeric: tabular-nums;
-                text-align: right;
-            }
-
-            #gallery .cs-toggle-grid {
-                display: flex;
-                flex-wrap: wrap;
-                gap: 5px;
-                margin-top: 9px;
-            }
-
-            #gallery .cs-toggle {
-                display: inline-flex;
-                align-items: center;
-                gap: 6px;
-                min-height: 27px;
-                padding: 0 7px;
-                border: var(--cs-border);
-                border-radius: var(--cs-pill-radius);
-                color: var(--muted);
-                background: var(--surface-2);
-                cursor: pointer;
-                font-size: 0.58rem;
-                font-weight: 700;
-                transition: all var(--cs-transition);
-                
-                user-select: none;
-                -webkit-user-select: none;
-            }
-
-            #gallery .cs-toggle:hover {
-                border-color: var(--accent);
-                color: var(--ink);
-            }
-
-            #gallery .cs-toggle input {
-                position: absolute;
-                opacity: 0;
-                width: 0;
-                height: 0;
-                margin: 0;
-            }
-
-            #gallery .cs-toggle::before {
-                content: "";
-                width: 8px;
-                height: 8px;
-                border-radius: 50%;
-                background: var(--line);
-                transition: background var(--cs-transition);
-                flex-shrink: 0;
-            }
-
-            #gallery .cs-toggle:has(input:checked) {
-                border-color: var(--accent);
-                background: color-mix(in srgb, var(--accent) 10%, var(--surface));
-                color: var(--accent);
-            }
-
-            #gallery .cs-toggle:has(input:checked)::before {
-                background: var(--accent);
-            }
-
-            #gallery .cs-button-grid {
-                display: grid;
-                grid-template-columns: 1fr;
-                gap: 6px;
-                margin-top: 9px;
-            }
-
-            #gallery .cs-button {
-                min-height: 31px;
-                padding: 0 8px;
-                border: 1px solid var(--btn-bg);
-                border-radius: 8px;
-                color: var(--btn-text);
-                background: var(--btn-bg);
-                cursor: pointer;
-                font-size: 0.61rem;
-                font-weight: 750;
-                transition:
-                    transform var(--cs-transition),
-                    border-color var(--cs-transition),
-                    color var(--cs-transition),
-                    background var(--cs-transition);
-            }
-
-            #gallery .cs-button:hover {
-                transform: translateY(-1px);
-                border-color: var(--accent);
-                color: #fff;
-                background: var(--accent);
-            }
-
-            #gallery .cs-status {
-                display: flex;
-                align-items: center;
-                gap: 7px;
-                margin-top: 9px;
-                padding-top: 8px;
-                border-top: var(--cs-border);
-                color: var(--muted);
-                font-size: 0.58rem;
-            }
-
-            #gallery .cs-status b {
-                min-width: 0;
-                overflow: hidden;
-                font-weight: 650;
-                text-overflow: ellipsis;
-                white-space: nowrap;
-            }
-
-            #gallery .cs-mapping-panel::-webkit-scrollbar {
-                width: 8px;
-            }
-
-            #gallery .cs-mapping-panel::-webkit-scrollbar-track {
-                background: transparent;
-            }
-
-            #gallery .cs-mapping-panel::-webkit-scrollbar-thumb {
-                border: 2px solid transparent;
-                border-radius: var(--cs-pill-radius);
-                background: color-mix(in srgb, var(--muted) 35%, transparent);
-                background-clip: padding-box;
-            }
-
-            #gallery .cs-visually-hidden {
-                position: absolute !important;
-                width: 1px !important;
-                height: 1px !important;
-                padding: 0 !important;
-                margin: -1px !important;
-                overflow: hidden !important;
-                clip: rect(0, 0, 0, 0) !important;
-                white-space: nowrap !important;
-                border: 0 !important;
-            }
-
-            #gallery .cs-is-hidden {
-                display: none !important;
-            }
-
-            @media (max-width: 980px) {
-                #gallery {
-                    --gallery-shell-gutter: 24px;
-                }
-
-                #gallery .cs-four-column {
-                    grid-template-columns: 1fr;
-                    grid-template-areas:
-                        "mapping"
-                        "visual";
-                }
-
-                #gallery .cs-mapping-panel {
-                    position: static;
-                    max-height: none;
-                    overflow: visible;
-                }
-            }
-
-            @media (max-width: 760px) {
-                #gallery {
-                    --gallery-shell-gutter: 20px;
-                    --cs-panel-padding: 12px;
-                    --cs-stack-gap: 12px;
-                    --cs-source-min-height: 180px;
-                    --cs-source-max-height: 360px;
-                }
-
-                #gallery .gallery-feature-heading {
-                    align-items: flex-start;
-                    flex-direction: column;
-                    gap: 4px;
-                    padding-bottom: 9px;
-                }
-
-                #gallery .gallery-feature-heading > p {
-                    text-align: left;
-                }
-            }
+    --gallery-shell-max: 840px;
+    --gallery-shell-gutter: 32px;
+    --gallery-feature-gap: 22px;
+    --gallery-heading-gap: 12px;
+
+    --cs-controls-width: 380px;
+    --cs-visual-min-width: 520px;
+    --cs-layout-gap: 18px;
+    --cs-stack-gap: 16px;
+    --cs-control-gap: 8px;
+    --cs-panel-padding: 15px;
+    --cs-panel-radius: 16px;
+    --cs-stage-radius: 13px;
+    --cs-field-radius: 10px;
+    --cs-pill-radius: 999px;
+    --cs-source-min-height: 220px;
+    --cs-source-max-height: 460px;
+    --cs-viewer-aspect: 1 / 1;
+    --cs-sticky-top: 72px;
+    --cs-border: 1px solid var(--line);
+    --cs-strong-border: 1px solid var(--line-strong);
+    --cs-transition: 0.16s ease;
+
+    overflow: visible;
+}
+
+#gallery .gallery-shell {
+    width: min(var(--gallery-shell-max), calc(100vw - var(--gallery-shell-gutter)));
+    margin: 0 50%;
+    transform: translateX(-50%);
+}
+
+#gallery .gallery-feature-heading {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: var(--gallery-heading-gap);
+    margin: var(--gallery-feature-gap) 0 16px;
+    padding-bottom: 10px;
+}
+
+#gallery .gallery-feature-heading-color {
+    margin-top: 28px;
+}
+
+#gallery .gallery-feature-title {
+    min-width: 0;
+    display: flex;
+    align-items: baseline;
+    gap: 9px;
+}
+
+#gallery .gallery-feature-number {
+    flex: 0 0 auto;
+    color: var(--accent);
+    font-size: 0.67rem;
+    font-weight: 750;
+    letter-spacing: 0.06em;
+}
+
+#gallery .gallery-feature-heading h3 {
+    margin: 0;
+    color: var(--ink);
+    font-size: 1.02rem;
+    line-height: 1.3;
+}
+
+#gallery .gallery-feature-heading>p {
+    max-width: 620px;
+    margin: 0;
+    color: var(--muted);
+    font-size: 0.78rem;
+    line-height: 1.45;
+    text-align: right;
+}
+
+#galleryArena {
+    max-width: 1120px;
+    margin: 0 auto;
+}
+
+#galleryArena .arena-container {
+    margin: 0 auto;
+    padding-top: 6px;
+}
+
+#galleryColorSpace {
+    width: 100%;
+}
+
+#gallery .cs-atlas,
+#gallery .cs-atlas * {
+    box-sizing: border-box;
+}
+
+#gallery .cs-atlas button,
+#gallery .cs-atlas select,
+#gallery .cs-atlas input {
+    font: inherit;
+}
+
+#gallery .cs-four-column {
+    display: grid;
+    grid-template-columns:
+        minmax(260px, var(--cs-controls-width)) minmax(var(--cs-visual-min-width), 1fr);
+    grid-template-areas: "mapping visual";
+    gap: var(--cs-layout-gap);
+    align-items: start;
+}
+
+#gallery .cs-visual-column {
+    grid-area: visual;
+    min-width: 0;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    gap: var(--cs-stack-gap);
+}
+
+#gallery .cs-mapping-panel {
+    grid-area: mapping;
+    position: sticky;
+    top: var(--cs-sticky-top);
+    max-height: calc(100vh - var(--cs-sticky-top) - 16px);
+    overflow-x: hidden;
+    overflow-y: auto;
+    overscroll-behavior: auto;
+    scrollbar-gutter: stable;
+    scrollbar-width: thin;
+    scrollbar-color: color-mix(in srgb, var(--muted) 35%, transparent) transparent;
+}
+
+#gallery .cs-input-panel,
+#gallery .cs-viewer-panel,
+#gallery .cs-mapping-panel {
+    width: 100%;
+    min-width: 0;
+}
+
+#gallery .cs-panel {
+    padding: var(--cs-panel-padding);
+    border: var(--cs-border);
+    border-radius: var(--cs-panel-radius);
+    background: var(--surface);
+    box-shadow: 0 16px 38px -34px var(--shadow);
+}
+
+#gallery .cs-combined-panel {
+    display: flex;
+    flex-direction: column;
+    gap: var(--cs-stack-gap);
+}
+
+#gallery .cs-point-cloud-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: var(--cs-stack-gap);
+}
+
+#gallery .cs-point-cloud-col {
+    display: flex;
+    flex-direction: column;
+    gap: 11px;
+    min-height: 0;
+}
+
+#gallery .cs-point-cloud-col .cs-viewer-stage {
+    margin-top: auto;
+}
+
+#gallery .cs-point-cloud-col .cs-panel-head {
+    margin-bottom: 0;
+}
+
+#gallery .cs-panel-head {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 10px;
+    margin-bottom: 11px;
+}
+
+#gallery .cs-panel-head h3 {
+    margin: 0;
+    color: var(--ink);
+    font-size: 0.92rem;
+    line-height: 1.25;
+}
+
+#gallery .cs-pill,
+#gallery .cs-live-pill {
+    flex: 0 0 auto;
+    max-width: 180px;
+    overflow: hidden;
+    border: var(--cs-border);
+    border-radius: var(--cs-pill-radius);
+    color: var(--muted);
+    background: var(--surface-2);
+    font-size: 0.62rem;
+    font-weight: 700;
+    line-height: 1;
+    padding: 6px 8px;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+#gallery .cs-live-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    color: var(--accent);
+    border-color: color-mix(in srgb, var(--accent) 24%, var(--line));
+    background: var(--accent-soft);
+}
+
+#gallery .cs-live-pill i,
+#gallery .cs-status span {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: var(--accent);
+    box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 14%, transparent);
+}
+
+#gallery .cs-drop-zone {
+    position: relative;
+    width: 100%;
+    height: clamp(var(--cs-source-min-height), 18.5vw, var(--cs-source-max-height));
+    display: grid;
+    place-items: center;
+    padding: 12px;
+    overflow: hidden;
+    border: var(--cs-strong-border);
+    border-radius: var(--cs-stage-radius);
+    background: var(--surface-2);
+    cursor: pointer;
+}
+
+#gallery .cs-drop-zone.is-dragging {
+    outline: 2px solid var(--accent);
+    outline-offset: 3px;
+}
+
+#gallery #previewCanvas {
+    display: block;
+    width: auto;
+    height: auto;
+    max-width: 100%;
+    max-height: 100%;
+    flex: none;
+    border-radius: calc(var(--cs-stage-radius) - 3px);
+    object-fit: contain;
+}
+
+#gallery .cs-drop-overlay {
+    position: absolute;
+    left: 9px;
+    right: 9px;
+    bottom: 9px;
+    display: grid;
+    gap: 1px;
+    padding: 6px 9px;
+    border: 1px solid rgba(255, 255, 255, 0.18);
+    border-radius: 9px;
+    color: #fff;
+    background: rgba(10, 11, 14, 0.36);
+    backdrop-filter: blur(10px);
+}
+
+#gallery #previewCanvas {
+    cursor: zoom-in;
+}
+
+.cs-image-lightbox {
+    position: fixed !important;
+    top: 0 !important;
+    left: 0 !important;
+    right: 0 !important;
+    width: 100vw !important;
+    height: 100vh !important;
+    z-index: 9999 !important;
+    display: none !important;
+    align-items: center !important;
+    justify-content: center !important;
+    overflow: hidden !important;
+    background: rgba(250, 250, 250, 0.85) !important;
+    backdrop-filter: blur(20px) saturate(180%) !important;
+    -webkit-backdrop-filter: blur(20px) saturate(180%) !important;
+    cursor: zoom-out;
+}
+
+[data-theme="dark"] .cs-image-lightbox {
+    background: rgba(34, 34, 40, 0.85) !important;
+}
+
+.cs-image-lightbox.is-active {
+    display: flex !important;
+}
+
+.cs-image-lightbox img {
+    max-width: 92vw !important;
+    max-height: calc(100% - 60px) !important;
+    width: auto !important;
+    height: auto !important;
+    object-fit: contain !important;
+    transform-origin: center center;
+    cursor: grab;
+    user-select: none;
+    -webkit-user-drag: none;
+}
+
+.cs-image-lightbox img:active {
+    cursor: grabbing;
+}
+
+#gallery .cs-drop-overlay strong {
+    font-size: 0.72rem;
+}
+
+#gallery .cs-drop-overlay small {
+    color: rgba(255, 255, 255, 0.68);
+    font-size: 0.6rem;
+}
+
+#gallery .cs-panel-note {
+    min-height: 32px;
+    margin: 0 0 0px;
+    color: var(--muted);
+    font-size: 0.68rem;
+    line-height: 1.5;
+    text-align: left;
+}
+
+#gallery .cs-viewer-stage {
+    position: relative;
+    width: 100%;
+    height: auto;
+    min-height: 0;
+    aspect-ratio: var(--cs-viewer-aspect);
+    flex: none;
+    overflow: hidden;
+    border: 1px solid #292d33;
+    border-radius: var(--cs-stage-radius);
+    background: #0d0f12;
+    cursor: grab;
+    touch-action: none;
+}
+
+#gallery .cs-viewer-stage.is-light {
+    border-color: var(--line-strong);
+    background: #f3f3ef;
+}
+
+#gallery .cs-viewer-stage:active {
+    cursor: grabbing;
+}
+
+#gallery .cs-viewer-stage canvas {
+    display: block;
+    width: 100%;
+    height: 100%;
+}
+
+#gallery .cs-viewer-hint {
+    position: absolute;
+    top: 9px;
+    left: 9px;
+    z-index: 2;
+    max-width: calc(100% - 18px);
+    overflow: hidden;
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    border-radius: var(--cs-pill-radius);
+    color: rgba(255, 255, 255, 0.66);
+    background: rgba(8, 9, 11, 0.62);
+    font-size: 0.56rem;
+    font-weight: 700;
+    line-height: 1;
+    padding: 6px 8px;
+    pointer-events: none;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+#gallery .cs-viewer-stage.is-light .cs-viewer-hint {
+    color: rgba(20, 20, 18, 0.62);
+    border-color: rgba(20, 20, 18, 0.1);
+    background: rgba(255, 255, 255, 0.8);
+}
+
+#gallery .cs-axis-gizmo {
+    position: absolute;
+    right: 8px;
+    bottom: 8px;
+    z-index: 2;
+    display: none;
+    width: 64px;
+    height: 64px;
+    pointer-events: none;
+}
+
+#gallery .cs-viewer-stage.show-axis-labels .cs-axis-gizmo {
+    display: block;
+}
+
+#gallery .cs-axis-gizmo svg {
+    width: 100%;
+    height: 100%;
+    overflow: visible;
+}
+
+#gallery .cs-axis-gizmo {
+    --axis-x: #ff3553;
+    --axis-y: #8adb00;
+    --axis-z: #2a8fff;
+}
+
+#gallery .cs-axis-gizmo .axis-dot[data-dir="positive"] {
+    r: 5;
+}
+
+#gallery .cs-axis-gizmo .axis-dot[data-dir="negative"] {
+    r: 4;
+}
+
+#gallery .cs-axis-gizmo .axis-line {
+    stroke-width: 2;
+    stroke-linecap: round;
+}
+
+#gallery .cs-axis-gizmo .axis-x {
+    color: var(--axis-x);
+    stroke: var(--axis-x);
+    fill: var(--axis-x);
+}
+
+#gallery .cs-axis-gizmo .axis-y {
+    color: var(--axis-y);
+    stroke: var(--axis-y);
+    fill: var(--axis-y);
+}
+
+#gallery .cs-axis-gizmo .axis-z {
+    color: var(--axis-z);
+    stroke: var(--axis-z);
+    fill: var(--axis-z);
+}
+
+#gallery .cs-axis-gizmo .axis-label {
+    font-size: 10px;
+    /* font-weight: bold; */
+    pointer-events: none;
+    fill: var(--bg) !important;
+
+    stroke: none !important;
+    stroke-width: 0;
+}
+
+#gallery .cs-viewer-stage.is-light .cs-axis-gizmo {
+    --axis-x: #d9363e;
+    --axis-y: #389e0d;
+    --axis-z: #096dd9;
+}
+
+#gallery .cs-viewer-stage.is-light .cs-axis-gizmo .axis-x {
+    color: var(--axis-x);
+    stroke: var(--axis-x);
+    fill: var(--axis-x);
+}
+
+#gallery .cs-viewer-stage.is-light .cs-axis-gizmo .axis-y {
+    color: var(--axis-y);
+    stroke: var(--axis-y);
+    fill: var(--axis-y);
+}
+
+#gallery .cs-viewer-stage.is-light .cs-axis-gizmo .axis-z {
+    color: var(--axis-z);
+    stroke: var(--axis-z);
+    fill: var(--axis-z);
+}
+
+
+
+#gallery .cs-segmented {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 4px;
+    padding: 4px;
+    border: var(--cs-border);
+    border-radius: 11px;
+    background: var(--surface-2);
+}
+
+#gallery .cs-space-tabs-top {
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+    margin-bottom: 12px;
+}
+
+#gallery .cs-seg-button {
+    min-height: 30px;
+    padding: 4px 6px;
+    border: 0;
+    border-radius: 8px;
+    color: var(--muted);
+    background: transparent;
+    cursor: pointer;
+    font-size: 0.64rem;
+    font-weight: 750;
+    position: relative;
+}
+
+#gallery .cs-seg-button::after {
+    content: "";
+    position: absolute;
+    bottom: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 0;
+    height: 2px;
+    background: var(--accent);
+    border-radius: 1px;
+    transition: width 0.25s ease;
+}
+
+#gallery .cs-seg-button:hover {
+    color: var(--ink);
+}
+
+#gallery .cs-seg-button:hover::after {
+    width: 60%;
+}
+
+#gallery .cs-seg-button.is-active {
+    color: var(--accent);
+    background: transparent;
+    box-shadow: none;
+}
+
+#gallery .cs-seg-button.is-active::after {
+    width: 80%;
+}
+
+#gallery .cs-summary {
+    margin-top: 10px;
+    padding: 11px;
+    border: var(--cs-border);
+    border-radius: 11px;
+    background: color-mix(in srgb, var(--accent) 4%, var(--surface));
+}
+
+#gallery .cs-summary h4 {
+    margin: 0 0 8px;
+    color: var(--ink);
+    font-size: 0.78rem;
+    line-height: 1.35;
+}
+
+#gallery .cs-summary .text {
+    text-align: justify;
+    text-align-last: left;
+
+    hyphens: auto;
+    -webkit-hyphens: auto;
+
+    overflow-wrap: break-word;
+    word-break: normal;
+}
+
+#gallery .cs-axis-chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px;
+}
+
+#gallery .cs-axis-chips span {
+    border: var(--cs-border);
+    border-radius: var(--cs-pill-radius);
+    color: var(--muted);
+    background: var(--surface);
+    font-size: 0.54rem;
+    font-weight: 700;
+    padding: 5px 6px;
+}
+
+#gallery .cs-summary p {
+    margin: 8px 0;
+    color: var(--muted);
+    font-size: 0.63rem;
+    line-height: 1.5;
+    text-align: left;
+}
+
+#gallery .cs-formula-toggle {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 4px auto 0;
+    padding: 2px;
+    border: none;
+    background: transparent;
+    color: var(--muted);
+    cursor: pointer;
+    transition: color 0.15s ease;
+}
+
+#gallery .cs-formula-toggle:hover {
+    color: var(--accent);
+}
+
+#gallery .cs-formula-toggle .cs-toggle-icon {
+    transition: transform 0.2s ease;
+}
+
+#gallery .cs-formula-toggle[aria-expanded="true"] .cs-toggle-icon {
+    transform: rotate(180deg);
+}
+
+#gallery .cs-conversion-grid {
+    max-height: 600px;
+    overflow: hidden;
+    transition: max-height 0.3s ease, opacity 0.3s ease, margin-top 0.3s ease;
+    opacity: 1;
+    margin-top: 6px;
+}
+
+#gallery .cs-conversion-grid.cs-is-collapsed {
+    max-height: 0;
+    opacity: 0;
+    margin-top: 0;
+}
+
+#gallery .cs-formula-box {
+    display: grid;
+    gap: 2px;
+    overflow-x: auto;
+    border: var(--cs-border);
+    border-radius: 9px;
+    color: var(--ink);
+    background: var(--surface);
+    font-size: 0.66rem;
+    line-height: 1.45;
+    padding: 8px 10px;
+}
+
+#gallery .cs-formula-line {
+    display: block;
+    min-width: max-content;
+    text-align: left;
+}
+
+#gallery .cs-formula-line mjx-container[display="true"] {
+    margin: 0.18em 0 !important;
+    text-align: left !important;
+}
+
+#gallery .cs-control-label {
+    margin: 16px 1px 8px;
+    padding-top: 16px;
+    border-top: 1px solid var(--line);
+    color: var(--muted);
+    font-size: 0.58rem;
+    font-weight: 800;
+    letter-spacing: 0.08em;
+    line-height: 1.2;
+    text-transform: uppercase;
+}
+
+
+
+#gallery .cs-settings-stack,
+#gallery .cs-mini-grid {
+    display: grid;
+    gap: var(--cs-control-gap);
+    margin-top: 0;
+}
+
+#gallery .cs-field {
+    min-width: 0;
+    display: grid;
+    gap: 5px;
+    padding: 9px 10px;
+    border: var(--cs-border);
+    border-radius: var(--cs-field-radius);
+    background: var(--surface-2);
+}
+
+#gallery .cs-field>span {
+    color: var(--muted);
+    font-size: 0.64rem;
+    font-weight: 700;
+}
+
+#gallery .cs-field select {
+    width: 100%;
+    border: 1px solid var(--line);
+    outline: 0;
+    color: var(--ink);
+    background: var(--surface);
+    cursor: pointer;
+    font-size: 0.72rem;
+    font-weight: 700;
+    padding: 8px 12px 8px 12px;
+    border-radius: var(--cs-field-radius);
+    appearance: none;
+    position: relative;
+    transition: border-color var(--cs-transition), box-shadow var(--cs-transition);
+}
+
+#gallery .cs-field select::-ms-expand {
+    display: none;
+}
+
+#gallery .cs-field {
+    position: relative;
+}
+
+#gallery .cs-field select:hover {
+    border-color: var(--accent);
+}
+
+#gallery .cs-field select:focus {
+    border-color: var(--accent);
+    box-shadow: 0 0 0 2px color-mix(in srgb, var(--accent) 20%, transparent);
+}
+
+#gallery .cs-field select option {
+    padding: 8px 12px;
+    background: var(--surface);
+    color: var(--ink);
+    font-size: 0.72rem;
+    font-weight: 500;
+}
+
+#gallery .cs-field select option:hover {
+    background: var(--accent);
+    color: white;
+}
+
+#gallery .cs-field select option:checked {
+    background: var(--accent);
+    color: white;
+}
+
+#gallery .cs-grouped-select {
+    padding-right: 30px;
+}
+
+#gallery .cs-grouped-select optgroup {
+    font-weight: 700;
+    font-size: 0.65rem;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    padding: 6px 0 4px 4px;
+    border-bottom: 1px solid var(--line);
+}
+
+#gallery .cs-grouped-select optgroup:last-child {
+    border-bottom: none;
+}
+
+#gallery .cs-grouped-select optgroup option {
+    font-weight: normal;
+    font-size: 0.82rem;
+    color: var(--text);
+    text-transform: none;
+    letter-spacing: normal;
+    padding: 4px 8px;
+    margin-left: 4px;
+}
+
+#gallery .cs-lattice-field {
+    gap: 7px;
+    padding: 10px;
+    border-color: color-mix(in srgb, var(--accent) 18%, var(--line));
+    background: color-mix(in srgb, var(--accent) 3%, var(--surface));
+}
+
+#gallery .cs-select-shell {
+    position: relative;
+    display: grid;
+    grid-template-columns: 28px minmax(0, 1fr) 20px;
+    align-items: center;
+    min-height: 40px;
+    overflow: hidden;
+    border: var(--cs-strong-border);
+    border-radius: var(--cs-field-radius);
+    background: var(--surface);
+    transition:
+        border-color var(--cs-transition),
+        box-shadow var(--cs-transition),
+        transform var(--cs-transition);
+}
+
+#gallery .cs-select-shell:hover,
+#gallery .cs-select-shell:focus-within {
+    border-color: var(--accent);
+    box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 11%, transparent);
+    transform: translateY(-1px);
+}
+
+#gallery .cs-select-icon,
+#gallery .cs-select-chevron {
+    display: grid;
+    place-items: center;
+    color: var(--accent);
+    pointer-events: none;
+}
+
+#gallery .cs-select-icon svg {
+    width: 15px;
+    height: 15px;
+}
+
+#gallery .cs-select-chevron svg {
+    width: 12px;
+    height: 12px;
+}
+
+#gallery .cs-select-shell select {
+    height: 38px;
+    appearance: none;
+    -webkit-appearance: none;
+    padding: 0 4px;
+    color: var(--ink);
+    background: transparent;
+    font-size: 0.72rem;
+    font-weight: 750;
+}
+
+#gallery .cs-field-hint {
+    color: var(--muted);
+    font-size: 0.57rem;
+    line-height: 1.45;
+}
+
+#gallery .cs-range-row {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    align-items: center;
+    gap: 7px;
+}
+
+#gallery .cs-range-row input[type="range"] {
+    width: 100%;
+    accent-color: var(--accent);
+}
+
+#gallery .cs-range-row output {
+    min-width: 48px;
+    color: var(--ink);
+    font-size: 0.65rem;
+    font-variant-numeric: tabular-nums;
+    text-align: right;
+}
+
+#gallery .cs-toggle-grid {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 5px;
+    margin-top: 9px;
+}
+
+#gallery .cs-toggle {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    min-height: 27px;
+    padding: 0 7px;
+    border: var(--cs-border);
+    border-radius: var(--cs-pill-radius);
+    color: var(--muted);
+    background: var(--surface-2);
+    cursor: pointer;
+    font-size: 0.58rem;
+    font-weight: 700;
+    transition: all var(--cs-transition);
+
+    user-select: none;
+    -webkit-user-select: none;
+}
+
+#gallery .cs-toggle:hover {
+    border-color: var(--accent);
+    color: var(--ink);
+}
+
+#gallery .cs-toggle input {
+    position: absolute;
+    opacity: 0;
+    width: 0;
+    height: 0;
+    margin: 0;
+}
+
+#gallery .cs-toggle::before {
+    content: "";
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: var(--line);
+    transition: background var(--cs-transition);
+    flex-shrink: 0;
+}
+
+#gallery .cs-toggle:has(input:checked) {
+    border-color: var(--accent);
+    background: color-mix(in srgb, var(--accent) 10%, var(--surface));
+    color: var(--accent);
+}
+
+#gallery .cs-toggle:has(input:checked)::before {
+    background: var(--accent);
+}
+
+#gallery .cs-button-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 6px;
+    margin-top: 9px;
+}
+
+#gallery .cs-button {
+    min-height: 31px;
+    padding: 0 8px;
+    border: 1px solid var(--btn-bg);
+    border-radius: 8px;
+    color: var(--btn-text);
+    background: var(--btn-bg);
+    cursor: pointer;
+    font-size: 0.61rem;
+    font-weight: 750;
+    transition:
+        transform var(--cs-transition),
+        border-color var(--cs-transition),
+        color var(--cs-transition),
+        background var(--cs-transition);
+}
+
+#gallery .cs-button:hover {
+    transform: translateY(-1px);
+    border-color: var(--accent);
+    color: #fff;
+    background: var(--accent);
+}
+
+#gallery .cs-status {
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    margin-top: 9px;
+    padding-top: 8px;
+    border-top: var(--cs-border);
+    color: var(--muted);
+    font-size: 0.58rem;
+}
+
+#gallery .cs-status b {
+    min-width: 0;
+    overflow: hidden;
+    font-weight: 650;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+#gallery .cs-mapping-panel::-webkit-scrollbar {
+    width: 8px;
+}
+
+#gallery .cs-mapping-panel::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+#gallery .cs-mapping-panel::-webkit-scrollbar-thumb {
+    border: 2px solid transparent;
+    border-radius: var(--cs-pill-radius);
+    background: color-mix(in srgb, var(--muted) 35%, transparent);
+    background-clip: padding-box;
+}
+
+#gallery .cs-visually-hidden {
+    position: absolute !important;
+    width: 1px !important;
+    height: 1px !important;
+    padding: 0 !important;
+    margin: -1px !important;
+    overflow: hidden !important;
+    clip: rect(0, 0, 0, 0) !important;
+    white-space: nowrap !important;
+    border: 0 !important;
+}
+
+#gallery .cs-is-hidden {
+    display: none !important;
+}
+
+@media (max-width: 980px) {
+    #gallery {
+        --gallery-shell-gutter: 24px;
+    }
+
+    #gallery .cs-four-column {
+        grid-template-columns: 1fr;
+        grid-template-areas:
+            "mapping"
+            "visual";
+    }
+
+    #gallery .cs-mapping-panel {
+        position: static;
+        max-height: none;
+        overflow: visible;
+    }
+}
+
+@media (max-width: 760px) {
+    #gallery {
+        --gallery-shell-gutter: 20px;
+        --cs-panel-padding: 12px;
+        --cs-stack-gap: 12px;
+        --cs-source-min-height: 180px;
+        --cs-source-max-height: 360px;
+    }
+
+    #gallery .gallery-feature-heading {
+        align-items: flex-start;
+        flex-direction: column;
+        gap: 4px;
+        padding-bottom: 9px;
+    }
+
+    #gallery .gallery-feature-heading>p {
+        text-align: left;
+    }
+}
