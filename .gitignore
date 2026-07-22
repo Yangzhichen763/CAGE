@@ -1,4 +1,9 @@
-*.pdf
+.DS_Store
+Thumbs.db
+node_modules/
+dist/
 
+*.pdf
+examples
 .idea
 test_*

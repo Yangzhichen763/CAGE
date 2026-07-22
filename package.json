@@ -1,0 +1,11 @@
+{
+  "name": "cage-project-page",
+  "private": true,
+  "version": "1.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "node scripts/serve.mjs",
+    "start": "node scripts/serve.mjs",
+    "validate": "python scripts/validate.py"
+  }
+}

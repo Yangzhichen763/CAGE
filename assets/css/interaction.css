@@ -1,0 +1,263 @@
+/* Unified interaction language */
+            :where(button, a, select, input, [role="button"], [role="tab"]):focus-visible {
+                outline: 2px solid var(--accent);
+                outline-offset: 2px;
+            }
+
+            :where(button, select, input):disabled {
+                cursor: not-allowed !important;
+                opacity: 0.45;
+            }
+
+            .problem-card,
+            .takeaway,
+            .parameter-item,
+            #gallery .cs-summary,
+            #gallery .cs-pill,
+            #gallery .cs-panel-note,
+            #method .md-static-node {
+                cursor: default;
+            }
+
+            .problem-card:hover,
+            .takeaway:hover {
+                border-color: var(--line);
+                background: var(--surface-2);
+                box-shadow: none;
+                transform: none;
+            }
+
+            .theme-toggle,
+            .accordion-header,
+            .collapsible-header,
+            .arena-image-box,
+            .arena-card,
+            .arena-next-btn,
+            .arena-submit-btn,
+            .arena-link-btn,
+            .copy-btn,
+            #method .mnode,
+            #method .msubnode,
+            #method .md-simple-node:not(.md-static-node),
+            #method .mfig-frame,
+            #gallery .cs-drop-zone,
+            #gallery .cs-seg-button,
+            #gallery .cs-toggle,
+            #gallery .cs-button,
+            #gallery .cs-field select {
+                cursor: pointer;
+            }
+
+            .accordion-header,
+            .collapsible-header {
+                border-radius: 9px;
+            }
+
+            .accordion-header:focus-visible,
+            .collapsible-header:focus-visible {
+                outline: 2px solid var(--accent);
+                outline-offset: -2px;
+            }
+
+            .copy-btn {
+                display: none;
+                opacity: 0.72;
+            }
+
+            .bibtex-box:hover .copy-btn,
+            .bibtex-box:focus-within .copy-btn {
+                display: inline-flex;
+            }
+
+            .copy-btn:hover,
+            .copy-btn:focus-visible {
+                opacity: 1;
+            }
+
+            #gallery .cs-drop-zone {
+                transition: border-color var(--cs-transition), box-shadow var(--cs-transition), background var(--cs-transition);
+            }
+
+            #gallery .cs-drop-zone:hover,
+            #gallery .cs-drop-zone:focus-within {
+                border-color: var(--accent);
+                box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 11%, transparent);
+                background: color-mix(in srgb, var(--accent) 3%, var(--surface));
+            }
+
+            #gallery .cs-space-tabs-top {
+                background: var(--surface-2);
+            }
+
+            #gallery .cs-seg-button {
+                border: 1px solid transparent;
+                transition: color var(--cs-transition), background var(--cs-transition), border-color var(--cs-transition);
+            }
+
+            #gallery .cs-seg-button::after {
+                display: none;
+            }
+
+            #gallery .cs-seg-button:hover {
+                color: var(--ink);
+                background: var(--surface);
+                border-color: var(--line);
+            }
+
+            #gallery .cs-seg-button.is-active {
+                color: var(--accent);
+                background: var(--surface);
+                border-color: color-mix(in srgb, var(--accent) 28%, var(--line));
+                box-shadow: 0 3px 10px -8px var(--shadow);
+            }
+
+            #gallery .cs-summary {
+                background: var(--surface-2);
+            }
+
+            #gallery .cs-conversion-grid {
+                display: grid;
+                gap: 8px;
+                margin-top: 10px;
+            }
+
+            #gallery .cs-conversion-block {
+                padding: 9px;
+                border: var(--cs-border);
+                border-radius: 10px;
+                background: var(--surface);
+                overflow-x: auto;
+                overflow-y: hidden;
+            }
+
+            #gallery .cs-conversion-head {
+                display: flex;
+                align-items: baseline;
+                justify-content: space-between;
+                gap: 8px;
+                margin-bottom: 7px;
+            }
+
+            #gallery .cs-conversion-head > span {
+                color: var(--muted);
+                font-size: 0.56rem;
+                font-weight: 800;
+                letter-spacing: 0.07em;
+                text-transform: uppercase;
+            }
+
+            #gallery .cs-conversion-head b {
+                color: var(--ink);
+                font-size: 0.62rem;
+                font-weight: 750;
+            }
+
+            #gallery .cs-conversion-block .cs-formula-box {
+                border: 0;
+                border-radius: 7px;
+                background: var(--surface-2);
+                padding: 8px 9px;
+                white-space: nowrap;
+            }
+
+            #gallery .cs-formula-note {
+                display: block;
+                color: var(--muted);
+                font-size: 0.62rem;
+                line-height: 1.5;
+                text-align: left;
+            }
+
+            #gallery .cs-select-control {
+                position: relative;
+                display: block;
+                width: 100%;
+            }
+
+            #gallery .cs-select-control select {
+                padding-right: 34px !important;
+            }
+
+            #gallery .cs-select-chevron {
+                position: absolute;
+                top: 50%;
+                right: 13px;
+                width: 8px;
+                height: 8px;
+                border-right: 1.5px solid var(--muted);
+                border-bottom: 1.5px solid var(--muted);
+                transform: translateY(-68%) rotate(45deg);
+                transform-origin: center;
+                pointer-events: none;
+                transition: transform 0.16s ease, border-color 0.16s ease;
+            }
+
+            #gallery .cs-select-control:hover .cs-select-chevron,
+            #gallery .cs-select-control:focus-within .cs-select-chevron {
+                border-color: var(--accent);
+            }
+
+            #gallery .cs-select-control.is-open .cs-select-chevron {
+                transform: translateY(-28%) rotate(225deg);
+            }
+
+            #gallery .cs-mapping-panel {
+                max-height: var(--cs-mapping-max-height, calc(100vh - var(--cs-sticky-top) - 16px));
+            }
+
+            @media (max-width: 980px) {
+                #gallery .cs-mapping-panel {
+                    max-height: none !important;
+                }
+            }
+
+        
+
+/* Viewport-driven media loading */
+img[data-src], source[data-srcset] {
+    content-visibility: auto;
+}
+
+img.lazy-media {
+    opacity: 0;
+    transition: opacity 0.22s ease;
+}
+
+img.lazy-media.is-loaded,
+img.lazy-media.is-error {
+    opacity: 1;
+}
+
+.feature-load-error {
+    padding: 12px 14px;
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    color: var(--muted);
+    background: var(--surface-2);
+    font-size: 0.82rem;
+}
+
+/* Reserve viewport area before the real image source is attached. */
+.teaser img[data-src],
+figure.fig img[data-src] {
+    width: 100%;
+    min-height: clamp(180px, 28vw, 340px);
+    background: var(--surface-2);
+}
+
+#method .mfig-frame img[data-src] {
+    width: min(76vw, 760px);
+    min-height: clamp(200px, 34vw, 420px);
+    background: var(--surface-2);
+}
+
+/* Small reusable presentation utilities extracted from the original markup. */
+.is-hidden { display: none; }
+.result-figure-spacing { margin: 6px 0 24px; }
+.metric-gain { color: var(--accent); font-weight: 700; }
+.nav-actions { display: flex; align-items: center; gap: 20px; }
+.hero-highlight { color: var(--highlight); }
+.venue-strong { font-weight: 700; }
+.teaser-compact { padding: 15px 0; }
+.arena-tip-muted { color: var(--muted); font-weight: 400; }
+.footer-separator { margin: 0 8px; }

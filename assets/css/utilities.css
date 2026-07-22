@@ -1,0 +1,117 @@
+footer {
+                color: var(--muted);
+                font-size: 0.88rem;
+                padding: 30px 22px 46px;
+            }
+
+            footer > * {
+                text-align: center;
+                max-width: var(--max);
+                margin: 0 auto 10px;
+            }
+
+            footer a {
+                color: var(--muted);
+                text-decoration: underline;
+            }
+
+            .loading-spinner {
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                padding: 40px;
+            }
+
+            .loading-spinner i {
+                font-size: 2rem;
+                color: var(--accent);
+                animation: spin 1s linear infinite;
+            }
+
+            @keyframes spin {
+                from {
+                    transform: rotate(0deg);
+                }
+                to {
+                    transform: rotate(360deg);
+                }
+            }
+
+            @keyframes fadeInUp {
+                from {
+                    opacity: 0;
+                    transform: translateY(30px);
+                }
+                to {
+                    opacity: 1;
+                    transform: translateY(0);
+                }
+            }
+
+            .animate-on-scroll {
+                opacity: 0;
+                transform: translateY(30px);
+                transition:
+                    opacity 0.6s ease,
+                    transform 0.6s ease;
+            }
+
+            .animate-on-scroll.visible {
+                opacity: 1;
+                transform: translateY(0);
+            }
+
+            .hero-title {
+                animation: fadeInUp 0.8s ease forwards;
+            }
+
+            .hero-authors {
+                animation: fadeInUp 0.8s ease 0.1s forwards;
+                opacity: 0;
+            }
+
+            .hero-venue {
+                animation: fadeInUp 0.8s ease 0.15s forwards;
+                opacity: 0;
+            }
+
+            .hero-buttons {
+                animation: fadeInUp 0.8s ease 0.2s forwards;
+                opacity: 0;
+            }
+
+            @media (max-width: 640px) {
+                h1.title {
+                    font-size: 1.9rem;
+                }
+
+                body {
+                    font-size: 15px;
+                }
+
+                .takeaways-grid {
+                    grid-template-columns: 1fr;
+                }
+
+                .takeaways-grid.custom-width {
+                    flex-direction: column;
+                }
+
+                .problem-cards {
+                    grid-template-columns: 1fr;
+                }
+
+                nav.top ul {
+                    display: none;
+                }
+
+                nav.top .brand {
+                    font-size: 0.9rem;
+                }
+            }
+
+            .wide {
+                width: 100%;
+                margin-left: 0;
+                margin-right: 0;
+            }

@@ -1,9 +1,4 @@
-# Towards Color-faithful Low-light Image Enhancement via Adaptive Color Debiasing and Saturation Rectification
-
-[![arXiv](https://img.shields.io/badge/arXiv-Paper-b31b1b?logo=arxiv&logoColor=white)](https://github.com/Yangzhichen763/CAGE)
-[![Paper](https://img.shields.io/badge/Paper-ACM%20MM%202026-f28c28?logo=acm&logoColor=white)](https://github.com/Yangzhichen763/CAGE)
-[![Project Page](https://img.shields.io/badge/Project-Page-eab308)](https://yangzhichen763.github.io/CAGE/)
-[![Image Crop Comparator](https://img.shields.io/badge/ImageViewer-Toolkit-1a56db)](https://github.com/Yangzhichen763/ImageCropComparator)
+# CAGE: Color-faithful Low-light Image Enhancement
 
 This paper is accepted by **ACM Multimedia 2026**.
 
@@ -12,13 +7,17 @@ This paper is accepted by **ACM Multimedia 2026**.
 Clone this repository and open `index.html` in your web browser:
 
 ```bash
-git clone https://github.com/yangzhichen763/CAGE.git
-cd CAGE
-open index.html   # macOS
-start index.html  # Windows
+python scripts/serve.py
 ```
 
+Open `http://127.0.0.1:8000`.
 
-## License
+A dependency-free Node server is also included:
 
-This project is licensed under the Apache License 2.0 - see the [LICENSE.txt](LICENSE.txt) file for details.
+```bash
+npm run dev
+```
+
+## Missing assets
+
+Only the HTML file was available during refactoring. The original `figures` and `examples` files are not embedded in this archive. Copy them into the matching directories. `ASSET_MANIFEST.md` lists paths referenced by the supplied page.
