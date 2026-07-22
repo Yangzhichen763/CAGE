@@ -16,6 +16,7 @@ let voteCounts = {}; // loadVoteCounts();
 
 let consecutiveCorrectCount = 0;
 let totalCorrectCount = 0;
+let totalWrongCount = 0;
 
 const EMOJI_A_CONFIG = [
     { threshold: 1, emoji: "🎉" },
@@ -75,21 +76,24 @@ const SENTENCE_C_WRONG = [
     "Your eye for beauty helps us discover a wider world.",
 ];
 
-const EMOJI_D_WRONG = [
-    "💪",
-    "🚀",
-    "💡",
-    "📸",
-    "🌟",
-    "🔍",
-    "👀",
+const EMOJI_D_WRONG_CONFIG = [
+    { condition: (wrong, correct) => wrong > 20 && correct === 0, emojis: ["😢", "😭", "😣", "😖", "😵", "😩", "😰", "😥", "😱", "💦", "🤗", "�"] },
+    { condition: (wrong, correct) => correct < 5, emojis: ["💪", "🚀", "💡", "📸", "🌟", "🔍", "👀"] },
+    { condition: (wrong, correct) => correct >= 5 && correct < 20, emojis: ["💪", "🤗", "😇", "😌", "😊", "😉"] },
+    { condition: (wrong, correct) => correct >= 20 && correct < 50, emojis: ["💪", "🤗", "😁", "😄"] },
+    { condition: (wrong, correct) => correct >= 50, emojis: ["💪", "🤗", "😁", "😄", "😚", "😘"] },
 ];
+
+const NUMBER_EMOJIS = ["0️⃣", "1️⃣", "2️⃣", "3️⃣", "4️⃣", "5️⃣", "6️⃣", "7️⃣", "8️⃣", "9️⃣", "🔟"];
+
+const ALL_CORRECT_EMOJIS = ["🤗", "🥳", "😁", "😄", "😆", "😚", "😘", "🥰"];
 
 let lastCorrectBIndex = -1;
 let lastCorrectCIndex = -1;
 let lastWrongBIndex = -1;
 let lastWrongCIndex = -1;
 let lastWrongDIndex = -1;
+let lastCorrectDIndex = -1;
 
 function getEmojiByThreshold(config, count) {
     let emoji = config[0].emoji;
@@ -100,6 +104,43 @@ function getEmojiByThreshold(config, count) {
         }
     }
     return emoji;
+}
+
+function getWrongEmojiD(wrongCount, correctCount) {
+    for (const { condition, emojis } of EMOJI_D_WRONG_CONFIG) {
+        if (condition(wrongCount, correctCount)) {
+            let newIndex;
+            do {
+                newIndex = Math.floor(Math.random() * emojis.length);
+            } while (newIndex === lastWrongDIndex && emojis.length > 1);
+            lastWrongDIndex = newIndex;
+            return emojis[newIndex];
+        }
+    }
+    return "💪";
+}
+
+function getCorrectEmojiD(correctCount) {
+    if (correctCount > 64) {
+        let newIndex;
+        do {
+            newIndex = Math.floor(Math.random() * ALL_CORRECT_EMOJIS.length);
+        } while (newIndex === lastCorrectDIndex && ALL_CORRECT_EMOJIS.length > 1);
+        lastCorrectDIndex = newIndex;
+        return ALL_CORRECT_EMOJIS[newIndex];
+    }
+    return getEmojiByThreshold(EMOJI_D_CONFIG, correctCount);
+}
+
+function getConsecutiveEmojiA(consecutiveCount) {
+    if (consecutiveCount > 36) {
+        const digits = consecutiveCount.toString().split("");
+        return digits.map(d => {
+            const num = parseInt(d);
+            return num <= 10 ? NUMBER_EMOJIS[num] : d;
+        }).join("");
+    }
+    return getEmojiByThreshold(EMOJI_A_CONFIG, consecutiveCount);
 }
 
 function getRandomIndex(length, lastIndex) {
@@ -117,8 +158,8 @@ function generateFeedbackMessage(isCorrect) {
         consecutiveCorrectCount++;
         totalCorrectCount++;
         
-        const emojiA = getEmojiByThreshold(EMOJI_A_CONFIG, consecutiveCorrectCount);
-        const emojiD = getEmojiByThreshold(EMOJI_D_CONFIG, totalCorrectCount);
+        const emojiA = getConsecutiveEmojiA(consecutiveCorrectCount);
+        const emojiD = getCorrectEmojiD(totalCorrectCount);
         
         const bIndex = getRandomIndex(SENTENCE_B_CORRECT.length, lastCorrectBIndex);
         const cIndex = getRandomIndex(SENTENCE_C_CORRECT.length, lastCorrectCIndex);
@@ -129,16 +170,16 @@ function generateFeedbackMessage(isCorrect) {
         return `${emojiA} ${SENTENCE_B_CORRECT[bIndex]} ${SENTENCE_C_CORRECT[cIndex]} ${emojiD}`;
     } else {
         consecutiveCorrectCount = 0;
+        totalWrongCount++;
         
         const bIndex = getRandomIndex(SENTENCE_B_WRONG.length, lastWrongBIndex);
         const cIndex = getRandomIndex(SENTENCE_C_WRONG.length, lastWrongCIndex);
-        const dIndex = getRandomIndex(EMOJI_D_WRONG.length, lastWrongDIndex);
+        const emojiD = getWrongEmojiD(totalWrongCount, totalCorrectCount);
         
         lastWrongBIndex = bIndex;
         lastWrongCIndex = cIndex;
-        lastWrongDIndex = dIndex;
         
-        return `${SENTENCE_B_WRONG[bIndex]} ${SENTENCE_C_WRONG[cIndex]} ${EMOJI_D_WRONG[dIndex]}`;
+        return `${SENTENCE_B_WRONG[bIndex]} ${SENTENCE_C_WRONG[cIndex]} ${emojiD}`;
     }
 }
 

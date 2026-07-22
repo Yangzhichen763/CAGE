@@ -102,6 +102,23 @@
     ]
   },
   {
+    "input": "examples/input/00692.png",
+    "outputs": [
+      {
+        "src": "examples/CAGE-DarkIR/00692.png",
+        "isCAGE": true
+      },
+      {
+        "src": "examples/Retinexformer/00692.png",
+        "isCAGE": false
+      },
+      {
+        "src": "examples/FourLLIE/00692.png",
+        "isCAGE": false
+      }
+    ]
+  },
+  {
     "input": "examples/input/00788.png",
     "outputs": [
       {
@@ -238,6 +255,23 @@
     ]
   },
   {
+    "input": "examples/input/00697.png",
+    "outputs": [
+      {
+        "src": "examples/LLFormer/00697.png",
+        "isCAGE": false
+      },
+      {
+        "src": "examples/HVI-CIDNet/00697.png",
+        "isCAGE": false
+      },
+      {
+        "src": "examples/CAGE-DarkIR/00697.png",
+        "isCAGE": true
+      }
+    ]
+  },
+  {
     "input": "examples/input/00774.png",
     "outputs": [
       {
@@ -251,6 +285,23 @@
       {
         "src": "examples/RetinexMamba/00774.png",
         "isCAGE": false
+      }
+    ]
+  },
+  {
+    "input": "examples/input/00708.png",
+    "outputs": [
+      {
+        "src": "examples/BreaD/00708.png",
+        "isCAGE": false
+      },
+      {
+        "src": "examples/FourLLIE/00708.png",
+        "isCAGE": false
+      },
+      {
+        "src": "examples/CAGE-DarkIR/00708.png",
+        "isCAGE": true
       }
     ]
   },
@@ -306,6 +357,23 @@
     ]
   },
   {
+    "input": "examples/input/00712.png",
+    "outputs": [
+      {
+        "src": "examples/CAGE-DarkIR/00712.png",
+        "isCAGE": true
+      },
+      {
+        "src": "examples/DarkIR/00712.png",
+        "isCAGE": false
+      },
+      {
+        "src": "examples/RetinexMamba/00712.png",
+        "isCAGE": false
+      }
+    ]
+  },
+  {
     "input": "examples/input/00717.png",
     "outputs": [
       {
@@ -335,6 +403,23 @@
       },
       {
         "src": "examples/HVI-CIDNet/00695.png",
+        "isCAGE": false
+      }
+    ]
+  },
+  {
+    "input": "examples/input/00705.png",
+    "outputs": [
+      {
+        "src": "examples/CAGE-DarkIR/00705.png",
+        "isCAGE": true
+      },
+      {
+        "src": "examples/MIRNet/00705.png",
+        "isCAGE": false
+      },
+      {
+        "src": "examples/LLFormer/00705.png",
         "isCAGE": false
       }
     ]
@@ -438,6 +523,23 @@
       {
         "src": "examples/HVI-CIDNet/00704.png",
         "isCAGE": false
+      }
+    ]
+  },
+  {
+    "input": "examples/input/00696.png",
+    "outputs": [
+      {
+        "src": "examples/Retinexformer/00696.png",
+        "isCAGE": false
+      },
+      {
+        "src": "examples/LLFlow/00696.png",
+        "isCAGE": false
+      },
+      {
+        "src": "examples/CAGE-DarkIR/00696.png",
+        "isCAGE": true
       }
     ]
   },
@@ -561,6 +663,23 @@
     ]
   },
   {
+    "input": "examples/input/00707.png",
+    "outputs": [
+      {
+        "src": "examples/BreaD/00707.png",
+        "isCAGE": false
+      },
+      {
+        "src": "examples/CAGE-DarkIR/00707.png",
+        "isCAGE": true
+      },
+      {
+        "src": "examples/FourLLIE/00707.png",
+        "isCAGE": false
+      }
+    ]
+  },
+  {
     "input": "examples/input/00706.png",
     "outputs": [
       {
@@ -606,7 +725,7 @@
         "isCAGE": false
       },
       {
-        "src": "examples/HVI-CIDNet/00773.png",
+        "src": "examples/LLFlow/00773.png",
         "isCAGE": false
       }
     ]
@@ -658,6 +777,23 @@
       },
       {
         "src": "examples/HVI-CIDNet/00768.png",
+        "isCAGE": false
+      }
+    ]
+  },
+  {
+    "input": "examples/input/00690.png",
+    "outputs": [
+      {
+        "src": "examples/Retinexformer/00690.png",
+        "isCAGE": false
+      },
+      {
+        "src": "examples/CAGE-DarkIR/00690.png",
+        "isCAGE": true
+      },
+      {
+        "src": "examples/LLFlow/00690.png",
         "isCAGE": false
       }
     ]
