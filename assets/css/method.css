@@ -686,6 +686,7 @@ kbd+kbd {
     margin: 8px auto 0px;
     overflow: hidden;
     min-height: 200px;
+    padding: 0;
     transition:
         border-color 0.18s ease,
         box-shadow 0.18s ease,

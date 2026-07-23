@@ -178,8 +178,8 @@ function initCommonUI() {
     let activeHeader = null;
 
     function updateStickyHeader() {
-        if (!activeHeader) {
-            stickyHeader.classList.remove("visible");
+        if (!stickyHeader || !activeHeader) {
+            if (stickyHeader) stickyHeader.classList.remove("visible");
             return;
         }
 
@@ -248,14 +248,16 @@ function initCommonUI() {
         });
     });
 
-    stickyHeader.addEventListener("click", function () {
-        if (activeHeader) {
-            activeHeader.click();
-        }
-    });
+    if (stickyHeader) {
+        stickyHeader.addEventListener("click", function () {
+            if (activeHeader) {
+                activeHeader.click();
+            }
+        });
 
-    window.addEventListener("scroll", updateStickyHeader);
-    window.addEventListener("resize", updateStickyHeader);
+        window.addEventListener("scroll", updateStickyHeader);
+        window.addEventListener("resize", updateStickyHeader);
+    }
 
 }
 
