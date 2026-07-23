@@ -1081,7 +1081,40 @@ function selectArenaImage(index, event) {
     }
 }
 
+function clearArenaImages() {
+    const inputBox = document.getElementById("arena-input-box");
+    if (inputBox) {
+        const visual = inputBox.querySelector(":scope > #arena-input-img, :scope > .arena-compare-wrapper");
+        if (visual) {
+            visual.remove();
+        }
+        const placeholder = document.getElementById("arena-input-placeholder");
+        if (placeholder) {
+            placeholder.style.display = "flex";
+        }
+    }
+
+    document.querySelectorAll(".arena-card").forEach(function (card) {
+        const img = card.querySelector("img.arena-img");
+        if (img) {
+            img.src = "";
+            img.style.display = "none";
+        }
+        const wrapper = card.querySelector(".arena-compare-wrapper");
+        if (wrapper) {
+            wrapper.remove();
+        }
+        const placeholder = card.querySelector(".img-placeholder");
+        if (placeholder) {
+            placeholder.style.display = "flex";
+        }
+        card.classList.remove("selected", "correct", "comparison-base", "comparison-active");
+    });
+}
+
 async function nextArenaRound() {
+    clearArenaImages();
+
     if (isRandomMode) {
         await generateRandomArenaData();
         loadRound(0);

@@ -696,7 +696,7 @@ if (!window.__CAGE_METHOD_INITIALIZED__) {
 
             alignParameterBranch();
 
-            requestAnimationFrame(function () {
+            function updatePaths() {
                 const inputStart = offsetPoint(point(input, "right", "center"), 10, 0);
                 const cnnEnd = offsetPoint(point(cnn, "center", "top"), 0, -10);
                 const paramsStart = offsetPoint(point(params, "left", "center"), -10, 0);
@@ -706,13 +706,18 @@ if (!window.__CAGE_METHOD_INITIALIZED__) {
                 inputCnnPath.setAttribute("d", curve(inputStart, cnnEnd, "input-cnn"));
                 paramsForwardPath.setAttribute("d", curve(paramsStart, forwardEnd, "parameter"));
                 paramsInversePath.setAttribute("d", curve(paramsStart, inverseEnd, "parameter"));
+            }
+
+            requestAnimationFrame(function () {
+                updatePaths();
+                requestAnimationFrame(updatePaths);
             });
         }
 
         function scheduleConnectionsUpdate() {
             if (interactive.hidden) return;
             let attempts = 0;
-            const maxAttempts = 10;
+            const maxAttempts = 20;
 
             function tryUpdate() {
                 attempts++;
@@ -722,7 +727,7 @@ if (!window.__CAGE_METHOD_INITIALIZED__) {
                 const paramsRect = params.getBoundingClientRect();
 
                 if (attempts < maxAttempts && (cnnRect.width === 0 || paramsRect.width === 0)) {
-                    setTimeout(tryUpdate, Math.pow(2, attempts) * 50);
+                    setTimeout(tryUpdate, Math.pow(2, Math.min(attempts, 10)) * 50);
                 }
             }
 

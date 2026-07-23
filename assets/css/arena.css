@@ -447,7 +447,7 @@ pre {
 .arena-next-btn:hover {
     background: var(--accent);
     transform: translateY(-2px);
-    box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+    box-shadow: 0 4px 12px color-mix(in srgb, var(--accent) 60%, transparent);
 }
 
 .arena-next-btn svg {
