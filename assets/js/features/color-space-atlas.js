@@ -708,6 +708,9 @@
             } else if (mode === "normal-light") {
                 loadImageFromFile("figures/example_output_00049.png", "Normal-light Image");
                 lastNonRandomMode = mode;
+            } else if (mode === "gt-mean") {
+                loadImageFromFile("figures/example_gtmeanlit_00049.png", "GT-Mean Enlightened");
+                lastNonRandomMode = mode;
             } else if (mode === "image-random") {
                 loadRandomExampleImage();
                 lastRandomMode = mode;
