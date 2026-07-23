@@ -240,16 +240,28 @@ img.lazy-media.is-error {
 
 /* Reserve viewport area before the real image source is attached. */
 .teaser img[data-src],
-figure.fig img[data-src] {
+figure.fig img[data-src],
+figure .img-container img[data-src] {
     width: 100%;
     min-height: clamp(180px, 28vw, 340px);
     background: var(--surface-2);
 }
 
 #method .mfig-frame img[data-src] {
-    width: min(76vw, 760px);
-    min-height: clamp(200px, 34vw, 420px);
+    width: 100%;
+    min-height: clamp(180px, 28vw, 340px);
     background: var(--surface-2);
+}
+
+/* Maintain min-height when image fails to load, so placeholder fills the area */
+.teaser img.is-error,
+figure.fig img.is-error,
+figure .img-container img.is-error {
+    min-height: clamp(180px, 28vw, 340px);
+}
+
+#method .mfig-frame img.is-error {
+    min-height: clamp(180px, 28vw, 340px);
 }
 
 /* Small reusable presentation utilities extracted from the original markup. */

@@ -57,12 +57,26 @@ function createDefaultImage(mode) {
             data[offset + 2] = Math.round(b[i] * 255);
             data[offset + 3] = 255;
         }
-    } else if (mode === "random") {
+    } else if (mode === "uniform") {
         for (let i = 0; i < numPixels; i++) {
             const offset = i * 4;
             data[offset] = Math.round(Math.random() * 255);
             data[offset + 1] = Math.round(Math.random() * 255);
             data[offset + 2] = Math.round(Math.random() * 255);
+            data[offset + 3] = 255;
+        }
+    } else if (mode === "gaussian") {
+        function gaussianRandom(mean, stdDev) {
+            const u1 = Math.random();
+            const u2 = Math.random();
+            const z0 = Math.sqrt(-2.0 * Math.log(u1)) * Math.cos(2.0 * Math.PI * u2);
+            return z0 * stdDev + mean;
+        }
+        for (let i = 0; i < numPixels; i++) {
+            const offset = i * 4;
+            data[offset] = Math.max(0, Math.min(255, Math.round(gaussianRandom(128, 60))));
+            data[offset + 1] = Math.max(0, Math.min(255, Math.round(gaussianRandom(128, 60))));
+            data[offset + 2] = Math.max(0, Math.min(255, Math.round(gaussianRandom(128, 60))));
             data[offset + 3] = 255;
         }
     } else if (mode === "rainbow") {
@@ -150,23 +164,81 @@ function createDefaultImage(mode) {
             }
         }
     } else if (mode === "perlin") {
+        const p = initializePermutation();
         for (let y = 0; y < canvas.height; y++) {
             for (let x = 0; x < canvas.width; x++) {
                 const i = y * canvas.width + x;
                 const offset = i * 4;
                 const nx = x / canvas.width * 4;
                 const ny = y / canvas.height * 4;
-                const r = (noise2D(nx, ny) + 1) / 2;
-                const g = (noise2D(nx + 100, ny + 50) + 1) / 2;
-                const b = (noise2D(nx + 200, ny + 150) + 1) / 2;
+                const r = (noise2DRandom(nx, ny, p) + 1) / 2;
+                const g = (noise2DRandom(nx + 100, ny + 50, p) + 1) / 2;
+                const b = (noise2DRandom(nx + 200, ny + 150, p) + 1) / 2;
                 data[offset] = Math.round(r * 255);
                 data[offset + 1] = Math.round(g * 255);
                 data[offset + 2] = Math.round(b * 255);
                 data[offset + 3] = 255;
             }
         }
+    } else if (mode === "fractal") {
+        const p = initializePermutation();
+        for (let y = 0; y < canvas.height; y++) {
+            for (let x = 0; x < canvas.width; x++) {
+                const i = y * canvas.width + x;
+                const offset = i * 4;
+                const nx = x / canvas.width * 8;
+                const ny = y / canvas.height * 8;
+                let r = 0, g = 0, b = 0;
+                let amp = 0.5;
+                for (let octave = 0; octave < 4; octave++) {
+                    const freq = Math.pow(2, octave);
+                    r += amp * (noise2DRandom(nx * freq, ny * freq, p) + 1) / 2;
+                    g += amp * (noise2DRandom(nx * freq + 100, ny * freq + 50, p) + 1) / 2;
+                    b += amp * (noise2DRandom(nx * freq + 200, ny * freq + 150, p) + 1) / 2;
+                    amp *= 0.5;
+                }
+                data[offset] = Math.round(Math.min(1, r) * 255);
+                data[offset + 1] = Math.round(Math.min(1, g) * 255);
+                data[offset + 2] = Math.round(Math.min(1, b) * 255);
+                data[offset + 3] = 255;
+            }
+        }
+    } else if (mode === "turbulence") {
+        const p = initializePermutation();
+        for (let y = 0; y < canvas.height; y++) {
+            for (let x = 0; x < canvas.width; x++) {
+                const i = y * canvas.width + x;
+                const offset = i * 4;
+                const nx = x / canvas.width * 8;
+                const ny = y / canvas.height * 8;
+                let r = 0, g = 0, b = 0;
+                let amp = 0.5;
+                for (let octave = 0; octave < 4; octave++) {
+                    const freq = Math.pow(2, octave);
+                    r += amp * Math.abs(noise2DRandom(nx * freq, ny * freq, p));
+                    g += amp * Math.abs(noise2DRandom(nx * freq + 100, ny * freq + 50, p));
+                    b += amp * Math.abs(noise2DRandom(nx * freq + 200, ny * freq + 150, p));
+                    amp *= 0.5;
+                }
+                r = Math.pow(r / 2, 0.8);
+                g = Math.pow(g / 2, 0.8);
+                b = Math.pow(b / 2, 0.8);
+                data[offset] = Math.round(Math.min(1, r) * 255);
+                data[offset + 1] = Math.round(Math.min(1, g) * 255);
+                data[offset + 2] = Math.round(Math.min(1, b) * 255);
+                data[offset + 3] = 255;
+            }
+        }
     } else if (mode === "mosaic") {
         const tileSize = 30;
+        var dr = Math.random();
+        var dg = Math.random();
+        var db = Math.random();
+        const d = Math.sqrt(dr * dr + dg * dg + db * db);
+        dr = dr / d;
+        dg = dg / d;
+        db = db / d;
+        
         for (let ty = 0; ty < canvas.height; ty += tileSize) {
             for (let tx = 0; tx < canvas.width; tx += tileSize) {
                 const tr = Math.random();
@@ -176,10 +248,10 @@ function createDefaultImage(mode) {
                     for (let x = tx; x < Math.min(tx + tileSize, canvas.width); x++) {
                         const i = y * canvas.width + x;
                         const offset = i * 4;
-                        const noise = (Math.random() - 0.5) * 20;
-                        data[offset] = Math.max(0, Math.min(255, Math.round(tr * 255) + noise));
-                        data[offset + 1] = Math.max(0, Math.min(255, Math.round(tg * 255) + noise));
-                        data[offset + 2] = Math.max(0, Math.min(255, Math.round(tb * 255) + noise));
+                        const noise = (Math.random() - 0.5) * 30;
+                        data[offset] = Math.max(0, Math.min(255, Math.round(tr * 255) + dr * noise));
+                        data[offset + 1] = Math.max(0, Math.min(255, Math.round(tg * 255) + dg * noise));
+                        data[offset + 2] = Math.max(0, Math.min(255, Math.round(tb * 255) + db * noise));
                         data[offset + 3] = 255;
                     }
                 }
@@ -252,6 +324,31 @@ function grad(hash, x, y) {
     const u = h < 8 ? x : y;
     const v = h < 4 ? y : h === 12 || h === 14 ? x : 0;
     return ((h & 1) === 0 ? u : -u) + ((h & 2) === 0 ? v : -v);
+}
+
+function initializePermutation() {
+    const perm = new Uint8Array(512);
+    for (let i = 0; i < 256; i++) perm[i] = i;
+    for (let i = 255; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        const tmp = perm[i];
+        perm[i] = perm[j];
+        perm[j] = tmp;
+    }
+    for (let i = 0; i < 256; i++) perm[256 + i] = perm[i];
+    return perm;
+}
+
+function noise2DRandom(x, y, p) {
+    const X = Math.floor(x) & 255;
+    const Y = Math.floor(y) & 255;
+    x -= Math.floor(x);
+    y -= Math.floor(y);
+    const u = fade(x);
+    const v = fade(y);
+    const A = p[X] + Y;
+    const B = p[X + 1] + Y;
+    return lerp(v, lerp(u, grad(p[A], x, y), grad(p[B], x - 1, y)), lerp(u, grad(p[A + 1], x, y - 1), grad(p[B + 1], x - 1, y - 1)));
 }
 
 const p = new Uint8Array(512);

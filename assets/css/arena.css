@@ -163,10 +163,10 @@ pre {
 .arena-image-box .img-placeholder,
 .arena-card .img-placeholder {
     position: absolute;
-    top: 0px;
-    left: 0px;
-    right: 0px;
-    bottom: 0px;
+    top: 4px;
+    left: 4px;
+    right: 4px;
+    bottom: 4px;
     border-radius: 10px;
     background: var(--surface-2);
     display: flex;
@@ -176,6 +176,8 @@ pre {
     gap: 8px;
     color: var(--muted);
     z-index: 1;
+    padding: 0;
+    border: none;
 }
 
 .arena-image-box .img-placeholder .icon,

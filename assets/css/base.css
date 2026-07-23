@@ -456,30 +456,33 @@ figcaption {
 
 .img-placeholder {
     background: var(--surface-2);
-    padding: 18px;
-    border-radius: 12px;
+    padding: 0px;
+
     display: flex;
     flex-direction: column;
     align-items: center;
     justify-content: center;
-
-    position: relative;
     overflow: hidden;
-    border: 1px solid var(--line);
+
+    position: absolute;
+    border: none;
+    border-radius: 14px;
+    inset: 0;
 
     gap: 7px;
+    z-index: 0;
 }
 
 .img-placeholder::before {
     content: "";
     position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
+    inset: 0;
+
     background-image: radial-gradient(circle at 1px 1px, var(--line) 1px, transparent 0);
     background-size: 16px 16px;
     opacity: 0.8;
+
+    z-index: 0;
 }
 
 .img-placeholder>div {
@@ -500,9 +503,9 @@ figcaption {
     place-items: center;
     /* justify-content: center; */
 
-    border: 1px dashed var(--line-strong);
+    /* border: 1px dashed var(--line-strong); */
     border-radius: 8px;
-    color: var(--ink);
+    /* color: var(--ink); */
     margin-bottom: 2px;
 }
 
@@ -521,6 +524,15 @@ figcaption {
 .img-placeholder .label {
     color: var(--muted);
     font-size: 0.8rem;
+    font-family:
+        "Noto Sans",
+        -apple-system,
+        BlinkMacSystemFont,
+        "Segoe UI",
+        Roboto,
+        Helvetica,
+        Arial,
+        sans-serif;
     text-align: center;
 }
 
@@ -553,61 +565,56 @@ figure.fig {
 
 figure.fig .img-container {
     border: 1px solid var(--line);
-    border-radius: 10px;
+    border-radius: 14px;
     background: var(--bg);
     display: flex;
     align-items: center;
     justify-content: center;
     min-height: 200px;
+    position: relative;
+    overflow: hidden;
+}
+
+figure .img-container {
+    border: 1px solid var(--line);
+    border-radius: 14px;
+    background: var(--bg);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 200px;
+    position: relative;
+    overflow: hidden;
 }
 
 figure.fig .img-container img {
     width: 100%;
     height: auto;
-    border-radius: 6px;
+    border-radius: 14px;
     display: block;
 }
 
-figure.fig .img-container .img-placeholder {
-    width: 100%;
-    height: 100%;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    gap: 8px;
-    color: var(--muted);
-}
-
-figure.fig .img-container .img-placeholder .icon {
-    width: 44px;
-    height: 44px;
-    border-radius: 10px;
-    background: var(--surface-2);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-}
-
-figure.fig .img-container .img-placeholder .icon svg {
-    width: 22px;
-    height: 22px;
-}
-
-figure.fig .img-container .img-placeholder .filename {
-    font-size: 0.85rem;
-    font-family: monospace;
-}
-
-figure.fig .img-container .img-placeholder .label {
-    font-size: 0.8rem;
-}
 
 .accordion {
     border: 1px solid var(--line);
     border-radius: 12px;
     overflow: hidden;
     margin-top: 16px;
+}
+
+.accordion.accordion-no-border {
+    border: none;
+    border-radius: 0;
+    overflow: visible;
+}
+
+.accordion.accordion-no-border .accordion-item {
+    border-bottom: none;
+    margin-bottom: 12px;
+}
+
+.accordion.accordion-no-border .accordion-item:last-child {
+    margin-bottom: 0;
 }
 
 .accordion-item {
@@ -702,6 +709,18 @@ figure.fig .img-container .img-placeholder .label {
     transition: transform 0.3s ease;
 }
 
+.accordion-item.sticky-header-item .accordion-header {
+    position: sticky;
+    top: 56px;
+    z-index: 80;
+    background: color-mix(in srgb, var(--surface-2) 95%, transparent);
+    backdrop-filter: blur(20px) saturate(180%);
+}
+
+.accordion-item.sticky-header-item .accordion-header.stuck {
+    box-shadow: 0 4px 20px -10px rgba(0, 0, 0, 0.15);
+}
+
 .table-wrap {
     overflow-x: auto;
 }
@@ -775,8 +794,9 @@ table.results td:first-child a:hover {
 }
 
 .takeaways-grid.custom-width {
-    display: flex;
-    gap: 18px;
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 12px;
 }
 
 .problem-cards {
@@ -842,11 +862,11 @@ table.results td:first-child a:hover {
 .problem-card .card-index {
     color: var(--accent);
     font-weight: 700;
-    font-size: 1.0rem;
+    font-size: 0.75rem;
     letter-spacing: 0.06em;
     position: relative;
     z-index: 1;
-    font-variant: small-caps;
+    text-transform: uppercase;
 }
 
 .problem-card .ghost-number {
@@ -886,48 +906,59 @@ table.results td:first-child a:hover {
 }
 
 .takeaway {
-    background: var(--surface-2);
-    border-radius: 14px;
-    padding: 24px 20px;
+    background: var(--surface);
+    border-radius: 12px;
+    padding: 16px;
     position: relative;
-    transition: all 0.3s ease;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     cursor: pointer;
-    border: 1px solid transparent;
-    flex: var(--takeaway-flex, 1);
+    border: 1px solid var(--line);
+    overflow: hidden;
+    text-align: center;
 }
 
 .takeaway:hover {
-    background: var(--accent-soft);
+    background: color-mix(in srgb, var(--accent-soft) 50%, var(--surface));
     transform: translateY(-2px);
-    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
-    border-color: var(--line);
+    box-shadow: 0 8px 24px -8px rgba(0, 0, 0, 0.1);
+    border-color: color-mix(in srgb, var(--accent) 30%, var(--line));
 }
 
-.takeaway .num {
-    font-size: 0.85rem;
-    font-weight: 700;
+.takeaway-icon {
+    width: 32px;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 8px;
+    background: color-mix(in srgb, var(--accent) 10%, transparent);
     color: var(--accent);
-    margin-bottom: 10px;
-    letter-spacing: 0.05em;
+    margin: 0 auto 10px;
+    font-size: 1.0rem;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.takeaway:hover .takeaway-icon {
+    background: var(--accent);
+    color: #fff;
+    transform: scale(1.08);
 }
 
 .takeaway h3 {
-    font-size: 1rem;
+    font-size: 1.2rem;
     font-weight: 700;
-    margin: 0 0 8px;
+    margin: 0 0 6px;
     color: var(--ink);
+    letter-spacing: -0.01em;
 }
 
 .takeaway p {
-    font-size: 0.92rem;
+    font-size: 0.65rem;
     color: var(--muted);
     margin: 0;
-    line-height: 1.6;
-    text-align: justify;
-    hyphens: auto;
-    word-spacing: normal;
-    word-break: break-word;
-    overflow-wrap: break-word;
+    text-align: center;
+    line-height: 1.5;
+    font-weight: 500;
 }
 
 .method-lead {
@@ -1079,6 +1110,16 @@ table.results td:first-child a:hover {
 
     .transform-flow {
         grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .takeaways-grid.custom-width {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+@media (max-width: 560px) {
+    .takeaways-grid.custom-width {
+        grid-template-columns: 1fr;
     }
 }
 

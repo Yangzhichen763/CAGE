@@ -470,8 +470,7 @@
                       <div class="cs-conversion-head">
                         <span>Forward conversion</span>
                         <b>
-                          RGB →
-                          <span id="forwardSpaceName">RGB</span>
+                          RGB → <span id="forwardSpaceName">RGB</span>
                         </b>
                       </div>
                       <div class="cs-formula-box" id="spaceFormulaForward"></div>
@@ -504,7 +503,7 @@
                         <option value="image-random">Random Image</option>
                       </optgroup>
                       <optgroup label="Pattern">
-                        <option selected="" value="structured">Structured</option>
+                        <option value="structured">Structured</option>
                         <option value="low-discrepancy">Grid 3D</option>
                         <option value="grid">Grid 2D</option>
                         <option value="rainbow">Rainbow</option>
@@ -512,10 +511,13 @@
                         <option value="bijection">Bijection</option>
                       </optgroup>
                       <optgroup label="Noise">
-                        <option value="random">Random</option>
-                        <option value="voronoi">Voronoi</option>
+                        <option value="uniform">Uniform</option>
+                        <option value="gaussian">Gaussian</option>
                         <option value="perlin">Perlin</option>
-                        <option value="mosaic">Mosaic</option>
+                        <option value="fractal">Fractal</option>
+                        <option value="turbulence">Turbulence</option>
+                        <option value="voronoi">Voronoi</option>
+                        <option selected="" value="mosaic">Mosaic</option>
                       </optgroup>
                     </select>
                   </label>
@@ -880,6 +882,18 @@
             class="lazy-media" data-placeholder-file="Methodology - CAGE.png"
             data-placeholder-label="CAGE architecture: a lightweight CNN predicts image-adaptive cylindrical parameters, while the input passes through the forward transform, low-light image enhancement backbone, and inverse transform to produce the enhanced image."
             data-src="figures/main/Methodology - CAGE.png" decoding="async" loading="lazy" />
+          <div class="img-placeholder is-hidden">
+            <div class="icon">
+              <svg fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.6"
+                viewbox="0 0 24 24">
+                <rect height="18" rx="2" width="18" x="3" y="3"></rect>
+                <circle cx="9" cy="9" r="2"></circle>
+                <path d="M21 15l-5-5L5 21"></path>
+              </svg>
+            </div>
+            <div class="filename"></div>
+            <div class="label"></div>
+          </div>
           <span aria-hidden="true" class="mfig-cue">
             <b>
               <svg viewbox="0 0 24 24">
@@ -931,16 +945,9 @@
         Qualitative comparisons on paired and unpaired datasets show reduced global color bias, more stable
         local saturation, and more natural chromatic transitions.
       </p>
-      <div class="accordion">
-        <div class="accordion-sticky-header" id="accordion-sticky">
-          <h3>
-          </h3>
-          <span class="accordion-icon">
-            <i class="fas fa-chevron-down"></i>
-          </span>
-        </div>
-        <div class="accordion-item">
-          <div class="accordion-header">
+      <div class="accordion accordion-no-border">
+        <div class="accordion-item sticky-header-item">
+          <div class="accordion-header sticky-trigger">
             <h3>Paired Dataset Results</h3>
             <span class="accordion-icon">
               <i class="fas fa-chevron-down"></i>
@@ -1050,8 +1057,8 @@
             </div>
           </div>
         </div>
-        <div class="accordion-item">
-          <div class="accordion-header">
+        <div class="accordion-item sticky-header-item">
+          <div class="accordion-header sticky-trigger">
             <h3>Unpaired Dataset Results</h3>
             <span class="accordion-icon">
               <i class="fas fa-chevron-down"></i>
@@ -1087,8 +1094,8 @@
             </div>
           </div>
         </div>
-        <div class="accordion-item">
-          <div class="accordion-header">
+        <div class="accordion-item sticky-header-item">
+          <div class="accordion-header sticky-trigger">
             <h3>User Study</h3>
             <span class="accordion-icon">
               <i class="fas fa-chevron-down"></i>
@@ -1133,636 +1140,660 @@
         CAGE consistently improves all backbones with only 0.07M additional parameters across multiple
         benchmarks.
       </p>
-      <h3>Main Results</h3>
-      <div class="table-wrap animate-on-scroll">
-        <table class="results acc">
-          <caption>
-            Quantitative comparisons on LOLv1, LOLv2-real, and LOLv2-synthetic datasets.
-            <strong>CAGE</strong> consistently improves all backbones with only 0.07M additional parameters
-            and less than 0.01G FLOPs. Metrics: PSNR (dB) / SSIM.
-            <strong>Bold</strong> = best result. Following
-            <a href="https://openaccess.thecvf.com/content/CVPR2025/papers/Yan_HVI_A_New_Color_Space_for_Low-light_Image_Enhancement_CVPR_2025_paper.pdf"
-              rel="noopener" target="_blank">HVI-CIDNet</a>
-            , we use GT-mean evaluation on LOLv1 dataset during testing. Since LOLv1 contains only 15
-            testing pairs, and direct metric evaluation can be sensitive to global brightness
-            fluctuation, which may obscure differences in color restoration and structural recovery.
-          </caption>
-          <thead>
-            <tr>
-              <th>Method</th>
-              <th>LOLv1</th>
-              <th>LOLv2-real</th>
-              <th>LOLv2-synthetic</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr>
-              <td>
-                <a href="http://bmvc2018.org/contents/papers/0451.pdf" target="_blank">RetinexNet</a>
-              </td>
-              <td>
-                17.56 / 0.645
-              </td>
-              <td>
-                17.68 / 0.642
-              </td>
-              <td>
-                15.61 / 0.449
-              </td>
-            </tr>
-            <tr>
-              <td>
-                <a href="https://openaccess.thecvf.com/content_CVPR_2020/papers/Xu_Learning_to_Restore_Low-Light_Images_via_Decomposition-and-Enhancement_CVPR_2020_paper.pdf"
-                  target="_blank">KinD</a>
-              </td>
-              <td>
-                17.64 / 0.777
-              </td>
-              <td>
-                20.59 / 0.818
-              </td>
-              <td>
-                16.26 / 0.591
-              </td>
-            </tr>
-            <tr>
-              <td>
-                <a href="https://openaccess.thecvf.com/content_CVPR_2020/papers/Yang_From_Fidelity_to_Perceptual_Quality_A_Semi-Supervised_Approach_for_Low-Light_CVPR_2020_paper.pdf"
-                  target="_blank">DRBN</a>
-              </td>
-              <td>
-                20.13 / 0.830
-              </td>
-              <td>
-                20.29 / 0.831
-              </td>
-              <td>
-                23.22 / 0.927
-              </td>
-            </tr>
-            <tr>
-              <td>
-                <a href="https://www.ecva.net/papers/eccv_2020/papers_ECCV/papers/123700494.pdf"
-                  target="_blank">MIRNet</a>
-              </td>
-              <td>
-                26.56 / 0.853
-              </td>
-              <td>
-                22.68 / 0.828
-              </td>
-              <td>
-                25.05 / 0.923
-              </td>
-            </tr>
-            <tr>
-              <td>
-                <a href="https://openaccess.thecvf.com/content_CVPR_2020/papers/Guo_Zero-Reference_Deep_Curve_Estimation_for_Low-Light_Image_Enhancement_CVPR_2020_paper.pdf"
-                  target="_blank">ZeroDCE</a>
-              </td>
-              <td>
-                21.88 / 0.640
-              </td>
-              <td>
-                16.06 / 0.580
-              </td>
-              <td>
-                17.71 / 0.815
-              </td>
-            </tr>
-            <tr>
-              <td>
-                <a href="https://ieeexplore.ieee.org/document/9334429" target="_blank">EnlightenGAN</a>
-              </td>
-              <td>
-                20.00 / 0.691
-              </td>
-              <td>
-                18.23 / 0.617
-              </td>
-              <td>
-                16.57 / 0.734
-              </td>
-            </tr>
-            <tr>
-              <td>
-                <a href="https://ojs.aaai.org/index.php/AAAI/article/view/20162" target="_blank">LLFlow</a>
-              </td>
-              <td>
-                25.53 / 0.870
-              </td>
-              <td>
-                17.43 / 0.831
-              </td>
-              <td>
-                23.43 / 0.933
-              </td>
-            </tr>
-            <tr>
-              <td>
-                <a href="https://jiaya.me/file/papers/cvpr22_xiaogang.pdf" target="_blank">SNR-Net</a>
-              </td>
-              <td>
-                26.81 / 0.855
-              </td>
-              <td>
-                21.48 / 0.849
-              </td>
-              <td>
-                24.14 / 0.927
-              </td>
-            </tr>
-            <tr>
-              <td>
-                <a href="https://link.springer.com/article/10.1007/s11263-022-01680-5" target="_blank">BreaD</a>
-              </td>
-              <td>
-                25.32 / 0.843
-              </td>
-              <td>
-                23.69 / 0.869
-              </td>
-              <td>
-                15.97 / 0.746
-              </td>
-            </tr>
-            <tr>
-              <td>
-                <a href="https://dl.acm.org/doi/10.1609/aaai.v37i3.25364" target="_blank">LLFormer</a>
-              </td>
-              <td>
-                26.12 / 0.827
-              </td>
-              <td>
-                21.65 / 0.816
-              </td>
-              <td>
-                25.26 / 0.923
-              </td>
-            </tr>
-            <tr>
-              <td>
-                <a href="https://openaccess.thecvf.com/content/ICCV2025/papers/Zhang_CWNet_Causal_Wavelet_Network_for_Low-Light_Image_Enhancement_ICCV_2025_paper.pdf"
-                  target="_blank">CWNet</a>
-              </td>
-              <td>
-                26.38 / 0.864
-              </td>
-              <td>
-                21.65 / 0.860
-              </td>
-              <td>
-                25.50 / 0.937
-              </td>
-            </tr>
-            <tr class="dashed-top">
-              <td>
-                <a href="https://openaccess.thecvf.com/content/ICCV2023/papers/Cai_Retinexformer_One-stage_Retinex-based_Transformer_for_Low-light_Image_Enhancement_ICCV_2023_paper.pdf"
-                  target="_blank">Retinexformer</a>
-              </td>
-              <td>
-                26.08 / 0.827
-              </td>
-              <td>
-                21.89 / 0.837
-              </td>
-              <td>
-                24.59 / 0.919
-              </td>
-            </tr>
-            <tr class="mine">
-              <td>Retinexformer + Ours</td>
-              <td>
-                <strong>27.09</strong>
-                /
-                <strong>0.871</strong>
-              </td>
-              <td>
-                <strong>24.10</strong>
-                /
-                <strong>0.847</strong>
-              </td>
-              <td>
-                <strong>26.33</strong>
-                /
-                <strong>0.939</strong>
-              </td>
-            </tr>
-            <tr class="mine delta">
-              <td>Δ</td>
-              <td>
-                <span class="metric-gain">+1.01</span>
-                /
-                <span class="metric-gain">+0.044</span>
-              </td>
-              <td>
-                <span class="metric-gain">+2.21</span>
-                /
-                <span class="metric-gain">+0.010</span>
-              </td>
-              <td>
-                <span class="metric-gain">+1.74</span>
-                /
-                <span class="metric-gain">+0.020</span>
-              </td>
-            </tr>
-            <tr class="dashed-top">
-              <td>
-                <a href="https://openaccess.thecvf.com/content/CVPR2025/papers/Feijoo_DarkIR_Robust_Low-Light_Image_Restoration_CVPR_2025_paper.pdf"
-                  target="_blank">DarkIR</a>
-              </td>
-              <td>
-                25.32 / 0.806
-              </td>
-              <td>
-                21.32 / 0.830
-              </td>
-              <td>
-                24.06 / 0.921
-              </td>
-            </tr>
-            <tr class="mine">
-              <td>DarkIR + Ours</td>
-              <td>
-                26.03 / 0.849
-              </td>
-              <td>
-                22.51 / 0.860
-              </td>
-              <td>
-                24.54 / 0.923
-              </td>
-            </tr>
-            <tr class="mine delta">
-              <td>Δ</td>
-              <td>
-                <span class="metric-gain">+0.71</span>
-                /
-                <span class="metric-gain">+0.043</span>
-              </td>
-              <td>
-                <span class="metric-gain">+1.19</span>
-                /
-                <span class="metric-gain">+0.030</span>
-              </td>
-              <td>
-                <span class="metric-gain">+0.48</span>
-                /
-                <span class="metric-gain">+0.002</span>
-              </td>
-            </tr>
-            <tr class="dashed-top">
-              <td>
-                <a href="https://openaccess.thecvf.com/content/CVPR2025/papers/Yan_HVI_A_New_Color_Space_for_Low-light_Image_Enhancement_CVPR_2025_paper.pdf"
-                  target="_blank">HVI-CIDNet</a>
-              </td>
-              <td>
-                26.03 / 0.832
-              </td>
-              <td>
-                23.94 / 0.870
-              </td>
-              <td>
-                25.32 / 0.929
-              </td>
-            </tr>
-            <tr class="mine">
-              <td>HVI-CIDNet + Ours</td>
-              <td>
-                <strong>27.25</strong>
-                /
-                <strong>0.857</strong>
-              </td>
-              <td>
-                <strong>24.24</strong>
-                /
-                <strong>0.875</strong>
-              </td>
-              <td>
-                <strong>25.52</strong>
-                /
-                <strong>0.930</strong>
-              </td>
-            </tr>
-            <tr class="mine delta">
-              <td>Δ</td>
-              <td>
-                <span class="metric-gain">+1.22</span>
-                /
-                <span class="metric-gain">+0.025</span>
-              </td>
-              <td>
-                <span class="metric-gain">+0.30</span>
-                /
-                <span class="metric-gain">+0.005</span>
-              </td>
-              <td>
-                <span class="metric-gain">+0.20</span>
-                /
-                <span class="metric-gain">+0.001</span>
-              </td>
-            </tr>
-          </tbody>
-        </table>
-      </div>
-      <h3>Challenging Datasets</h3>
-      <div class="table-wrap animate-on-scroll">
-        <table class="results acc">
-          <caption>
-            Quantitative comparisons on challenging datasets (SDSD-indoor, SDSD-outdoor, and SID).
-            <strong>CAGE</strong>
-            achieves consistent improvement with PSNR gains up to 1.78 dB on SDSD-indoor. Metrics: PSNR
-            (dB) / SSIM.
-            <strong>Bold</strong> = best result.
-          </caption>
-          <thead>
-            <tr>
-              <th>Method</th>
-              <th>SDSD-indoor</th>
-              <th>SDSD-outdoor</th>
-              <th>SID</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr>
-              <td>
-                <a href="https://www4.comp.polyu.edu.hk/~cslzhang/paper/PAMI_LUT.pdf" target="_blank">3DLUT</a>
-              </td>
-              <td>
-                24.78 / 0.718
-              </td>
-              <td>
-                23.29 / 0.703
-              </td>
-              <td>
-                16.97 / 0.591
-              </td>
-            </tr>
-            <tr>
-              <td>
-                <a href="https://jiaya.me/file/papers/cvpr22_xiaogang.pdf" target="_blank">SNR-Net</a>
-              </td>
-              <td>
-                26.13 / 0.815
-              </td>
-              <td>
-                19.22 / 0.657
-              </td>
-              <td>
-                21.35 / 0.550
-              </td>
-            </tr>
-            <tr>
-              <td>
-                <a href="https://www.ecva.net/papers/eccv_2022/papers_ECCV/papers/136660562.pdf"
-                  target="_blank">LEDNet</a>
-              </td>
-              <td>
-                27.29 / 0.876
-              </td>
-              <td>
-                26.66 / 0.850
-              </td>
-              <td>
-                21.47 / 0.638
-              </td>
-            </tr>
-            <tr>
-              <td>
-                <a href="https://dl.acm.org/doi/epdf/10.1145/3581783.3611909" target="_blank">FourLLIE</a>
-              </td>
-              <td>
-                24.74 / 0.826
-              </td>
-              <td>
-                24.67 / 0.787
-              </td>
-              <td>
-                18.42 / 0.513
-              </td>
-            </tr>
-            <tr>
-              <td>
-                <a href="https://link.springer.com/chapter/10.1007/978-981-96-6596-9_30"
-                  target="_blank">RetinexMamba</a>
-              </td>
-              <td>
-                28.44 / 0.894
-              </td>
-              <td>
-                28.52 / 0.859
-              </td>
-              <td>
-                22.45 / 0.656
-              </td>
-            </tr>
-            <tr>
-              <td>
-                <a href="https://www.ecva.net/papers/eccv_2020/papers_ECCV/papers/123700494.pdf"
-                  target="_blank">MIRNet</a>
-              </td>
-              <td>
-                28.64 / 0.888
-              </td>
-              <td>
-                28.99 / 0.869
-              </td>
-              <td>
-                21.36 / 0.632
-              </td>
-            </tr>
-            <tr>
-              <td>
-                <a href="https://openaccess.thecvf.com/content/CVPR2022/papers/Zamir_Restormer_Efficient_Transformer_for_High-Resolution_Image_Restoration_CVPR_2022_paper.pdf"
-                  target="_blank">Restormer</a>
-              </td>
-              <td>
-                28.49 / 0.892
-              </td>
-              <td>
-                27.99 / 0.868
-              </td>
-              <td>
-                22.01 / 0.645
-              </td>
-            </tr>
-            <tr>
-              <td>
-                <a href="https://www.ecva.net/papers/eccv_2024/papers_ECCV/papers/02740.pdf" target="_blank">MambaIR</a>
-              </td>
-              <td>
-                25.14 / 0.876
-              </td>
-              <td>
-                27.53 / 0.851
-              </td>
-              <td>
-                22.02 / 0.658
-              </td>
-            </tr>
-            <tr>
-              <td>
-                <a href="https://openaccess.thecvf.com/content/ICCV2025/papers/Zhang_CWNet_Causal_Wavelet_Network_for_Low-Light_Image_Enhancement_ICCV_2025_paper.pdf"
-                  target="_blank">CWNet</a>
-              </td>
-              <td>
-                30.28 / 0.904
-              </td>
-              <td>
-                28.54 / 0.857
-              </td>
-              <td>
-                20.97 / 0.623
-              </td>
-            </tr>
-            <tr class="dashed-top">
-              <td>
-                <a href="https://openaccess.thecvf.com/content/ICCV2023/papers/Cai_Retinexformer_One-stage_Retinex-based_Transformer_for_Low-light_Image_Enhancement_ICCV_2023_paper.pdf"
-                  target="_blank">Retinexformer</a>
-              </td>
-              <td>
-                28.20 / 0.877
-              </td>
-              <td>
-                29.57 / 0.874
-              </td>
-              <td>
-                22.05 / 0.636
-              </td>
-            </tr>
-            <tr class="mine">
-              <td>Retinexformer + Ours</td>
-              <td>
-                <strong>29.98</strong>
-                /
-                <strong>0.906</strong>
-              </td>
-              <td>
-                <strong>30.12</strong>
-                /
-                <strong>0.877</strong>
-              </td>
-              <td>
-                <strong>22.64</strong>
-                /
-                <strong>0.660</strong>
-              </td>
-            </tr>
-            <tr class="mine delta">
-              <td>Δ</td>
-              <td>
-                <span class="metric-gain">+1.78</span>
-                /
-                <span class="metric-gain">+0.029</span>
-              </td>
-              <td>
-                <span class="metric-gain">+0.55</span>
-                /
-                <span class="metric-gain">+0.003</span>
-              </td>
-              <td>
-                <span class="metric-gain">+0.59</span>
-                /
-                <span class="metric-gain">+0.024</span>
-              </td>
-            </tr>
-            <tr class="dashed-top">
-              <td>
-                <a href="https://openaccess.thecvf.com/content/CVPR2025/papers/Feijoo_DarkIR_Robust_Low-Light_Image_Restoration_CVPR_2025_paper.pdf"
-                  target="_blank">DarkIR</a>
-              </td>
-              <td>
-                29.94 / 0.897
-              </td>
-              <td>
-                28.81 / 0.848
-              </td>
-              <td>
-                21.50 / 0.588
-              </td>
-            </tr>
-            <tr class="mine">
-              <td>DarkIR + Ours</td>
-              <td>
-                <strong>30.36</strong>
-                /
-                <strong>0.899</strong>
-              </td>
-              <td>
-                29.36 / 0.858
-              </td>
-              <td>
-                22.33 / 0.639
-              </td>
-            </tr>
-            <tr class="mine delta">
-              <td>Δ</td>
-              <td>
-                <span class="metric-gain">+0.42</span>
-                /
-                <span class="metric-gain">+0.002</span>
-              </td>
-              <td>
-                <span class="metric-gain">+0.55</span>
-                /
-                <span class="metric-gain">+0.010</span>
-              </td>
-              <td>
-                <span class="metric-gain">+0.83</span>
-                /
-                <span class="metric-gain">+0.051</span>
-              </td>
-            </tr>
-            <tr class="dashed-top">
-              <td>
-                <a href="https://openaccess.thecvf.com/content/CVPR2025/papers/Yan_HVI_A_New_Color_Space_for_Low-light_Image_Enhancement_CVPR_2025_paper.pdf"
-                  target="_blank">HVI-CIDNet</a>
-              </td>
-              <td>
-                28.74 / 0.895
-              </td>
-              <td>
-                28.70 / 0.866
-              </td>
-              <td>
-                22.21 / 0.631
-              </td>
-            </tr>
-            <tr class="mine">
-              <td>HVI-CIDNet + Ours</td>
-              <td>
-                29.91 / 0.900
-              </td>
-              <td>
-                <strong>29.80</strong>
-                /
-                <strong>0.877</strong>
-              </td>
-              <td>
-                <strong>22.46</strong>
-                / 0.653
-              </td>
-            </tr>
-            <tr class="mine delta">
-              <td>Δ</td>
-              <td>
-                <span class="metric-gain">+1.17</span>
-                /
-                <span class="metric-gain">+0.005</span>
-              </td>
-              <td>
-                <span class="metric-gain">+1.10</span>
-                /
-                <span class="metric-gain">+0.011</span>
-              </td>
-              <td>
-                <span class="metric-gain">+0.25</span>
-                /
-                <span class="metric-gain">+0.022</span>
-              </td>
-            </tr>
-          </tbody>
-        </table>
+      <div class="accordion accordion-no-border">
+        <div class="accordion-item sticky-header-item">
+          <div class="accordion-header active sticky-trigger">
+            <h3>Main Results</h3>
+            <span class="accordion-icon">
+              <i class="fas fa-chevron-down"></i>
+            </span>
+          </div>
+          <div class="accordion-content open">
+            <div class="accordion-content-inner">
+              <div class="table-wrap animate-on-scroll">
+                <table class="results acc">
+                  <caption>
+                    Quantitative comparisons on LOLv1, LOLv2-real, and LOLv2-synthetic datasets.
+                    <strong>CAGE</strong> consistently improves all backbones with only 0.07M additional parameters
+                    and less than 0.01G FLOPs. Metrics: PSNR (dB) / SSIM.
+                    <strong>Bold</strong> = best result. Following
+                    <a href="https://openaccess.thecvf.com/content/CVPR2025/papers/Yan_HVI_A_New_Color_Space_for_Low-light_Image_Enhancement_CVPR_2025_paper.pdf"
+                      rel="noopener" target="_blank">HVI-CIDNet</a>
+                    , we use GT-mean evaluation on LOLv1 dataset during testing. Since LOLv1 contains only 15
+                    testing pairs, and direct metric evaluation can be sensitive to global brightness
+                    fluctuation, which may obscure differences in color restoration and structural recovery.
+                  </caption>
+                  <thead>
+                    <tr>
+                      <th>Method</th>
+                      <th>LOLv1</th>
+                      <th>LOLv2-real</th>
+                      <th>LOLv2-synthetic</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td>
+                        <a href="http://bmvc2018.org/contents/papers/0451.pdf" target="_blank">RetinexNet</a>
+                      </td>
+                      <td>
+                        17.56 / 0.645
+                      </td>
+                      <td>
+                        17.68 / 0.642
+                      </td>
+                      <td>
+                        15.61 / 0.449
+                      </td>
+                    </tr>
+                    <tr>
+                      <td>
+                        <a href="https://openaccess.thecvf.com/content_CVPR_2020/papers/Xu_Learning_to_Restore_Low-Light_Images_via_Decomposition-and-Enhancement_CVPR_2020_paper.pdf"
+                          target="_blank">KinD</a>
+                      </td>
+                      <td>
+                        17.64 / 0.777
+                      </td>
+                      <td>
+                        20.59 / 0.818
+                      </td>
+                      <td>
+                        16.26 / 0.591
+                      </td>
+                    </tr>
+                    <tr>
+                      <td>
+                        <a href="https://openaccess.thecvf.com/content_CVPR_2020/papers/Yang_From_Fidelity_to_Perceptual_Quality_A_Semi-Supervised_Approach_for_Low-Light_CVPR_2020_paper.pdf"
+                          target="_blank">DRBN</a>
+                      </td>
+                      <td>
+                        20.13 / 0.830
+                      </td>
+                      <td>
+                        20.29 / 0.831
+                      </td>
+                      <td>
+                        23.22 / 0.927
+                      </td>
+                    </tr>
+                    <tr>
+                      <td>
+                        <a href="https://www.ecva.net/papers/eccv_2020/papers_ECCV/papers/123700494.pdf"
+                          target="_blank">MIRNet</a>
+                      </td>
+                      <td>
+                        26.56 / 0.853
+                      </td>
+                      <td>
+                        22.68 / 0.828
+                      </td>
+                      <td>
+                        25.05 / 0.923
+                      </td>
+                    </tr>
+                    <tr>
+                      <td>
+                        <a href="https://openaccess.thecvf.com/content_CVPR_2020/papers/Guo_Zero-Reference_Deep_Curve_Estimation_for_Low-Light_Image_Enhancement_CVPR_2020_paper.pdf"
+                          target="_blank">ZeroDCE</a>
+                      </td>
+                      <td>
+                        21.88 / 0.640
+                      </td>
+                      <td>
+                        16.06 / 0.580
+                      </td>
+                      <td>
+                        17.71 / 0.815
+                      </td>
+                    </tr>
+                    <tr>
+                      <td>
+                        <a href="https://ieeexplore.ieee.org/document/9334429" target="_blank">EnlightenGAN</a>
+                      </td>
+                      <td>
+                        20.00 / 0.691
+                      </td>
+                      <td>
+                        18.23 / 0.617
+                      </td>
+                      <td>
+                        16.57 / 0.734
+                      </td>
+                    </tr>
+                    <tr>
+                      <td>
+                        <a href="https://ojs.aaai.org/index.php/AAAI/article/view/20162" target="_blank">LLFlow</a>
+                      </td>
+                      <td>
+                        25.53 / 0.870
+                      </td>
+                      <td>
+                        17.43 / 0.831
+                      </td>
+                      <td>
+                        23.43 / 0.933
+                      </td>
+                    </tr>
+                    <tr>
+                      <td>
+                        <a href="https://jiaya.me/file/papers/cvpr22_xiaogang.pdf" target="_blank">SNR-Net</a>
+                      </td>
+                      <td>
+                        26.81 / 0.855
+                      </td>
+                      <td>
+                        21.48 / 0.849
+                      </td>
+                      <td>
+                        24.14 / 0.927
+                      </td>
+                    </tr>
+                    <tr>
+                      <td>
+                        <a href="https://link.springer.com/article/10.1007/s11263-022-01680-5" target="_blank">BreaD</a>
+                      </td>
+                      <td>
+                        25.32 / 0.843
+                      </td>
+                      <td>
+                        23.69 / 0.869
+                      </td>
+                      <td>
+                        15.97 / 0.746
+                      </td>
+                    </tr>
+                    <tr>
+                      <td>
+                        <a href="https://dl.acm.org/doi/10.1609/aaai.v37i3.25364" target="_blank">LLFormer</a>
+                      </td>
+                      <td>
+                        26.12 / 0.827
+                      </td>
+                      <td>
+                        21.65 / 0.816
+                      </td>
+                      <td>
+                        25.26 / 0.923
+                      </td>
+                    </tr>
+                    <tr>
+                      <td>
+                        <a href="https://openaccess.thecvf.com/content/ICCV2025/papers/Zhang_CWNet_Causal_Wavelet_Network_for_Low-Light_Image_Enhancement_ICCV_2025_paper.pdf"
+                          target="_blank">CWNet</a>
+                      </td>
+                      <td>
+                        26.38 / 0.864
+                      </td>
+                      <td>
+                        21.65 / 0.860
+                      </td>
+                      <td>
+                        25.50 / 0.937
+                      </td>
+                    </tr>
+                    <tr class="dashed-top">
+                      <td>
+                        <a href="https://openaccess.thecvf.com/content/ICCV2023/papers/Cai_Retinexformer_One-stage_Retinex-based_Transformer_for_Low-light_Image_Enhancement_ICCV_2023_paper.pdf"
+                          target="_blank">Retinexformer</a>
+                      </td>
+                      <td>
+                        26.08 / 0.827
+                      </td>
+                      <td>
+                        21.89 / 0.837
+                      </td>
+                      <td>
+                        24.59 / 0.919
+                      </td>
+                    </tr>
+                    <tr class="mine">
+                      <td>Retinexformer + Ours</td>
+                      <td>
+                        <strong>27.09</strong>
+                        /
+                        <strong>0.871</strong>
+                      </td>
+                      <td>
+                        <strong>24.10</strong>
+                        /
+                        <strong>0.847</strong>
+                      </td>
+                      <td>
+                        <strong>26.33</strong>
+                        /
+                        <strong>0.939</strong>
+                      </td>
+                    </tr>
+                    <tr class="mine delta">
+                      <td>Δ</td>
+                      <td>
+                        <span class="metric-gain">+1.01</span>
+                        /
+                        <span class="metric-gain">+0.044</span>
+                      </td>
+                      <td>
+                        <span class="metric-gain">+2.21</span>
+                        /
+                        <span class="metric-gain">+0.010</span>
+                      </td>
+                      <td>
+                        <span class="metric-gain">+1.74</span>
+                        /
+                        <span class="metric-gain">+0.020</span>
+                      </td>
+                    </tr>
+                    <tr class="dashed-top">
+                      <td>
+                        <a href="https://openaccess.thecvf.com/content/CVPR2025/papers/Feijoo_DarkIR_Robust_Low-Light_Image_Restoration_CVPR_2025_paper.pdf"
+                          target="_blank">DarkIR</a>
+                      </td>
+                      <td>
+                        25.32 / 0.806
+                      </td>
+                      <td>
+                        21.32 / 0.830
+                      </td>
+                      <td>
+                        24.06 / 0.921
+                      </td>
+                    </tr>
+                    <tr class="mine">
+                      <td>DarkIR + Ours</td>
+                      <td>
+                        26.03 / 0.849
+                      </td>
+                      <td>
+                        22.51 / 0.860
+                      </td>
+                      <td>
+                        24.54 / 0.923
+                      </td>
+                    </tr>
+                    <tr class="mine delta">
+                      <td>Δ</td>
+                      <td>
+                        <span class="metric-gain">+0.71</span>
+                        /
+                        <span class="metric-gain">+0.043</span>
+                      </td>
+                      <td>
+                        <span class="metric-gain">+1.19</span>
+                        /
+                        <span class="metric-gain">+0.030</span>
+                      </td>
+                      <td>
+                        <span class="metric-gain">+0.48</span>
+                        /
+                        <span class="metric-gain">+0.002</span>
+                      </td>
+                    </tr>
+                    <tr class="dashed-top">
+                      <td>
+                        <a href="https://openaccess.thecvf.com/content/CVPR2025/papers/Yan_HVI_A_New_Color_Space_for_Low-light_Image_Enhancement_CVPR_2025_paper.pdf"
+                          target="_blank">HVI-CIDNet</a>
+                      </td>
+                      <td>
+                        26.03 / 0.832
+                      </td>
+                      <td>
+                        23.94 / 0.870
+                      </td>
+                      <td>
+                        25.32 / 0.929
+                      </td>
+                    </tr>
+                    <tr class="mine">
+                      <td>HVI-CIDNet + Ours</td>
+                      <td>
+                        <strong>27.25</strong>
+                        /
+                        <strong>0.857</strong>
+                      </td>
+                      <td>
+                        <strong>24.24</strong>
+                        /
+                        <strong>0.875</strong>
+                      </td>
+                      <td>
+                        <strong>25.52</strong>
+                        /
+                        <strong>0.930</strong>
+                      </td>
+                    </tr>
+                    <tr class="mine delta">
+                      <td>Δ</td>
+                      <td>
+                        <span class="metric-gain">+1.22</span>
+                        /
+                        <span class="metric-gain">+0.025</span>
+                      </td>
+                      <td>
+                        <span class="metric-gain">+0.30</span>
+                        /
+                        <span class="metric-gain">+0.005</span>
+                      </td>
+                      <td>
+                        <span class="metric-gain">+0.20</span>
+                        /
+                        <span class="metric-gain">+0.001</span>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="accordion-item sticky-header-item">
+          <div class="accordion-header sticky-trigger">
+            <h3>Challenging Datasets</h3>
+            <span class="accordion-icon">
+              <i class="fas fa-chevron-down"></i>
+            </span>
+          </div>
+          <div class="accordion-content">
+            <div class="accordion-content-inner">
+              <div class="table-wrap animate-on-scroll">
+                <table class="results acc">
+                  <caption>
+                    Quantitative comparisons on challenging datasets (SDSD-indoor, SDSD-outdoor, and SID).
+                    <strong>CAGE</strong>
+                    achieves consistent improvement with PSNR gains up to 1.78 dB on SDSD-indoor. Metrics: PSNR
+                    (dB) / SSIM.
+                    <strong>Bold</strong> = best result.
+                  </caption>
+                  <thead>
+                    <tr>
+                      <th>Method</th>
+                      <th>SDSD-indoor</th>
+                      <th>SDSD-outdoor</th>
+                      <th>SID</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td>
+                        <a href="https://www4.comp.polyu.edu.hk/~cslzhang/paper/PAMI_LUT.pdf" target="_blank">3DLUT</a>
+                      </td>
+                      <td>
+                        24.78 / 0.718
+                      </td>
+                      <td>
+                        23.29 / 0.703
+                      </td>
+                      <td>
+                        16.97 / 0.591
+                      </td>
+                    </tr>
+                    <tr>
+                      <td>
+                        <a href="https://jiaya.me/file/papers/cvpr22_xiaogang.pdf" target="_blank">SNR-Net</a>
+                      </td>
+                      <td>
+                        26.13 / 0.815
+                      </td>
+                      <td>
+                        19.22 / 0.657
+                      </td>
+                      <td>
+                        21.35 / 0.550
+                      </td>
+                    </tr>
+                    <tr>
+                      <td>
+                        <a href="https://www.ecva.net/papers/eccv_2022/papers_ECCV/papers/136660562.pdf"
+                          target="_blank">LEDNet</a>
+                      </td>
+                      <td>
+                        27.29 / 0.876
+                      </td>
+                      <td>
+                        26.66 / 0.850
+                      </td>
+                      <td>
+                        21.47 / 0.638
+                      </td>
+                    </tr>
+                    <tr>
+                      <td>
+                        <a href="https://dl.acm.org/doi/epdf/10.1145/3581783.3611909" target="_blank">FourLLIE</a>
+                      </td>
+                      <td>
+                        24.74 / 0.826
+                      </td>
+                      <td>
+                        24.67 / 0.787
+                      </td>
+                      <td>
+                        18.42 / 0.513
+                      </td>
+                    </tr>
+                    <tr>
+                      <td>
+                        <a href="https://link.springer.com/chapter/10.1007/978-981-96-6596-9_30"
+                          target="_blank">RetinexMamba</a>
+                      </td>
+                      <td>
+                        28.44 / 0.894
+                      </td>
+                      <td>
+                        28.52 / 0.859
+                      </td>
+                      <td>
+                        22.45 / 0.656
+                      </td>
+                    </tr>
+                    <tr>
+                      <td>
+                        <a href="https://www.ecva.net/papers/eccv_2020/papers_ECCV/papers/123700494.pdf"
+                          target="_blank">MIRNet</a>
+                      </td>
+                      <td>
+                        28.64 / 0.888
+                      </td>
+                      <td>
+                        28.99 / 0.869
+                      </td>
+                      <td>
+                        21.36 / 0.632
+                      </td>
+                    </tr>
+                    <tr>
+                      <td>
+                        <a href="https://openaccess.thecvf.com/content/CVPR2022/papers/Zamir_Restormer_Efficient_Transformer_for_High-Resolution_Image_Restoration_CVPR_2022_paper.pdf"
+                          target="_blank">Restormer</a>
+                      </td>
+                      <td>
+                        28.49 / 0.892
+                      </td>
+                      <td>
+                        27.99 / 0.868
+                      </td>
+                      <td>
+                        22.01 / 0.645
+                      </td>
+                    </tr>
+                    <tr>
+                      <td>
+                        <a href="https://www.ecva.net/papers/eccv_2024/papers_ECCV/papers/02740.pdf" target="_blank">MambaIR</a>
+                      </td>
+                      <td>
+                        25.14 / 0.876
+                      </td>
+                      <td>
+                        27.53 / 0.851
+                      </td>
+                      <td>
+                        22.02 / 0.658
+                      </td>
+                    </tr>
+                    <tr>
+                      <td>
+                        <a href="https://openaccess.thecvf.com/content/ICCV2025/papers/Zhang_CWNet_Causal_Wavelet_Network_for_Low-Light_Image_Enhancement_ICCV_2025_paper.pdf"
+                          target="_blank">CWNet</a>
+                      </td>
+                      <td>
+                        30.28 / 0.904
+                      </td>
+                      <td>
+                        28.54 / 0.857
+                      </td>
+                      <td>
+                        20.97 / 0.623
+                      </td>
+                    </tr>
+                    <tr class="dashed-top">
+                      <td>
+                        <a href="https://openaccess.thecvf.com/content/ICCV2023/papers/Cai_Retinexformer_One-stage_Retinex-based_Transformer_for_Low-light_Image_Enhancement_ICCV_2023_paper.pdf"
+                          target="_blank">Retinexformer</a>
+                      </td>
+                      <td>
+                        28.20 / 0.877
+                      </td>
+                      <td>
+                        29.57 / 0.874
+                      </td>
+                      <td>
+                        22.05 / 0.636
+                      </td>
+                    </tr>
+                    <tr class="mine">
+                      <td>Retinexformer + Ours</td>
+                      <td>
+                        <strong>29.98</strong>
+                        /
+                        <strong>0.906</strong>
+                      </td>
+                      <td>
+                        <strong>30.12</strong>
+                        /
+                        <strong>0.877</strong>
+                      </td>
+                      <td>
+                        <strong>22.64</strong>
+                        /
+                        <strong>0.660</strong>
+                      </td>
+                    </tr>
+                    <tr class="mine delta">
+                      <td>Δ</td>
+                      <td>
+                        <span class="metric-gain">+1.78</span>
+                        /
+                        <span class="metric-gain">+0.029</span>
+                      </td>
+                      <td>
+                        <span class="metric-gain">+0.55</span>
+                        /
+                        <span class="metric-gain">+0.003</span>
+                      </td>
+                      <td>
+                        <span class="metric-gain">+0.59</span>
+                        /
+                        <span class="metric-gain">+0.024</span>
+                      </td>
+                    </tr>
+                    <tr class="dashed-top">
+                      <td>
+                        <a href="https://openaccess.thecvf.com/content/CVPR2025/papers/Feijoo_DarkIR_Robust_Low-Light_Image_Restoration_CVPR_2025_paper.pdf"
+                          target="_blank">DarkIR</a>
+                      </td>
+                      <td>
+                        29.94 / 0.897
+                      </td>
+                      <td>
+                        28.81 / 0.848
+                      </td>
+                      <td>
+                        21.50 / 0.588
+                      </td>
+                    </tr>
+                    <tr class="mine">
+                      <td>DarkIR + Ours</td>
+                      <td>
+                        <strong>30.36</strong>
+                        /
+                        <strong>0.899</strong>
+                      </td>
+                      <td>
+                        29.36 / 0.858
+                      </td>
+                      <td>
+                        22.33 / 0.639
+                      </td>
+                    </tr>
+                    <tr class="mine delta">
+                      <td>Δ</td>
+                      <td>
+                        <span class="metric-gain">+0.42</span>
+                        /
+                        <span class="metric-gain">+0.002</span>
+                      </td>
+                      <td>
+                        <span class="metric-gain">+0.55</span>
+                        /
+                        <span class="metric-gain">+0.010</span>
+                      </td>
+                      <td>
+                        <span class="metric-gain">+0.83</span>
+                        /
+                        <span class="metric-gain">+0.051</span>
+                      </td>
+                    </tr>
+                    <tr class="dashed-top">
+                      <td>
+                        <a href="https://openaccess.thecvf.com/content/CVPR2025/papers/Yan_HVI_A_New_Color_Space_for_Low-light_Image_Enhancement_CVPR_2025_paper.pdf"
+                          target="_blank">HVI-CIDNet</a>
+                      </td>
+                      <td>
+                        28.74 / 0.895
+                      </td>
+                      <td>
+                        28.70 / 0.866
+                      </td>
+                      <td>
+                        22.21 / 0.631
+                      </td>
+                    </tr>
+                    <tr class="mine">
+                      <td>HVI-CIDNet + Ours</td>
+                      <td>
+                        29.91 / 0.900
+                      </td>
+                      <td>
+                        <strong>29.80</strong>
+                        /
+                        <strong>0.877</strong>
+                      </td>
+                      <td>
+                        <strong>22.46</strong>
+                        / 0.653
+                      </td>
+                    </tr>
+                    <tr class="mine delta">
+                      <td>Δ</td>
+                      <td>
+                        <span class="metric-gain">+1.17</span>
+                        /
+                        <span class="metric-gain">+0.005</span>
+                      </td>
+                      <td>
+                        <span class="metric-gain">+1.10</span>
+                        /
+                        <span class="metric-gain">+0.011</span>
+                      </td>
+                      <td>
+                        <span class="metric-gain">+0.25</span>
+                        /
+                        <span class="metric-gain">+0.022</span>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
     </section>
 
@@ -1770,25 +1801,40 @@
     <section class="animate-on-scroll" id="takeaways">
       <h2>Key Takeaways</h2>
       <div class="takeaways-grid custom-width">
-        <div class="takeaway" style="--takeaway-flex: 7">
-          <h3>Handling Embedded Color Bias</h3>
+        <div class="takeaway">
+          <div class="takeaway-icon">
+            <i class="fas fa-lightbulb"></i>
+          </div>
+          <h3>New Perspective</h3>
           <p>
-            CAGE explicitly suppresses the color bias embedded during low-light image formation before
-            backbone enhancement and rectifies saturation abnormality after enhancement.
+            Low-light embedded color bias
           </p>
         </div>
-        <div class="takeaway" style="--takeaway-flex: 6">
-          <h3>Minimal Tradeoff, Max Gain</h3>
+        <div class="takeaway">
+          <div class="takeaway-icon">
+            <i class="fas fa-chart-line"></i>
+          </div>
+          <h3>Max Gain</h3>
           <p>
-            CAGE adds 0.07M parameters and less than 0.01G FLOPs, while providing up to +2.21 dB PSNR on
-            the evaluated standard benchmarks.
+            up to +2.21 dB PSNR
           </p>
         </div>
-        <div class="takeaway" style="--takeaway-flex: 6">
-          <h3>Plug &amp; Play Integration</h3>
+        <div class="takeaway">
+          <div class="takeaway-icon">
+            <i class="fas fa-microchip"></i>
+          </div>
+          <h3>Minimal Tradeoff</h3>
           <p>
-            CAGE surrounds rather than replaces the enhancement backbone that seamlessly integrates with
-            existing low-light enhancement backbones without requiring architectural changes.
+            0.07M Params. and &lt; 0.01G FLOPs
+          </p>
+        </div>
+        <div class="takeaway">
+          <div class="takeaway-icon">
+            <i class="fas fa-plug"></i>
+          </div>
+          <h3>Plug &amp; Play</h3>
+          <p>
+            w/o arch. modifying.
           </p>
         </div>
       </div>

@@ -697,25 +697,11 @@
         });
 
         var lastNonRandomMode = "structured";
-        var randomModes = ["image-random", "random", "voronoi", "perlin", "mosaic"];
-        var prevRandomMode = null;
-        elements.patternMode.addEventListener("focus", function () {
-            if (randomModes.indexOf(elements.patternMode.value) !== -1) {
-                prevRandomMode = elements.patternMode.value;
-                elements.patternMode.value = lastNonRandomMode;
-            } else {
-                prevRandomMode = null;
-            }
-        });
-        elements.patternMode.addEventListener("blur", function () {
-            if (prevRandomMode) {
-                elements.patternMode.value = prevRandomMode;
-                prevRandomMode = null;
-            }
-        });
+        var randomModes = ["image-random", "random", "gaussian", "perlin", "fractal", "turbulence", "voronoi", "cellular", "mosaic"];
+        var lastRandomMode = null;
+        
         elements.patternMode.addEventListener("change", function () {
             const mode = elements.patternMode.value;
-            prevRandomMode = null;
             if (mode === "low-light") {
                 loadImageFromFile("figures/example_input_00049.png", "Low-light Image");
                 lastNonRandomMode = mode;
@@ -724,11 +710,26 @@
                 lastNonRandomMode = mode;
             } else if (mode === "image-random") {
                 loadRandomExampleImage();
+                lastRandomMode = mode;
             } else {
                 const canvas = createDefaultImage(mode);
                 rebuildImageSamples(canvas, "Pattern: " + mode);
                 if (randomModes.indexOf(mode) === -1) {
                     lastNonRandomMode = mode;
+                } else {
+                    lastRandomMode = mode;
+                }
+            }
+        });
+
+        elements.patternMode.addEventListener("click", function () {
+            const mode = elements.patternMode.value;
+            if (randomModes.indexOf(mode) !== -1) {
+                if (mode === "image-random") {
+                    loadRandomExampleImage();
+                } else {
+                    const canvas = createDefaultImage(mode);
+                    rebuildImageSamples(canvas, "Pattern: " + mode);
                 }
             }
         });
@@ -956,9 +957,9 @@
             " samples per axis · " +
             new Intl.NumberFormat("en-US").format(state.latticeResolution ** 3) +
             " points";
-        elements.patternMode.value = "structured";
-        const canvas = createDefaultImage("structured");
-        rebuildImageSamples(canvas, "Pattern: structured");
+        elements.patternMode.value = "mosaic";
+        const canvas = createDefaultImage("mosaic");
+        rebuildImageSamples(canvas, "Pattern: mosaic");
         window.ColorSpaceAtlas = {
             refresh: function () {
                 window.dispatchEvent(new Event("resize"));

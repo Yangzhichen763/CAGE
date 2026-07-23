@@ -406,10 +406,22 @@ kbd {
     background: var(--bg);
     font-family: inherit;
     font-size: 0.7rem;
+
+    min-width: 22px;
+    height: 22px;
+    display: inline-grid;
+    place-items: center;
+    font-weight: 700;
+    line-height: 1;
+    vertical-align: middle;
 }
 
 kbd.thin {
     padding-inline: 4.5px;
+}
+
+kbd+kbd {
+    margin-left: 1px;
 }
 
 #method .md-step {
@@ -661,17 +673,19 @@ kbd.thin {
 
 #method .mfig-frame {
     position: relative;
-    display: block;
+    display: flex;
+    align-items: center;
+    justify-content: center;
     appearance: none;
     cursor: pointer;
-    background: #fff;
+    background: var(--bg);
     border: 1px solid var(--line-strong);
     border-radius: 14px;
-    padding: 14px;
-    width: fit-content;
+    width: 100%;
     max-width: 100%;
     margin: 8px auto 0px;
     overflow: hidden;
+    min-height: 200px;
     transition:
         border-color 0.18s ease,
         box-shadow 0.18s ease,
@@ -681,10 +695,11 @@ kbd.thin {
 #method .mfig-frame img {
     display: block;
     max-height: 560px;
-    width: auto;
+    width: 100%;
     max-width: 100%;
     height: auto;
-    border-radius: 4px;
+    border-radius: 14px;
+    object-fit: contain;
 }
 
 #method .mfig-frame:hover,
@@ -1124,20 +1139,6 @@ kbd.thin {
     color: var(--muted);
     font-size: 0.67rem;
     line-height: 1.45;
-}
-
-.viewer-tip kbd {
-    min-width: 22px;
-    height: 22px;
-    display: inline-grid;
-    place-items: center;
-    font-weight: 700;
-    line-height: 1;
-    vertical-align: middle;
-}
-
-.viewer-tip kbd+kbd {
-    margin-left: 2px;
 }
 
 #method .mdetail,

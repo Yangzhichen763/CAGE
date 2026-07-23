@@ -620,7 +620,7 @@
 
     PointCloudViewer.prototype._renderLoop = function () {
         if (this.autoRotate && Date.now() >= this.autoRotatePausedUntil) {
-            this.camera.yaw += 0.0022;
+            this.camera.yaw += 0.0011;
             this._emitCameraChange();
         }
         this._draw();

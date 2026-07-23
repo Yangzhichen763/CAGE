@@ -199,6 +199,23 @@ function initCommonUI() {
         }
     }
 
+    window.addEventListener("scroll", function () {
+        const stickyTriggers = document.querySelectorAll(".accordion-header.sticky-trigger");
+        const navTop = document.querySelector("nav.top");
+        const navHeight = navTop ? navTop.offsetHeight : 56;
+        
+        stickyTriggers.forEach(function (header) {
+            const rect = header.getBoundingClientRect();
+            if (rect.top <= navHeight && rect.bottom > navHeight) {
+                header.classList.add("stuck");
+            } else {
+                header.classList.remove("stuck");
+            }
+        });
+        
+        updateStickyHeader();
+    });
+
     document.querySelectorAll(".accordion-header").forEach(function (header) {
         header.setAttribute("role", "button");
         header.setAttribute("tabindex", "0");
@@ -214,21 +231,17 @@ function initCommonUI() {
             const icon = this.querySelector(".accordion-icon");
             const isOpen = content.classList.contains("open");
 
-            document.querySelectorAll(".accordion-content").forEach(function (item) {
-                item.classList.remove("open");
-            });
-            document.querySelectorAll(".accordion-header").forEach(function (item) {
-                item.classList.remove("active");
-            });
-
             if (!isOpen) {
                 content.classList.add("open");
                 this.classList.add("active");
                 this.setAttribute("aria-expanded", "true");
                 activeHeader = this;
             } else {
+                content.classList.remove("open");
+                this.classList.remove("active");
                 this.setAttribute("aria-expanded", "false");
-                activeHeader = null;
+                const openHeaders = document.querySelectorAll(".accordion-header.active");
+                activeHeader = openHeaders.length > 0 ? openHeaders[0] : null;
             }
 
             updateStickyHeader();

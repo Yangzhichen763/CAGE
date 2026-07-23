@@ -17,6 +17,7 @@ function markState(img, state) {
 
 function showMedia(img) {
     img.style.display = "block";
+    img.style.visibility = "";
     const placeholder = img.nextElementSibling;
     if (placeholder?.classList.contains("img-placeholder")) {
         img.style.padding = "4px";
@@ -28,7 +29,7 @@ function showMedia(img) {
 function showMediaFallback(img) {
     const placeholder = img.nextElementSibling;
     if (placeholder?.classList.contains("img-placeholder")) {
-        img.style.display = "none";
+        img.style.visibility = "hidden";
         placeholder.style.display = "flex";
         const filename = placeholder.querySelector(".filename");
         const label = placeholder.querySelector(".label");
