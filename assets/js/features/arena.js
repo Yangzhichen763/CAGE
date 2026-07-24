@@ -912,7 +912,7 @@ function createComparisonView(beforeImageUrl, afterImageUrl, initialPercentage) 
     divider.style.left = `${percentage}%`;
     sliderButton.style.left = `${percentage}%`;
 
-    function updateSlider(clientX) {
+    function updateSlider(clientX, clientY) {
         const rect = sliderContainer.getBoundingClientRect();
         if (!rect.width) return;
 
@@ -922,6 +922,11 @@ function createComparisonView(beforeImageUrl, afterImageUrl, initialPercentage) 
         beforeImage.style.clipPath = `inset(0 ${100 - percentage}% 0 0)`;
         divider.style.left = `${percentage}%`;
         sliderButton.style.left = `${percentage}%`;
+
+        if (clientY !== undefined) {
+            const verticalPercentage = Math.max(0, Math.min(100, ((clientY - rect.top) / rect.height) * 100));
+            sliderButton.style.top = `${verticalPercentage}%`;
+        }
     }
 
     let dragging = false;
@@ -932,13 +937,13 @@ function createComparisonView(beforeImageUrl, afterImageUrl, initialPercentage) 
         divider.setPointerCapture(e.pointerId);
         e.preventDefault();
         e.stopPropagation();
-        updateSlider(e.clientX);
+        updateSlider(e.clientX, e.clientY);
     });
 
     divider.addEventListener("pointermove", function (e) {
         if (!dragging) return;
         e.preventDefault();
-        updateSlider(e.clientX);
+        updateSlider(e.clientX, e.clientY);
     });
 
     function stopDragging(e) {
@@ -948,6 +953,13 @@ function createComparisonView(beforeImageUrl, afterImageUrl, initialPercentage) 
         if (divider.hasPointerCapture(e.pointerId)) {
             divider.releasePointerCapture(e.pointerId);
         }
+
+        sliderButton.style.transition = "top 0.2s ease-out";
+        sliderButton.style.top = "50%";
+
+        setTimeout(function () {
+            sliderButton.style.transition = "";
+        }, 300);
     }
 
     divider.addEventListener("pointerup", stopDragging);
@@ -959,13 +971,13 @@ function createComparisonView(beforeImageUrl, afterImageUrl, initialPercentage) 
         sliderButton.setPointerCapture(e.pointerId);
         e.preventDefault();
         e.stopPropagation();
-        updateSlider(e.clientX);
+        updateSlider(e.clientX, e.clientY);
     });
 
     sliderButton.addEventListener("pointermove", function (e) {
         if (!dragging) return;
         e.preventDefault();
-        updateSlider(e.clientX);
+        updateSlider(e.clientX, e.clientY);
     });
 
     sliderButton.addEventListener("pointerup", stopDragging);

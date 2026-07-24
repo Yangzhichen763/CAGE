@@ -28,6 +28,35 @@ def get_device(device_name):
     return torch.device(device_name)
 
 
+def is_image_file(image_path):
+    image_path = Path(image_path)
+
+    return (
+        image_path.is_file()
+        and image_path.suffix.lower() in IMAGE_EXTENSIONS
+    )
+
+
+def validate_image_file(image_path, argument_name):
+    image_path = Path(image_path)
+
+    if not image_path.exists():
+        raise FileNotFoundError(
+            f"{argument_name} does not exist: {image_path}"
+        )
+
+    if not image_path.is_file():
+        raise ValueError(
+            f"{argument_name} is not an image file: {image_path}"
+        )
+
+    if image_path.suffix.lower() not in IMAGE_EXTENSIONS:
+        raise ValueError(
+            f"Unsupported image extension for {argument_name}: "
+            f"{image_path.suffix}"
+        )
+
+
 def read_image_as_tensor(image_path, device):
     image = cv2.imread(str(image_path), cv2.IMREAD_UNCHANGED)
 
@@ -55,6 +84,11 @@ def read_image_as_tensor(image_path, device):
             raise ValueError(
                 f"Unsupported channel count {channel_count}: {image_path}"
             )
+
+    else:
+        raise ValueError(
+            f"Unsupported image shape {image.shape}: {image_path}"
+        )
 
     image = image.astype(np.float32)
 
@@ -116,7 +150,6 @@ def build_image_index(folder):
         if not image_path.is_file():
             continue
 
-        # suffix.lower() supports uppercase image suffixes.
         if image_path.suffix.lower() not in IMAGE_EXTENSIONS:
             continue
 
@@ -132,6 +165,141 @@ def build_image_index(folder):
         image_index[relative_key] = image_path
 
     return image_index
+
+
+def build_image_pairs(input_path, gt_path):
+    input_path = Path(input_path)
+    gt_path = Path(gt_path)
+
+    if not input_path.exists():
+        raise FileNotFoundError(
+            f"Input path does not exist: {input_path}"
+        )
+
+    if not gt_path.exists():
+        raise FileNotFoundError(
+            f"GT path does not exist: {gt_path}"
+        )
+
+    input_is_file = input_path.is_file()
+    gt_is_file = gt_path.is_file()
+
+    input_is_dir = input_path.is_dir()
+    gt_is_dir = gt_path.is_dir()
+
+    if input_is_file and gt_is_file:
+        validate_image_file(
+            image_path=input_path,
+            argument_name="Input image",
+        )
+
+        validate_image_file(
+            image_path=gt_path,
+            argument_name="GT image",
+        )
+
+        image_pairs = [
+            {
+                "key": input_path.stem,
+                "input_path": input_path,
+                "gt_path": gt_path,
+                "relative_input_path": Path(input_path.name),
+            }
+        ]
+
+        return image_pairs, True
+
+    if input_is_dir and gt_is_dir:
+        input_index = build_image_index(input_path)
+        gt_index = build_image_index(gt_path)
+
+        input_keys = set(input_index)
+        gt_keys = set(gt_index)
+
+        matched_keys = sorted(input_keys & gt_keys)
+        missing_gt_keys = sorted(input_keys - gt_keys)
+        missing_input_keys = sorted(gt_keys - input_keys)
+
+        if not matched_keys:
+            raise RuntimeError(
+                "No matched input and GT images were found. "
+                "Their relative paths and file names must correspond."
+            )
+
+        if missing_gt_keys:
+            print(
+                f"Warning: {len(missing_gt_keys)} input images "
+                "have no matching GT images."
+            )
+
+        if missing_input_keys:
+            print(
+                f"Warning: {len(missing_input_keys)} GT images "
+                "have no matching input images."
+            )
+
+        image_pairs = []
+
+        for relative_key in matched_keys:
+            current_input_path = input_index[relative_key]
+            current_gt_path = gt_index[relative_key]
+
+            image_pairs.append(
+                {
+                    "key": relative_key,
+                    "input_path": current_input_path,
+                    "gt_path": current_gt_path,
+                    "relative_input_path": (
+                        current_input_path.relative_to(input_path)
+                    ),
+                }
+            )
+
+        return image_pairs, False
+
+    raise ValueError(
+        "--input and --gt must both be image files "
+        "or both be image folders."
+    )
+
+
+def resolve_save_path(
+    output_path,
+    relative_input_path,
+    single_image_mode,
+):
+    output_path = Path(output_path)
+
+    if single_image_mode:
+        if output_path.exists() and output_path.is_dir():
+            return output_path / relative_input_path.name
+
+        if output_path.suffix.lower() in IMAGE_EXTENSIONS:
+            return output_path
+
+        if output_path.exists() and output_path.is_file():
+            raise ValueError(
+                f"Unsupported output image extension: {output_path}"
+            )
+
+        return output_path / relative_input_path.name
+
+    if output_path.exists() and output_path.is_file():
+        raise ValueError(
+            "Directory input requires --output to be a folder: "
+            f"{output_path}"
+        )
+
+    if (
+        not output_path.exists()
+        and output_path.suffix.lower() in IMAGE_EXTENSIONS
+    ):
+        raise ValueError(
+            "Directory input requires --output to be a folder, "
+            "not an image file."
+        )
+
+    return output_path / relative_input_path
 
 
 def gamma_gtmean(lq_image, hq_image, gamma=2.2):
@@ -164,64 +332,41 @@ def main():
 
     device = get_device(args.device)
 
-    input_dir = Path(args.input_dir)
-    gt_dir = Path(args.gt_dir)
-    output_dir = Path(args.output_dir)
+    input_path = Path(args.input)
+    gt_path = Path(args.gt)
+    output_path = Path(args.output)
 
-    input_index = build_image_index(input_dir)
-    gt_index = build_image_index(gt_dir)
+    image_pairs, single_image_mode = build_image_pairs(
+        input_path=input_path,
+        gt_path=gt_path,
+    )
 
-    input_keys = set(input_index)
-    gt_keys = set(gt_index)
-
-    matched_keys = sorted(input_keys & gt_keys)
-    missing_gt_keys = sorted(input_keys - gt_keys)
-    missing_input_keys = sorted(gt_keys - input_keys)
-
-    if not matched_keys:
-        raise RuntimeError(
-            "No matched input and GT images were found. "
-            "Their relative paths and file names must correspond."
-        )
-
-    if missing_gt_keys:
-        print(
-            f"Warning: {len(missing_gt_keys)} input images "
-            "have no matching GT images."
-        )
-
-    if missing_input_keys:
-        print(
-            f"Warning: {len(missing_input_keys)} GT images "
-            "have no matching input images."
-        )
-
-    output_dir.mkdir(parents=True, exist_ok=True)
-
-    print(f"Matched image pairs: {len(matched_keys)}")
+    print(f"Matched image pairs: {len(image_pairs)}")
     print(f"Device: {device}")
-    print(f"Image folder: {output_dir}")
+    print(f"Output: {output_path}")
 
     progress_bar = tqdm(
-        matched_keys,
-        total=len(matched_keys),
+        image_pairs,
+        total=len(image_pairs),
         desc="Generating images",
         unit="image",
         dynamic_ncols=True,
     )
 
     with torch.inference_mode():
-        for relative_key in progress_bar:
-            input_path = input_index[relative_key]
-            gt_path = gt_index[relative_key]
+        for image_pair in progress_bar:
+            relative_key = image_pair["key"]
+            current_input_path = image_pair["input_path"]
+            current_gt_path = image_pair["gt_path"]
+            relative_input_path = image_pair["relative_input_path"]
 
             lq_image, lq_dtype = read_image_as_tensor(
-                image_path=input_path,
+                image_path=current_input_path,
                 device=device,
             )
 
             gt_image, _ = read_image_as_tensor(
-                image_path=gt_path,
+                image_path=current_gt_path,
                 device=device,
             )
 
@@ -238,8 +383,11 @@ def main():
                 gamma=args.gamma,
             )
 
-            relative_input_path = input_path.relative_to(input_dir)
-            save_path = output_dir / relative_input_path
+            save_path = resolve_save_path(
+                output_path=output_path,
+                relative_input_path=relative_input_path,
+                single_image_mode=single_image_mode,
+            )
 
             save_tensor_as_image(
                 image_tensor=enhanced_image,
@@ -252,34 +400,37 @@ def main():
                 f"ratio={gamma_ratio.item():.6f}"
             )
 
-    print(f"Generated {len(matched_keys)} images.")
-    print(f"Saved to: {output_dir}")
+    print(f"Generated {len(image_pairs)} images.")
+    print(f"Saved to: {output_path}")
 
 
 def parse_args():
     parser = argparse.ArgumentParser(
-        description="Generate GT-guided gamma-transformed images."
+        description=(
+            "Generate GT-guided gamma-transformed images "
+            "from image files or folders."
+        )
     )
 
     parser.add_argument(
-        "--input_dir",
+        "--input",
         "-i",
         required=True,
-        help="Input image folder.",
+        help="Input image file or image folder.",
     )
 
     parser.add_argument(
-        "--gt_dir",
+        "--gt",
         "-g",
         required=True,
-        help="GT image folder.",
+        help="GT image file or image folder.",
     )
 
     parser.add_argument(
-        "--output_dir",
+        "--output",
         "-o",
         required=True,
-        help="Folder used to save generated images.",
+        help="Output image file or output folder.",
     )
 
     parser.add_argument(
@@ -299,10 +450,16 @@ def parse_args():
 
 
 if __name__ == "__main__":
-    # CPU:
-    # python tools/to_gt_mean.py  -i examples/input  -g examples/gt  -o examples/enlightened
+    # Single image, save to a specified image file:
+    # python tools/to_gt_mean.py -i examples/input.png -g examples/gt.png -o examples/enlightened.png
+    #
+    # Single image, save to a folder:
+    # python tools/to_gt_mean.py -i examples/input.png -g examples/gt.png -o examples/enlightened
+    #
+    # Image folders:
+    # python tools/to_gt_mean.py -i examples/input -g examples/gt -o examples/enlightened
     #
     # GPU:
-    # python tools/to_gt_mean.py  -i examples/input  -g examples/gt  -o examples/enlightened --device cuda:0
+    # python tools/to_gt_mean.py -i examples/input -g examples/gt -o examples/enlightened --device cuda:0
 
     main()
