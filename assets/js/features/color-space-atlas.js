@@ -26,6 +26,10 @@
     let imageViewer;
     let latticeViewer;
     let updateTimer = null;
+    const randomModes = ["image-random", "random", "gaussian", "perlin", "fractal", "turbulence", "voronoi", "cellular", "mosaic"];
+    let isLoading = false;
+    let loadingAnimationId = null;
+    let isInitializing = true;
 
     function selectElements() {
         const ids = [
@@ -35,6 +39,7 @@
             "imageMeta",
             "spaceTabs",
             "patternMode",
+            "rerandomBtn",
             "imageBudget",
             "latticeResolution",
             "hsvProjectionField",
@@ -121,6 +126,11 @@
     }
 
     function loadDefaultSourceImage(sourcePath) {
+        if (loadingAnimationId) {
+            cancelAnimationFrame(loadingAnimationId);
+            loadingAnimationId = null;
+        }
+        
         const image = new Image();
         image.decoding = "async";
         image.onload = function () {
@@ -617,7 +627,16 @@
         latticeViewer.onInteraction = mirrorPause;
     }
 
-    function wireUI() {
+    function updateRerandomButton() {
+        const mode = elements.patternMode.value;
+        if (randomModes.indexOf(mode) !== -1) {
+            elements.rerandomBtn.style.display = "flex";
+        } else {
+            elements.rerandomBtn.style.display = "none";
+        }
+    }
+
+        function wireUI() {
         elements.formulaToggle.addEventListener("click", function () {
             const isCollapsed = elements.conversionGrid.classList.toggle("cs-is-collapsed");
             elements.formulaToggle.setAttribute("aria-expanded", String(!isCollapsed));
@@ -717,11 +736,24 @@
         });
 
         var lastNonRandomMode = "structured";
-        var randomModes = ["image-random", "random", "gaussian", "perlin", "fractal", "turbulence", "voronoi", "cellular", "mosaic"];
         var lastRandomMode = null;
-        
+
         elements.patternMode.addEventListener("change", function () {
             const mode = elements.patternMode.value;
+            updateRerandomButton();
+            
+            if (isInitializing) return;
+            
+            if (randomModes.indexOf(mode) !== -1) {
+                if (mode === "image-random") {
+                    loadRandomExampleImage();
+                } else {
+                    const canvas = createDefaultImage(mode);
+                    rebuildImageSamples(canvas, "Pattern: " + mode);
+                }
+                return;
+            }
+            
             if (mode === "low-light") {
                 loadImageFromFile("figures/example_input_00049.png", "Low-light Image");
                 lastNonRandomMode = mode;
@@ -731,47 +763,155 @@
             } else if (mode === "gt-mean") {
                 loadImageFromFile("figures/example_gtmeanlit_00049.png", "GT-Mean Enlightened");
                 lastNonRandomMode = mode;
-            } else if (mode === "image-random") {
-                loadRandomExampleImage();
-                lastRandomMode = mode;
             } else {
                 const canvas = createDefaultImage(mode);
                 rebuildImageSamples(canvas, "Pattern: " + mode);
-                if (randomModes.indexOf(mode) === -1) {
-                    lastNonRandomMode = mode;
-                } else {
-                    lastRandomMode = mode;
-                }
+                lastNonRandomMode = mode;
             }
         });
 
-        elements.patternMode.addEventListener("click", function () {
+        elements.rerandomBtn.addEventListener("click", function () {
             const mode = elements.patternMode.value;
-            if (randomModes.indexOf(mode) !== -1) {
-                if (mode === "image-random") {
-                    loadRandomExampleImage();
-                } else {
-                    const canvas = createDefaultImage(mode);
-                    rebuildImageSamples(canvas, "Pattern: " + mode);
-                }
+            if (mode === "image-random") {
+                loadRandomExampleImage();
+            } else {
+                const canvas = createDefaultImage(mode);
+                rebuildImageSamples(canvas, "Pattern: " + mode);
             }
         });
+
+        function showLoadingState(show, progress = 0) {
+            if (!elements.previewCanvas) return;
+            
+            const canvas = elements.previewCanvas;
+            const ctx = canvas.getContext("2d");
+            
+            if (loadingAnimationId) {
+                cancelAnimationFrame(loadingAnimationId);
+                loadingAnimationId = null;
+            }
+            
+            if (show) {
+                function drawLoading() {
+                    ctx.fillStyle = "#f1f5f9";
+                    ctx.fillRect(0, 0, canvas.width, canvas.height);
+                    
+                    for (let x = 0; x < canvas.width; x += 16) {
+                        for (let y = 0; y < canvas.height; y += 16) {
+                            ctx.fillStyle = "rgba(226, 232, 240, 0.8)";
+                            ctx.fillRect(x, y, 1, 1);
+                        }
+                    }
+                    
+                    ctx.fillStyle = "#64748b";
+                    ctx.font = "14px sans-serif";
+                    ctx.textAlign = "center";
+                    ctx.textBaseline = "middle";
+                    ctx.fillText("Loading...", canvas.width / 2, canvas.height / 2 - 20);
+                    
+                    const progressBarWidth = 200;
+                    const progressBarHeight = 6;
+                    const progressBarX = (canvas.width - progressBarWidth) / 2;
+                    const progressBarY = canvas.height / 2;
+                    
+                    ctx.fillStyle = "rgba(226, 232, 240, 0.8)";
+                    ctx.fillRect(progressBarX, progressBarY, progressBarWidth, progressBarHeight);
+                    
+                    ctx.fillStyle = "#3b82f6";
+                    ctx.fillRect(progressBarX, progressBarY, progressBarWidth * (progress / 100), progressBarHeight);
+                    
+                    ctx.fillStyle = "#64748b";
+                    ctx.font = "12px sans-serif";
+                    ctx.fillText(progress + "%", canvas.width / 2, canvas.height / 2 + 20);
+                }
+                
+                drawLoading();
+            } else {
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+            }
+        }
 
         function loadImageFromFile(src, name) {
-            const image = new Image();
-            image.onload = function () {
-                const canvas = document.createElement("canvas");
-                canvas.width = 720;
-                canvas.height = 480;
-                const ctx = canvas.getContext("2d");
-                ctx.drawImage(image, 0, 0, canvas.width, canvas.height);
-                rebuildImageSamples(canvas, name);
-            };
-            image.onerror = function () {
-                const canvas = createDefaultImage("structured");
-                rebuildImageSamples(canvas, "Error loading image: " + name);
-            };
-            image.src = src;
+            if (isLoading) return;
+            isLoading = true;
+            let progress = 0;
+            
+            showLoadingState(true, progress);
+            
+            fetch(src)
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error("Network response was not ok");
+                    }
+                    
+                    const contentLength = response.headers.get("content-length");
+                    const total = contentLength ? parseInt(contentLength, 10) : null;
+                    
+                    let loaded = 0;
+                    const reader = response.body.getReader();
+                    const chunks = [];
+                    
+                    return new ReadableStream({
+                        async start(controller) {
+                            while (true) {
+                                const { done, value } = await reader.read();
+                                
+                                if (done) break;
+                                
+                                chunks.push(value);
+                                loaded += value.length;
+                                
+                                if (total) {
+                                    progress = Math.round((loaded / total) * 100);
+                                    showLoadingState(true, progress);
+                                }
+                                
+                                controller.enqueue(value);
+                            }
+                            
+                            controller.close();
+                            return chunks;
+                        }
+                    });
+                })
+                .then(stream => new Response(stream))
+                .then(response => response.blob())
+                .then(blob => {
+                    const url = URL.createObjectURL(blob);
+                    const image = new Image();
+                    
+                    image.onload = function () {
+                        URL.revokeObjectURL(url);
+                        isLoading = false;
+                        showLoadingState(false);
+                        
+                        const canvas = document.createElement("canvas");
+                        canvas.width = 720;
+                        canvas.height = 480;
+                        const ctx = canvas.getContext("2d");
+                        ctx.drawImage(image, 0, 0, canvas.width, canvas.height);
+                        rebuildImageSamples(canvas, name);
+                    };
+                    
+                    image.onerror = function () {
+                        URL.revokeObjectURL(url);
+                        isLoading = false;
+                        showLoadingState(false);
+                        
+                        const canvas = createDefaultImage("structured");
+                        rebuildImageSamples(canvas, "Error loading image: " + name);
+                    };
+                    
+                    image.src = url;
+                })
+                .catch(error => {
+                    isLoading = false;
+                    showLoadingState(false);
+                    console.error("Error loading image:", error);
+                    
+                    const canvas = createDefaultImage("structured");
+                    rebuildImageSamples(canvas, "Error loading image: " + name);
+                });
         }
 
         function loadRandomExampleImage() {
@@ -1001,7 +1141,15 @@
             new Intl.NumberFormat("en-US").format(state.latticeResolution ** 3) +
             " points";
         elements.patternMode.value = "low-light";
+        updateRerandomButton();
         loadDefaultSourceImage(DEFAULT_SOURCE_IMAGE);
+        
+        setTimeout(function () {
+            isInitializing = false;
+            isLoading = false;
+            loadingAnimationId = null;
+        }, 500);
+        
         window.ColorSpaceAtlas = {
             refresh: function () {
                 window.dispatchEvent(new Event("resize"));

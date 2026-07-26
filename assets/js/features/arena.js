@@ -629,12 +629,6 @@ function loadRound(roundIndex) {
             card.insertBefore(img, card.querySelector(".img-placeholder"));
         }
 
-        img.onerror = function () {
-            showCardPlaceholder(this, false);
-        };
-        img.onload = function () {
-            hideCardPlaceholder(this);
-        };
         img.style.display = "none";
         
         const placeholder = card.querySelector(".img-placeholder");
@@ -647,10 +641,62 @@ function loadRound(roundIndex) {
             if (filenameEl) {
                 filenameEl.textContent = "Loading...";
             }
+            const labelEl = placeholder.querySelector(".label");
+            if (labelEl) {
+                labelEl.textContent = "0%";
+            }
             placeholder.style.display = "flex";
         }
         
-        img.src = output.src;
+        fetch(output.src)
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error("Network response was not ok");
+                }
+                
+                const contentLength = response.headers.get("content-length");
+                const total = contentLength ? parseInt(contentLength, 10) : null;
+                let loaded = 0;
+                const reader = response.body.getReader();
+                
+                return new ReadableStream({
+                    async start(controller) {
+                        while (true) {
+                            const { done, value } = await reader.read();
+                            if (done) break;
+                            
+                            loaded += value.length;
+                            if (total) {
+                                const progress = Math.round((loaded / total) * 100);
+                                const labelEl = card.querySelector(".img-placeholder .label");
+                                if (labelEl) {
+                                    labelEl.textContent = progress + "%";
+                                }
+                            }
+                            
+                            controller.enqueue(value);
+                        }
+                        controller.close();
+                    }
+                });
+            })
+            .then(stream => new Response(stream))
+            .then(response => response.blob())
+            .then(blob => {
+                const objectUrl = URL.createObjectURL(blob);
+                img.onload = function () {
+                    URL.revokeObjectURL(objectUrl);
+                    hideCardPlaceholder(img);
+                };
+                img.onerror = function () {
+                    URL.revokeObjectURL(objectUrl);
+                    showCardPlaceholder(img, false);
+                };
+                img.src = objectUrl;
+            })
+            .catch(() => {
+                showCardPlaceholder(img, false);
+            });
 
         const indexEl = card.querySelector(".arena-card-index");
         if (indexEl) {
@@ -755,16 +801,63 @@ function exitComparisonMode() {
             if (filenameEl) {
                 filenameEl.textContent = "Loading...";
             }
+            const labelEl = placeholder.querySelector(".label");
+            if (labelEl) {
+                labelEl.textContent = "0%";
+            }
             placeholder.style.display = "flex";
         }
         
-        img.onerror = function () {
-            showCardPlaceholder(this, false);
-        };
-        img.onload = function () {
-            hideCardPlaceholder(this);
-        };
-        img.src = card.dataset.src || wrapper.dataset.afterSrc;
+        const src = card.dataset.src || wrapper.dataset.afterSrc;
+        fetch(src)
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error("Network response was not ok");
+                }
+                
+                const contentLength = response.headers.get("content-length");
+                const total = contentLength ? parseInt(contentLength, 10) : null;
+                let loaded = 0;
+                const reader = response.body.getReader();
+                
+                return new ReadableStream({
+                    async start(controller) {
+                        while (true) {
+                            const { done, value } = await reader.read();
+                            if (done) break;
+                            
+                            loaded += value.length;
+                            if (total) {
+                                const progress = Math.round((loaded / total) * 100);
+                                const labelEl = card.querySelector(".img-placeholder .label");
+                                if (labelEl) {
+                                    labelEl.textContent = progress + "%";
+                                }
+                            }
+                            
+                            controller.enqueue(value);
+                        }
+                        controller.close();
+                    }
+                });
+            })
+            .then(stream => new Response(stream))
+            .then(response => response.blob())
+            .then(blob => {
+                const objectUrl = URL.createObjectURL(blob);
+                img.onload = function () {
+                    URL.revokeObjectURL(objectUrl);
+                    hideCardPlaceholder(img);
+                };
+                img.onerror = function () {
+                    URL.revokeObjectURL(objectUrl);
+                    showCardPlaceholder(img, false);
+                };
+                img.src = objectUrl;
+            })
+            .catch(() => {
+                showCardPlaceholder(img, false);
+            });
         
         wrapper.replaceWith(img);
     });
@@ -922,10 +1015,27 @@ function createComparisonView(beforeImageUrl, afterImageUrl, initialPercentage) 
     
     const loadingIndicator = document.createElement("div");
     loadingIndicator.className = "compare-loading";
-    loadingIndicator.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
+    loadingIndicator.innerHTML = `
+        <i class="fas fa-spinner fa-spin"></i>
+        <div class="progress-bar">
+            <div class="progress-bar-fill"></div>
+        </div>
+        <div class="progress-text">Loading...</div>
+    `;
+    
+    const progressBarFill = loadingIndicator.querySelector(".progress-bar-fill");
+    const progressText = loadingIndicator.querySelector(".progress-text");
     
     let loadedCount = 0;
     const totalImages = 2;
+    let totalProgress = 0;
+    
+    function updateProgress(progress) {
+        totalProgress += progress;
+        const avgProgress = Math.round(totalProgress / totalImages);
+        progressBarFill.style.width = avgProgress + "%";
+        progressText.textContent = avgProgress + "%";
+    }
     
     function checkLoaded() {
         loadedCount++;
@@ -936,20 +1046,60 @@ function createComparisonView(beforeImageUrl, afterImageUrl, initialPercentage) 
         }
     }
     
-    afterImage.onerror = function () {
-        showInputPlaceholder(this);
-        checkLoaded();
-    };
-    afterImage.onload = checkLoaded;
+    function loadImageWithProgress(img, url) {
+        fetch(url)
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error("Network response was not ok");
+                }
+                
+                const contentLength = response.headers.get("content-length");
+                const total = contentLength ? parseInt(contentLength, 10) : null;
+                let loaded = 0;
+                const reader = response.body.getReader();
+                
+                return new ReadableStream({
+                    async start(controller) {
+                        while (true) {
+                            const { done, value } = await reader.read();
+                            if (done) break;
+                            
+                            loaded += value.length;
+                            if (total) {
+                                const progress = Math.round((loaded / total) * 100);
+                                updateProgress(progress);
+                            }
+                            
+                            controller.enqueue(value);
+                        }
+                        controller.close();
+                    }
+                });
+            })
+            .then(stream => new Response(stream))
+            .then(response => response.blob())
+            .then(blob => {
+                const objectUrl = URL.createObjectURL(blob);
+                img.onload = function () {
+                    URL.revokeObjectURL(objectUrl);
+                    updateProgress(100);
+                    checkLoaded();
+                };
+                img.onerror = function () {
+                    URL.revokeObjectURL(objectUrl);
+                    showInputPlaceholder(img);
+                    checkLoaded();
+                };
+                img.src = objectUrl;
+            })
+            .catch(() => {
+                showInputPlaceholder(img);
+                checkLoaded();
+            });
+    }
     
-    beforeImage.onerror = function () {
-        showInputPlaceholder(this);
-        checkLoaded();
-    };
-    beforeImage.onload = checkLoaded;
-    
-    afterImage.src = afterImageUrl;
-    beforeImage.src = beforeImageUrl;
+    loadImageWithProgress(afterImage, afterImageUrl);
+    loadImageWithProgress(beforeImage, beforeImageUrl);
 
     const divider = document.createElement("div");
     divider.className = "compare-divider";

@@ -94,7 +94,7 @@
     box-sizing: border-box;
 }
 
-#gallery .cs-atlas button,
+/* #gallery .cs-atlas button, */
 #gallery .cs-atlas select,
 #gallery .cs-atlas input {
     font: inherit;
@@ -832,6 +832,31 @@
     color: var(--muted);
     font-size: 0.57rem;
     line-height: 1.45;
+}
+
+#gallery .cs-rerandom-btn {
+    display: none;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    padding: 4px 12px;
+    background: var(--btn-bg);
+    border: none;
+    border-radius: var(--cs-field-radius);
+    color: white;
+    font-size: 0.75rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.25s ease;
+}
+
+#gallery .cs-rerandom-btn:hover {
+    background: color-mix(in srgb, var(--accent) 90%, white);
+    transform: translateY(-1px);
+}
+
+#gallery .cs-rerandom-btn:active {
+    transform: translateY(0);
 }
 
 #gallery .cs-range-row {

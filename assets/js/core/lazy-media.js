@@ -2,8 +2,59 @@ const observed = new WeakSet();
 
 function revealImage(img) {
     if (img.dataset.src) {
-        img.src = img.dataset.src;
+        const src = img.dataset.src;
         delete img.dataset.src;
+        
+        fetch(src)
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error("Network response was not ok");
+                }
+                
+                const contentLength = response.headers.get("content-length");
+                const total = contentLength ? parseInt(contentLength, 10) : null;
+                let loaded = 0;
+                const reader = response.body.getReader();
+                
+                return new ReadableStream({
+                    async start(controller) {
+                        while (true) {
+                            const { done, value } = await reader.read();
+                            if (done) break;
+                            
+                            loaded += value.length;
+                            if (total) {
+                                const progress = Math.round((loaded / total) * 100);
+                                const placeholder = img.nextElementSibling;
+                                if (placeholder?.classList.contains("img-placeholder")) {
+                                    const label = placeholder.querySelector(".label");
+                                    if (label) label.textContent = progress + "%";
+                                }
+                            }
+                            
+                            controller.enqueue(value);
+                        }
+                        controller.close();
+                    }
+                });
+            })
+            .then(stream => new Response(stream))
+            .then(response => response.blob())
+            .then(blob => {
+                const objectUrl = URL.createObjectURL(blob);
+                img.src = objectUrl;
+                img.onload = function () {
+                    URL.revokeObjectURL(objectUrl);
+                    showMedia(img);
+                };
+                img.onerror = function () {
+                    URL.revokeObjectURL(objectUrl);
+                    showMediaFallback(img);
+                };
+            })
+            .catch(() => {
+                showMediaFallback(img);
+            });
     }
     if (img.dataset.srcset) {
         img.srcset = img.dataset.srcset;
@@ -54,7 +105,7 @@ function showLoadingPlaceholder(img) {
         if (filename) filename.textContent = "Loading...";
         
         const label = placeholder.querySelector(".label");
-        if (label) label.textContent = "";
+        if (label) label.textContent = "0%";
     }
 }
 

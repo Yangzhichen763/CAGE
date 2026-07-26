@@ -1083,21 +1083,41 @@ pre {
 
 .arena-compare-wrapper .compare-loading {
     position: absolute;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
     z-index: 20;
     display: flex;
     align-items: center;
     justify-content: center;
-    width: 48px;
-    height: 48px;
-    background: rgba(0, 0, 0, 0.5);
-    border-radius: 50%;
+    flex-direction: column;
+    gap: 8px;
+    background: var(--surface-2);
 }
 
 .arena-compare-wrapper .compare-loading i {
     font-size: 1.5rem;
     color: var(--accent);
     animation: spin 1s linear infinite;
+}
+
+.arena-compare-wrapper .compare-loading .progress-bar {
+    width: 200px;
+    height: 6px;
+    background: rgba(226, 232, 240, 0.8);
+    border-radius: 3px;
+    overflow: hidden;
+}
+
+.arena-compare-wrapper .compare-loading .progress-bar-fill {
+    height: 100%;
+    background: var(--accent);
+    width: 0%;
+    transition: width 0.2s ease;
+}
+
+.arena-compare-wrapper .compare-loading .progress-text {
+    font-size: 12px;
+    color: var(--muted);
 }
