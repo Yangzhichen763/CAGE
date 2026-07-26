@@ -121,10 +121,10 @@ function initCommonUI() {
                 const btn = document.getElementById("copy-bibtex");
                 const originalText = btn.innerHTML;
                 btn.innerHTML = '<i class="fas fa-check"></i> Copied!';
-                btn.style.background = "#4ecdc4";
+                btn.classList.add("copied");
                 setTimeout(function () {
                     btn.innerHTML = originalText;
-                    btn.style.background = "#e0e0e0";
+                    btn.classList.remove("copied");
                 }, 2000);
             })
             .catch(function (err) {
@@ -146,11 +146,11 @@ function initCommonUI() {
             .then(function () {
                 const btn = document.getElementById("copy-bibtex-urwkv");
                 const originalText = btn.innerHTML;
-                btn.innerHTML = "Copied!";
-                btn.style.background = "#4CAF50";
+                btn.innerHTML = '<i class="fas fa-check"></i> Copied!';
+                btn.classList.add("copied");
                 setTimeout(function () {
                     btn.innerHTML = originalText;
-                    btn.style.background = "#e0e0e0";
+                    btn.classList.remove("copied");
                 }, 2000);
             })
             .catch(function (err) {

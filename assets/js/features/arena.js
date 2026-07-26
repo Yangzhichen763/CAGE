@@ -630,18 +630,27 @@ function loadRound(roundIndex) {
         }
 
         img.onerror = function () {
-            showCardPlaceholder(this);
+            showCardPlaceholder(this, false);
         };
         img.onload = function () {
             hideCardPlaceholder(this);
         };
-        img.style.display = "block";
-        img.src = output.src;
-
+        img.style.display = "none";
+        
         const placeholder = card.querySelector(".img-placeholder");
         if (placeholder) {
-            placeholder.style.display = "none";
+            const icon = placeholder.querySelector(".icon");
+            if (icon) {
+                icon.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
+            }
+            const filenameEl = placeholder.querySelector(".filename");
+            if (filenameEl) {
+                filenameEl.textContent = "Loading...";
+            }
+            placeholder.style.display = "flex";
         }
+        
+        img.src = output.src;
 
         const indexEl = card.querySelector(".arena-card-index");
         if (indexEl) {
@@ -732,15 +741,31 @@ function exitComparisonMode() {
         if (!wrapper) return;
 
         const img = document.createElement("img");
-        img.src = card.dataset.src || wrapper.dataset.afterSrc;
         img.className = "arena-img";
         img.dataset.index = index;
+        img.style.display = "none";
+        
+        const placeholder = card.querySelector(".img-placeholder");
+        if (placeholder) {
+            const icon = placeholder.querySelector(".icon");
+            if (icon) {
+                icon.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
+            }
+            const filenameEl = placeholder.querySelector(".filename");
+            if (filenameEl) {
+                filenameEl.textContent = "Loading...";
+            }
+            placeholder.style.display = "flex";
+        }
+        
         img.onerror = function () {
-            showCardPlaceholder(this);
+            showCardPlaceholder(this, false);
         };
         img.onload = function () {
             hideCardPlaceholder(this);
         };
+        img.src = card.dataset.src || wrapper.dataset.afterSrc;
+        
         wrapper.replaceWith(img);
     });
 
@@ -833,17 +858,31 @@ function hideInputPlaceholder(img) {
     }
 }
 
-function showCardPlaceholder(img) {
+function showCardPlaceholder(img, isLoading = false) {
     img.style.display = "none";
     const card = img.closest(".arena-card");
     if (card) {
         const placeholder = card.querySelector(".img-placeholder");
         if (placeholder) {
             placeholder.style.display = "flex";
+            
+            const icon = placeholder.querySelector(".icon");
+            if (icon) {
+                if (isLoading) {
+                    icon.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
+                } else {
+                    icon.innerHTML = '<svg fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.6" viewBox="0 0 24 24"><rect height="18" rx="2" width="18" x="3" y="3"></rect><circle cx="9" cy="9" r="2"></circle><path d="M21 15l-5-5L5 21"></path></svg>';
+                }
+            }
+            
             const filenameEl = placeholder.querySelector(".filename");
-            if (filenameEl && img.src) {
-                const path = img.currentSrc || img.getAttribute("src") || img.src || "";
-                filenameEl.textContent = path.split(/[\\/]/).pop()?.split("?")[0] || "image.png";
+            if (filenameEl) {
+                if (isLoading) {
+                    filenameEl.textContent = "Loading...";
+                } else if (img.src) {
+                    const path = img.currentSrc || img.getAttribute("src") || img.src || "";
+                    filenameEl.textContent = path.split(/[\\/]/).pop()?.split("?")[0] || "image.png";
+                }
             }
         }
     }
@@ -871,21 +910,46 @@ function createComparisonView(beforeImageUrl, afterImageUrl, initialPercentage) 
 
     const afterImage = document.createElement("img");
     afterImage.className = "img compare-layer background-img";
-    afterImage.src = afterImageUrl;
     afterImage.alt = "";
     afterImage.draggable = false;
-    afterImage.onerror = function () {
-        showInputPlaceholder(this);
-    };
-
+    afterImage.style.opacity = "0";
+    
     const beforeImage = document.createElement("img");
     beforeImage.className = "img compare-layer foreground-img";
-    beforeImage.src = beforeImageUrl;
     beforeImage.alt = "";
     beforeImage.draggable = false;
+    beforeImage.style.opacity = "0";
+    
+    const loadingIndicator = document.createElement("div");
+    loadingIndicator.className = "compare-loading";
+    loadingIndicator.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
+    
+    let loadedCount = 0;
+    const totalImages = 2;
+    
+    function checkLoaded() {
+        loadedCount++;
+        if (loadedCount >= totalImages) {
+            afterImage.style.opacity = "1";
+            beforeImage.style.opacity = "1";
+            loadingIndicator.remove();
+        }
+    }
+    
+    afterImage.onerror = function () {
+        showInputPlaceholder(this);
+        checkLoaded();
+    };
+    afterImage.onload = checkLoaded;
+    
     beforeImage.onerror = function () {
         showInputPlaceholder(this);
+        checkLoaded();
     };
+    beforeImage.onload = checkLoaded;
+    
+    afterImage.src = afterImageUrl;
+    beforeImage.src = beforeImageUrl;
 
     const divider = document.createElement("div");
     divider.className = "compare-divider";
@@ -904,7 +968,7 @@ function createComparisonView(beforeImageUrl, afterImageUrl, initialPercentage) 
     const sliderButton = document.createElement("div");
     sliderButton.className = "slider-button";
 
-    sliderContainer.append(afterImage, beforeImage, divider, slider, sliderButton);
+    sliderContainer.append(afterImage, beforeImage, divider, slider, sliderButton, loadingIndicator);
     wrapper.appendChild(sliderContainer);
 
     const percentage = initialPercentage || 50;

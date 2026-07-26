@@ -45,7 +45,6 @@
             "labProjectionField",
             "labProjection",
             "normalizeRange",
-            "syncCameras",
             "autoRotate",
             "showFrame",
             "showAxes",
@@ -72,6 +71,43 @@
         ids.forEach(function (id) {
             elements[id] = document.getElementById(id);
         });
+
+        const requiredIds = [
+            "imageInput",
+            "dropZone",
+            "previewCanvas",
+            "imageMeta",
+            "spaceTabs",
+            "patternMode",
+            "imageBudget",
+            "latticeResolution",
+            "normalizeRange",
+            "autoRotate",
+            "showFrame",
+            "showAxes",
+            "imageViewer",
+            "latticeViewer",
+            "imageAxisGizmo",
+            "latticeAxisGizmo",
+            "formulaToggle",
+            "conversionGrid",
+        ];
+        const missingIds = requiredIds.filter(function (id) {
+            return !elements[id];
+        });
+        if (missingIds.length > 0) {
+            throw new Error("Missing Color Space elements: " + missingIds.join(", "));
+        }
+
+        if (typeof window.PointCloudViewer !== "function") {
+            throw new Error("PointCloudViewer is unavailable.");
+        }
+        if (!window.ColorSpaces) {
+            throw new Error("ColorSpaces is unavailable.");
+        }
+        if (typeof window.createDefaultImage !== "function") {
+            throw new Error("Color pattern generator is unavailable.");
+        }
     }
 
     function setStatus(message) {
@@ -85,38 +121,22 @@
     }
 
     function loadDefaultSourceImage(sourcePath) {
-        fetch(sourcePath)
-            .then(function (response) {
-                if (!response.ok) {
-                    throw new Error("Network response was not ok");
-                }
-                return response.blob();
-            })
-            .then(function (blob) {
-                const url = URL.createObjectURL(blob);
-                const image = new Image();
-                image.onload = function () {
-                    URL.revokeObjectURL(url);
-                    const canvas = imageToSamplingCanvas(image);
-                    rebuildImageSamples(
-                        canvas,
-                        sourcePath.split("/").pop() || "example_input_00049.png",
-                    );
-                    if (elements.statusText) elements.statusText.textContent = "Default image loaded";
-                };
-                image.onerror = function () {
-                    URL.revokeObjectURL(url);
-                    const fallbackCanvas = createDefaultImage();
-                    rebuildImageSamples(fallbackCanvas, "Generated color chart");
-                    if (elements.statusText) elements.statusText.textContent = "Default image was unavailable; generated chart loaded";
-                };
-                image.src = url;
-            })
-            .catch(function () {
-                const fallbackCanvas = createDefaultImage();
-                rebuildImageSamples(fallbackCanvas, "Generated color chart");
-                if (elements.statusText) elements.statusText.textContent = "Default image was unavailable; generated chart loaded";
-            });
+        const image = new Image();
+        image.decoding = "async";
+        image.onload = function () {
+            const canvas = imageToSamplingCanvas(image);
+            rebuildImageSamples(
+                canvas,
+                sourcePath.split("/").pop() || "example_input_00049.png",
+            );
+            setStatus("Default image loaded");
+        };
+        image.onerror = function () {
+            const fallbackCanvas = createDefaultImage("mosaic");
+            rebuildImageSamples(fallbackCanvas, "Generated color chart");
+            setStatus("Default image was unavailable; generated chart loaded");
+        };
+        image.src = sourcePath;
     }
 
     function drawPreview(sourceCanvas) {
@@ -930,13 +950,33 @@
         if (window.__CAGE_COLORSPACE_INITIALIZED__) return;
         selectElements();
 
+        let webglAvailable = true;
+        
         try {
             imageViewer = new PointCloudViewer(elements.imageViewer);
             latticeViewer = new PointCloudViewer(elements.latticeViewer);
         } catch (error) {
-            setStatus(error.message);
+            webglAvailable = false;
+            setStatus("WebGL unavailable. Color space visualization disabled.");
             document.getElementById("galleryColorSpace").classList.add("webgl-error");
-            throw error;
+            
+            const fallbackMessage = document.createElement("div");
+            fallbackMessage.className = "webgl-fallback";
+            fallbackMessage.innerHTML = `
+                <div class="webgl-fallback-icon"><i class="fas fa-exclamation-triangle"></i></div>
+                <div class="webgl-fallback-text">
+                    <p><strong>WebGL Not Available</strong></p>
+                    <p>The 3D color space visualization requires WebGL, which is not supported in this browser.</p>
+                    <p>Please try using a modern browser like Chrome, Firefox, or Edge.</p>
+                </div>
+            `;
+            
+            const viewerContainer = document.querySelector(".cs-viewer-container");
+            if (viewerContainer) {
+                viewerContainer.appendChild(fallbackMessage);
+            }
+            
+            return;
         }
 
         imageViewer.setPointSize(3);
@@ -960,9 +1000,8 @@
             " samples per axis · " +
             new Intl.NumberFormat("en-US").format(state.latticeResolution ** 3) +
             " points";
-        elements.patternMode.value = "mosaic";
-        const canvas = createDefaultImage("mosaic");
-        rebuildImageSamples(canvas, "Pattern: mosaic");
+        elements.patternMode.value = "low-light";
+        loadDefaultSourceImage(DEFAULT_SOURCE_IMAGE);
         window.ColorSpaceAtlas = {
             refresh: function () {
                 window.dispatchEvent(new Event("resize"));

@@ -39,12 +39,34 @@ function showMediaFallback(img) {
     markState(img, "is-error");
 }
 
+function showLoadingPlaceholder(img) {
+    const placeholder = img.nextElementSibling;
+    if (placeholder?.classList.contains("img-placeholder")) {
+        img.style.visibility = "hidden";
+        placeholder.style.display = "flex";
+        
+        const icon = placeholder.querySelector(".icon");
+        if (icon) {
+            icon.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
+        }
+        
+        const filename = placeholder.querySelector(".filename");
+        if (filename) filename.textContent = "Loading...";
+        
+        const label = placeholder.querySelector(".label");
+        if (label) label.textContent = "";
+    }
+}
+
 const observer = "IntersectionObserver" in window
     ? new IntersectionObserver(
         entries => {
             entries.forEach(entry => {
                 if (!entry.isIntersecting) return;
                 const target = entry.target;
+                if (target.tagName === "IMG") {
+                    showLoadingPlaceholder(target);
+                }
                 revealImage(target);
                 observer.unobserve(target);
             });
@@ -64,7 +86,12 @@ export function observeLazyMedia(root = document) {
         }
 
         if (observer) observer.observe(media);
-        else revealImage(media);
+        else {
+            if (media.tagName === "IMG") {
+                showLoadingPlaceholder(media);
+            }
+            revealImage(media);
+        }
     });
 }
 

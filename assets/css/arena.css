@@ -72,13 +72,15 @@ pre {
     top: 10px;
     right: 10px;
     padding: 8px 16px;
-    background: #e0e0e0;
-    border: 1px solid #ccc;
-    border-radius: 6px;
-    color: #333;
+    background: var(--accent);
+    border: none;
+    border-radius: 8px;
+    color: white;
     font-size: 0.85rem;
+    font-weight: 500;
     cursor: pointer;
-    transition: all 0.2s ease;
+    transition: all 0.25s ease;
+    /* box-shadow: 0 2px 8px var(--accent); */
 }
 
 .bibtex-box {
@@ -1064,5 +1066,38 @@ pre {
 }
 
 .copy-btn:hover {
-    background: #d0d0d0;
+    background: color-mix(in srgb, var(--accent) 90%, white);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(59, 130, 246, 0.4);
+}
+
+.copy-btn:active {
+    transform: translateY(0);
+    box-shadow: 0 2px 8px rgba(59, 130, 246, 0.3);
+}
+
+.copy-btn.copied {
+    background: #10b981;
+    box-shadow: 0 2px 8px rgba(16, 185, 129, 0.3);
+}
+
+.arena-compare-wrapper .compare-loading {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    z-index: 20;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 48px;
+    height: 48px;
+    background: rgba(0, 0, 0, 0.5);
+    border-radius: 50%;
+}
+
+.arena-compare-wrapper .compare-loading i {
+    font-size: 1.5rem;
+    color: var(--accent);
+    animation: spin 1s linear infinite;
 }

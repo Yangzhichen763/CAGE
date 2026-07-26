@@ -13,7 +13,8 @@ export function loadScript(src, options = {}) {
 
         const script = document.createElement("script");
         script.src = src;
-        script.async = false;
+        script.async = true;
+        script.defer = true;
         script.dataset.runtimeSrc = src;
         if (options.crossOrigin) script.crossOrigin = options.crossOrigin;
         if (options.referrerPolicy) script.referrerPolicy = options.referrerPolicy;

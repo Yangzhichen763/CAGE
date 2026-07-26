@@ -1,6 +1,26 @@
 import { initLazyMedia } from "./core/lazy-media.js";
 import { loadMathJax, loadScript, whenNearViewport } from "./core/feature-loader.js";
 
+async function initColorSpace() {
+    const colorSpace = document.querySelector('[data-feature="color-space"]');
+    if (!colorSpace) return;
+    
+    colorSpace.dataset.featureState = "loading";
+    try {
+        await loadMathJax();
+        await loadScript("assets/js/features/color-spaces.js");
+        await loadScript("assets/js/features/point-cloud-viewer.js");
+        await loadScript("assets/js/features/color-patterns.js");
+        await loadScript("assets/js/features/color-space-atlas.js");
+        window.CAGEColorSpaceAtlas?.init();
+        colorSpace.dataset.featureState = "ready";
+        colorSpace.dispatchEvent(new CustomEvent("cage:feature-ready", { bubbles: true }));
+    } catch (error) {
+        colorSpace.dataset.featureState = "error";
+        console.error(error);
+    }
+}
+
 function initFeatureLoading() {
     initLazyMedia();
 
@@ -19,15 +39,7 @@ function initFeatureLoading() {
         window.CAGELazyMedia?.refresh(method);
     });
 
-    const colorSpace = document.querySelector('[data-feature="color-space"]');
-    whenNearViewport(colorSpace, async () => {
-        await loadMathJax();
-        await loadScript("assets/js/features/color-spaces.js");
-        await loadScript("assets/js/features/point-cloud-viewer.js");
-        await loadScript("assets/js/features/color-patterns.js");
-        await loadScript("assets/js/features/color-space-atlas.js");
-        window.CAGEColorSpaceAtlas?.init();
-    });
+    initColorSpace();
 }
 
 if (document.readyState === "loading") {

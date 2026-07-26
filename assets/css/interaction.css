@@ -61,17 +61,11 @@
 
 .copy-btn {
     display: none;
-    opacity: 0.72;
 }
 
 .bibtex-box:hover .copy-btn,
 .bibtex-box:focus-within .copy-btn {
     display: inline-flex;
-}
-
-.copy-btn:hover,
-.copy-btn:focus-visible {
-    opacity: 1;
 }
 
 #gallery .cs-drop-zone {
@@ -251,6 +245,43 @@ figure .img-container img[data-src] {
     width: 100%;
     min-height: clamp(180px, 28vw, 340px);
     background: var(--surface-2);
+}
+
+.webgl-fallback {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    background: var(--surface-2);
+    border-radius: 12px;
+    padding: 2rem;
+    text-align: center;
+    z-index: 100;
+}
+
+.webgl-fallback-icon {
+    font-size: 3rem;
+    color: var(--accent);
+    margin-bottom: 1rem;
+}
+
+.webgl-fallback-text p {
+    margin: 0.5rem 0;
+    color: var(--muted);
+}
+
+.webgl-fallback-text p:first-child {
+    color: var(--ink);
+    font-weight: 600;
+}
+
+#galleryColorSpace.webgl-error .cs-canvas-container {
+    display: none;
 }
 
 /* Maintain min-height when image fails to load, so placeholder fills the area */

@@ -809,7 +809,7 @@ table.results td:first-child a:hover {
 .tldr {
     background: var(--accent-soft);
     border-radius: 14px;
-    padding: 24px 24px 18px 24px;
+    padding: 12px 24px 18px 24px;
     margin: 12px 0;
     border-left: 4px solid var(--accent);
 }
