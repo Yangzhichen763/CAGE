@@ -184,7 +184,7 @@
             case "HSV": {
                 const hsv = rgbToHSV(r, g, b);
                 if (opts.hsvProjection === "raw") {
-                    return [hsv[0], hsv[1], hsv[2]];
+                    return [hsv[0], hsv[2], hsv[1]];
                 }
                 const angle = TWO_PI * hsv[0];
                 return [hsv[1] * Math.cos(angle), hsv[2], hsv[1] * Math.sin(angle)];
@@ -241,8 +241,8 @@
 
         if (space === "HSV" && opts.hsvProjection === "raw") {
             info.label = "HSV raw channel coordinates";
-            info.axes = ["V", "S", "H"];
-            info.description = "Hue, saturation, and value are placed directly on the three axes; the hue seam remains visible at H = 0 and H = 1.";
+            info.axes = ["S", "V", "H"];
+            info.description = "Hue and saturation are placed on the horizontal plane, while value remains on the vertical brightness axis; the hue seam remains visible at H = 0 and H = 1.";
         }
 
         if (space === "OKLAB" && opts.labProjection === "cylindrical") {

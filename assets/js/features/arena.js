@@ -14,6 +14,31 @@ let currentRandomData = null;
 let isRandomMode = false;
 let voteCounts = {}; // loadVoteCounts();
 
+const arenaImageObjectUrls = new Map();
+let arenaImageGeneration = 0;
+
+function getArenaCachedImageUrl(source) {
+    return source ? arenaImageObjectUrls.get(source) || "" : "";
+}
+
+function setArenaCachedImageUrl(source, objectUrl) {
+    if (!source || !objectUrl) return;
+
+    const previousUrl = arenaImageObjectUrls.get(source);
+    if (previousUrl && previousUrl !== objectUrl) {
+        URL.revokeObjectURL(previousUrl);
+    }
+    arenaImageObjectUrls.set(source, objectUrl);
+}
+
+function clearArenaCachedImages() {
+    arenaImageGeneration++;
+    arenaImageObjectUrls.forEach(function (objectUrl) {
+        URL.revokeObjectURL(objectUrl);
+    });
+    arenaImageObjectUrls.clear();
+}
+
 let consecutiveCorrectCount = 0;
 let totalCorrectCount = 0;
 let totalWrongCount = 0;
@@ -558,6 +583,7 @@ function addArenaListeners() {
 
 function loadRound(roundIndex) {
     exitComparisonMode();
+    clearArenaCachedImages();
 
     let data;
     if (isRandomMode && currentRandomData) {
@@ -648,7 +674,18 @@ function loadRound(roundIndex) {
             placeholder.style.display = "flex";
         }
         
-        fetch(output.src)
+        if (!output.src) {
+            showCardPlaceholder(img, false);
+            return;
+        }
+
+        fetch(output.src, { method: 'HEAD' })
+            .then(headResponse => {
+                if (!headResponse.ok) {
+                    throw new Error("Image not found");
+                }
+                return fetch(output.src);
+            })
             .then(response => {
                 if (!response.ok) {
                     throw new Error("Network response was not ok");
@@ -684,12 +721,21 @@ function loadRound(roundIndex) {
             .then(response => response.blob())
             .then(blob => {
                 const objectUrl = URL.createObjectURL(blob);
-                img.onload = function () {
+                if (card.dataset.src !== output.src) {
                     URL.revokeObjectURL(objectUrl);
+                    return;
+                }
+
+                setArenaCachedImageUrl(output.src, objectUrl);
+                img.onload = function () {
                     hideCardPlaceholder(img);
                 };
                 img.onerror = function () {
-                    URL.revokeObjectURL(objectUrl);
+                    const cachedUrl = getArenaCachedImageUrl(output.src);
+                    if (cachedUrl === objectUrl) {
+                        arenaImageObjectUrls.delete(output.src);
+                        URL.revokeObjectURL(objectUrl);
+                    }
                     showCardPlaceholder(img, false);
                 };
                 img.src = objectUrl;
@@ -753,10 +799,25 @@ function enterComparisonModeFromSource(baseSrc) {
 
 function renderInputComparison(inputSrc, enlightenedSrc) {
     const inputBox = document.getElementById("arena-input-box");
-    if (!inputBox || !inputSrc || !enlightenedSrc) return;
+    if (!inputBox) return;
 
-    inputBox.dataset.inputSrc = inputSrc;
-    inputBox.dataset.enlightenedSrc = enlightenedSrc;
+    const placeholder = document.getElementById("arena-input-placeholder");
+    
+    if (!inputSrc && !enlightenedSrc) {
+        if (placeholder) {
+            placeholder.style.display = "flex";
+            const icon = placeholder.querySelector(".icon");
+            if (icon) {
+                icon.innerHTML = '<svg fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.6" viewBox="0 0 24 24"><rect height="18" rx="2" width="18" x="3" y="3"></rect><circle cx="9" cy="9" r="2"></circle><path d="M21 15l-5-5L5 21"></path></svg>';
+            }
+            const label = placeholder.querySelector(".label");
+            if (label) label.textContent = "Image unavailable";
+        }
+        return;
+    }
+
+    inputBox.dataset.inputSrc = inputSrc || "";
+    inputBox.dataset.enlightenedSrc = enlightenedSrc || "";
     inputBox.classList.add("comparison-base");
 
     const existingImage = inputBox.querySelector("#arena-input-img");
@@ -764,7 +825,6 @@ function renderInputComparison(inputSrc, enlightenedSrc) {
         existingImage.remove();
     }
 
-    const placeholder = document.getElementById("arena-input-placeholder");
     if (placeholder) {
         placeholder.style.display = "none";
     }
@@ -780,86 +840,34 @@ function enterInputComparisonMode() {
 }
 
 function exitComparisonMode() {
-    document.querySelectorAll(".arena-card").forEach(function (card, index) {
+    document.querySelectorAll(".arena-card").forEach(function (card) {
         card.classList.remove("comparison-base", "comparison-active");
 
         const wrapper = card.querySelector(".arena-compare-wrapper");
-        if (!wrapper) return;
-
-        const img = document.createElement("img");
-        img.className = "arena-img";
-        img.dataset.index = index;
-        img.style.display = "none";
-        
-        const placeholder = card.querySelector(".img-placeholder");
-        if (placeholder) {
-            const icon = placeholder.querySelector(".icon");
-            if (icon) {
-                icon.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
-            }
-            const filenameEl = placeholder.querySelector(".filename");
-            if (filenameEl) {
-                filenameEl.textContent = "Loading...";
-            }
-            const labelEl = placeholder.querySelector(".label");
-            if (labelEl) {
-                labelEl.textContent = "0%";
-            }
-            placeholder.style.display = "flex";
+        if (wrapper) {
+            wrapper.remove();
         }
-        
-        const src = card.dataset.src || wrapper.dataset.afterSrc;
-        fetch(src)
-            .then(response => {
-                if (!response.ok) {
-                    throw new Error("Network response was not ok");
-                }
-                
-                const contentLength = response.headers.get("content-length");
-                const total = contentLength ? parseInt(contentLength, 10) : null;
-                let loaded = 0;
-                const reader = response.body.getReader();
-                
-                return new ReadableStream({
-                    async start(controller) {
-                        while (true) {
-                            const { done, value } = await reader.read();
-                            if (done) break;
-                            
-                            loaded += value.length;
-                            if (total) {
-                                const progress = Math.round((loaded / total) * 100);
-                                const labelEl = card.querySelector(".img-placeholder .label");
-                                if (labelEl) {
-                                    labelEl.textContent = progress + "%";
-                                }
-                            }
-                            
-                            controller.enqueue(value);
-                        }
-                        controller.close();
-                    }
-                });
-            })
-            .then(stream => new Response(stream))
-            .then(response => response.blob())
-            .then(blob => {
-                const objectUrl = URL.createObjectURL(blob);
-                img.onload = function () {
-                    URL.revokeObjectURL(objectUrl);
-                    hideCardPlaceholder(img);
-                };
-                img.onerror = function () {
-                    URL.revokeObjectURL(objectUrl);
-                    showCardPlaceholder(img, false);
-                };
-                img.src = objectUrl;
-            })
-            .catch(() => {
-                showCardPlaceholder(img, false);
-            });
-        
-        wrapper.replaceWith(img);
+
+        const img = card.querySelector("img.arena-img");
+        if (!img) return;
+
+        const source = card.dataset.src || "";
+        const cachedUrl = getArenaCachedImageUrl(source);
+        if (cachedUrl) {
+            if (img.getAttribute("src") !== cachedUrl) {
+                img.src = cachedUrl;
+            }
+            hideCardPlaceholder(img);
+            return;
+        }
+
+        if (img.complete && img.naturalWidth > 0) {
+            hideCardPlaceholder(img);
+        } else if (img.getAttribute("src")) {
+            showCardPlaceholder(img, true);
+        } else {
+            showCardPlaceholder(img, false);
+        }
     });
 
     isComparisonMode = false;
@@ -935,10 +943,21 @@ function showInputPlaceholder(img) {
     const placeholder = document.getElementById("arena-input-placeholder");
     if (placeholder) {
         placeholder.style.display = "flex";
+        
+        const icon = placeholder.querySelector(".icon");
+        if (icon) {
+            icon.innerHTML = '<svg fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.6" viewBox="0 0 24 24"><rect height="18" rx="2" width="18" x="3" y="3"></rect><circle cx="9" cy="9" r="2"></circle><path d="M21 15l-5-5L5 21"></path></svg>';
+        }
+        
         const filenameEl = placeholder.querySelector(".filename");
         if (filenameEl) {
             const path = img.currentSrc || img.getAttribute("src") || img.src || "";
             filenameEl.textContent = path.split(/[\\/]/).pop()?.split("?")[0] || "input.png";
+        }
+        
+        const labelEl = placeholder.querySelector(".label");
+        if (labelEl) {
+            labelEl.textContent = "Image unavailable";
         }
     }
 }
@@ -969,13 +988,16 @@ function showCardPlaceholder(img, isLoading = false) {
             }
             
             const filenameEl = placeholder.querySelector(".filename");
-            if (filenameEl) {
-                if (isLoading) {
-                    filenameEl.textContent = "Loading...";
-                } else if (img.src) {
+            const labelEl = placeholder.querySelector(".label");
+            if (isLoading) {
+                if (filenameEl) filenameEl.textContent = "Loading...";
+                if (labelEl) labelEl.textContent = "0%";
+            } else {
+                if (img.src) {
                     const path = img.currentSrc || img.getAttribute("src") || img.src || "";
-                    filenameEl.textContent = path.split(/[\\/]/).pop()?.split("?")[0] || "image.png";
+                    if (filenameEl) filenameEl.textContent = path.split(/[\\/]/).pop()?.split("?")[0] || "image.png";
                 }
+                if (labelEl) labelEl.textContent = "Image unavailable";
             }
         }
     }
@@ -992,27 +1014,56 @@ function hideCardPlaceholder(img) {
     }
 }
 
-function createComparisonView(beforeImageUrl, afterImageUrl, initialPercentage) {
+function createComparisonView(beforeImageUrl, afterImageUrl, initialPercentage, options = {}) {
+    const useSplitPlaceholders = options.splitLoadingPlaceholders === true;
+    const beforeLabel = options.beforeLabel || "Before image";
+    const afterLabel = options.afterLabel || "After image";
+
     const wrapper = document.createElement("div");
     wrapper.className = "arena-compare-wrapper";
-    wrapper.dataset.beforeSrc = beforeImageUrl;
-    wrapper.dataset.afterSrc = afterImageUrl;
+    wrapper.dataset.beforeSrc = beforeImageUrl || "";
+    wrapper.dataset.afterSrc = afterImageUrl || "";
 
     const sliderContainer = document.createElement("div");
     sliderContainer.className = "slider-container";
 
     const afterImage = document.createElement("img");
     afterImage.className = "img compare-layer background-img";
-    afterImage.alt = "";
+    afterImage.alt = afterLabel;
     afterImage.draggable = false;
     afterImage.style.opacity = "0";
-    
+
     const beforeImage = document.createElement("img");
     beforeImage.className = "img compare-layer foreground-img";
-    beforeImage.alt = "";
+    beforeImage.alt = beforeLabel;
     beforeImage.draggable = false;
     beforeImage.style.opacity = "0";
-    
+
+    function createSplitPlaceholder(side, label, source, isCached) {
+        const placeholder = document.createElement("div");
+        placeholder.className = `img-placeholder compare-image-placeholder ${side}-placeholder`;
+        placeholder.dataset.source = source || "";
+        placeholder.setAttribute("aria-label", `${label} loading state`);
+        placeholder.innerHTML = `
+            <div class="icon"><i class="fas fa-spinner fa-spin"></i></div>
+            <div class="filename"></div>
+            <div class="label">0%</div>
+        `;
+        const filename = placeholder.querySelector(".filename");
+        if (filename) filename.textContent = "Loading...";
+        placeholder.style.display = isCached ? "none" : "flex";
+        return placeholder;
+    }
+
+    const beforeCachedUrl = getArenaCachedImageUrl(beforeImageUrl);
+    const afterCachedUrl = getArenaCachedImageUrl(afterImageUrl);
+    const afterPlaceholder = useSplitPlaceholders
+        ? createSplitPlaceholder("background", afterLabel, afterImageUrl, Boolean(afterCachedUrl))
+        : null;
+    const beforePlaceholder = useSplitPlaceholders
+        ? createSplitPlaceholder("foreground", beforeLabel, beforeImageUrl, Boolean(beforeCachedUrl))
+        : null;
+
     const loadingIndicator = document.createElement("div");
     loadingIndicator.className = "compare-loading";
     loadingIndicator.innerHTML = `
@@ -1022,84 +1073,196 @@ function createComparisonView(beforeImageUrl, afterImageUrl, initialPercentage) 
         </div>
         <div class="progress-text">Loading...</div>
     `;
-    
+
     const progressBarFill = loadingIndicator.querySelector(".progress-bar-fill");
     const progressText = loadingIndicator.querySelector(".progress-text");
-    
+    const progressBySource = new Map([
+        [beforeImageUrl, beforeCachedUrl ? 100 : 0],
+        [afterImageUrl, afterCachedUrl ? 100 : 0],
+    ]);
+
+    const states = [
+        {
+            image: afterImage,
+            source: afterImageUrl,
+            label: afterLabel,
+            placeholder: afterPlaceholder,
+            finished: false,
+            failed: false,
+        },
+        {
+            image: beforeImage,
+            source: beforeImageUrl,
+            label: beforeLabel,
+            placeholder: beforePlaceholder,
+            finished: false,
+            failed: false,
+        },
+    ];
+
     let loadedCount = 0;
-    const totalImages = 2;
-    let totalProgress = 0;
-    
-    function updateProgress(progress) {
-        totalProgress += progress;
-        const avgProgress = Math.round(totalProgress / totalImages);
-        progressBarFill.style.width = avgProgress + "%";
-        progressText.textContent = avgProgress + "%";
+    let errorCount = 0;
+    const generation = arenaImageGeneration;
+
+    function updateProgress(state, progress) {
+        const boundedProgress = Math.max(0, Math.min(100, progress));
+
+        if (useSplitPlaceholders) {
+            const label = state.placeholder?.querySelector(".label");
+            if (label) label.textContent = Math.round(boundedProgress) + "%";
+            return;
+        }
+
+        progressBySource.set(state.source, boundedProgress);
+        const values = Array.from(progressBySource.values());
+        const average = values.length
+            ? Math.round(values.reduce((sum, value) => sum + value, 0) / values.length)
+            : 0;
+        if (progressBarFill) progressBarFill.style.width = average + "%";
+        if (progressText) progressText.textContent = average + "%";
     }
-    
-    function checkLoaded() {
+
+    function showSplitError(state) {
+        if (!state.placeholder) return;
+
+        state.placeholder.style.display = "flex";
+        const icon = state.placeholder.querySelector(".icon");
+        if (icon) {
+            icon.innerHTML = '<svg fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.6" viewBox="0 0 24 24"><rect height="18" rx="2" width="18" x="3" y="3"></rect><circle cx="9" cy="9" r="2"></circle><path d="M21 15l-5-5L5 21"></path></svg>';
+        }
+        const filename = state.placeholder.querySelector(".filename");
+        if (filename) filename.textContent = state.label;
+        const label = state.placeholder.querySelector(".label");
+        if (label) label.textContent = "Image unavailable";
+    }
+
+    function showGenericError() {
+        const progressBar = loadingIndicator.querySelector(".progress-bar");
+        if (progressBar) progressBar.style.display = "none";
+        const icon = loadingIndicator.querySelector("i");
+        if (icon) {
+            icon.outerHTML = '<svg fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.6" viewBox="0 0 24 24"><rect height="18" rx="2" width="18" x="3" y="3"></rect><circle cx="9" cy="9" r="2"></circle><path d="M21 15l-5-5L5 21"></path></svg>';
+        }
+        if (progressText) progressText.textContent = "Image unavailable";
+    }
+
+    function finishState(state) {
+        if (state.finished) return;
+        state.finished = true;
+        state.image.style.opacity = "1";
+        updateProgress(state, 100);
+
+        if (useSplitPlaceholders) {
+            if (state.placeholder) state.placeholder.style.display = "none";
+            return;
+        }
+
         loadedCount++;
-        if (loadedCount >= totalImages) {
-            afterImage.style.opacity = "1";
-            beforeImage.style.opacity = "1";
-            loadingIndicator.remove();
+        if (loadedCount < states.length) return;
+        if (errorCount >= states.length) {
+            showGenericError();
+            return;
+        }
+        loadingIndicator.remove();
+    }
+
+    function failState(state) {
+        if (state.finished) return;
+        state.finished = true;
+        state.failed = true;
+        state.image.style.opacity = "0";
+        errorCount++;
+        updateProgress(state, 100);
+
+        if (useSplitPlaceholders) {
+            showSplitError(state);
+            return;
+        }
+
+        loadedCount++;
+        if (loadedCount < states.length) return;
+        if (errorCount >= states.length) {
+            showGenericError();
+            return;
+        }
+        loadingIndicator.remove();
+    }
+
+    function assignImageSource(state, sourceUrl) {
+        state.image.onload = function () {
+            if (generation === arenaImageGeneration && wrapper.isConnected) {
+                finishState(state);
+            }
+        };
+        state.image.onerror = function () {
+            if (generation === arenaImageGeneration && wrapper.isConnected) {
+                failState(state);
+            }
+        };
+        state.image.src = sourceUrl;
+
+        if (state.image.complete && state.image.naturalWidth > 0) {
+            finishState(state);
         }
     }
-    
-    function loadImageWithProgress(img, url) {
-        fetch(url)
+
+    function loadImageWithProgress(state) {
+        if (!state.source) {
+            failState(state);
+            return;
+        }
+
+        const cachedUrl = getArenaCachedImageUrl(state.source);
+        if (cachedUrl) {
+            assignImageSource(state, cachedUrl);
+            return;
+        }
+
+        fetch(state.source)
             .then(response => {
                 if (!response.ok) {
                     throw new Error("Network response was not ok");
                 }
-                
+
                 const contentLength = response.headers.get("content-length");
                 const total = contentLength ? parseInt(contentLength, 10) : null;
+                if (!response.body || !total) {
+                    return response.blob();
+                }
+
                 let loaded = 0;
                 const reader = response.body.getReader();
-                
-                return new ReadableStream({
-                    async start(controller) {
-                        while (true) {
-                            const { done, value } = await reader.read();
-                            if (done) break;
-                            
-                            loaded += value.length;
-                            if (total) {
-                                const progress = Math.round((loaded / total) * 100);
-                                updateProgress(progress);
+                return new Response(
+                    new ReadableStream({
+                        async start(controller) {
+                            while (true) {
+                                const { done, value } = await reader.read();
+                                if (done) break;
+
+                                loaded += value.length;
+                                updateProgress(state, Math.round((loaded / total) * 100));
+                                controller.enqueue(value);
                             }
-                            
-                            controller.enqueue(value);
-                        }
-                        controller.close();
-                    }
-                });
+                            controller.close();
+                        },
+                    }),
+                ).blob();
             })
-            .then(stream => new Response(stream))
-            .then(response => response.blob())
             .then(blob => {
+                if (!blob || generation !== arenaImageGeneration || !wrapper.isConnected) {
+                    return;
+                }
+
                 const objectUrl = URL.createObjectURL(blob);
-                img.onload = function () {
-                    URL.revokeObjectURL(objectUrl);
-                    updateProgress(100);
-                    checkLoaded();
-                };
-                img.onerror = function () {
-                    URL.revokeObjectURL(objectUrl);
-                    showInputPlaceholder(img);
-                    checkLoaded();
-                };
-                img.src = objectUrl;
+                setArenaCachedImageUrl(state.source, objectUrl);
+                assignImageSource(state, objectUrl);
             })
             .catch(() => {
-                showInputPlaceholder(img);
-                checkLoaded();
+                if (generation === arenaImageGeneration && wrapper.isConnected) {
+                    failState(state);
+                }
             });
     }
-    
-    loadImageWithProgress(afterImage, afterImageUrl);
-    loadImageWithProgress(beforeImage, beforeImageUrl);
 
     const divider = document.createElement("div");
     divider.className = "compare-divider";
@@ -1110,7 +1273,11 @@ function createComparisonView(beforeImageUrl, afterImageUrl, initialPercentage) 
     slider.type = "range";
     slider.min = "0";
     slider.max = "100";
-    slider.value = String(initialPercentage || 50);
+    const parsedPercentage = Number(initialPercentage);
+    const percentage = Number.isFinite(parsedPercentage)
+        ? Math.max(0, Math.min(100, parsedPercentage))
+        : 50;
+    slider.value = String(percentage);
     slider.className = "slider";
     slider.tabIndex = -1;
     slider.setAttribute("aria-hidden", "true");
@@ -1118,24 +1285,50 @@ function createComparisonView(beforeImageUrl, afterImageUrl, initialPercentage) 
     const sliderButton = document.createElement("div");
     sliderButton.className = "slider-button";
 
-    sliderContainer.append(afterImage, beforeImage, divider, slider, sliderButton, loadingIndicator);
+    sliderContainer.appendChild(afterImage);
+    if (afterPlaceholder) sliderContainer.appendChild(afterPlaceholder);
+    sliderContainer.appendChild(beforeImage);
+    if (beforePlaceholder) sliderContainer.appendChild(beforePlaceholder);
+    sliderContainer.append(divider, slider, sliderButton);
+
+    const needsLoading = !beforeCachedUrl || !afterCachedUrl;
+    if (!useSplitPlaceholders && needsLoading) {
+        sliderContainer.appendChild(loadingIndicator);
+    }
     wrapper.appendChild(sliderContainer);
 
-    const percentage = initialPercentage || 50;
     beforeImage.style.clipPath = `inset(0 ${100 - percentage}% 0 0)`;
+    if (beforePlaceholder) {
+        beforePlaceholder.style.left = "0";
+        beforePlaceholder.style.right = "auto";
+        beforePlaceholder.style.width = `${percentage}%`;
+    }
+    if (afterPlaceholder) {
+        afterPlaceholder.style.left = `${percentage}%`;
+        afterPlaceholder.style.right = "0";
+        afterPlaceholder.style.width = "auto";
+    }
     divider.style.left = `${percentage}%`;
     sliderButton.style.left = `${percentage}%`;
+
+    states.forEach(loadImageWithProgress);
 
     function updateSlider(clientX, clientY) {
         const rect = sliderContainer.getBoundingClientRect();
         if (!rect.width) return;
 
-        const percentage = Math.max(0, Math.min(100, ((clientX - rect.left) / rect.width) * 100));
+        const nextPercentage = Math.max(0, Math.min(100, ((clientX - rect.left) / rect.width) * 100));
 
-        slider.value = String(percentage);
-        beforeImage.style.clipPath = `inset(0 ${100 - percentage}% 0 0)`;
-        divider.style.left = `${percentage}%`;
-        sliderButton.style.left = `${percentage}%`;
+        slider.value = String(nextPercentage);
+        beforeImage.style.clipPath = `inset(0 ${100 - nextPercentage}% 0 0)`;
+        if (beforePlaceholder) {
+            beforePlaceholder.style.width = `${nextPercentage}%`;
+        }
+        if (afterPlaceholder) {
+            afterPlaceholder.style.left = `${nextPercentage}%`;
+        }
+        divider.style.left = `${nextPercentage}%`;
+        sliderButton.style.left = `${nextPercentage}%`;
 
         if (clientY !== undefined) {
             const verticalPercentage = Math.max(0, Math.min(100, ((clientY - rect.top) / rect.height) * 100));
@@ -1203,13 +1396,22 @@ function createComparisonView(beforeImageUrl, afterImageUrl, initialPercentage) 
 function displayBeforeAfterImage(card, beforeImageUrl, afterImageUrl) {
     if (!card || !beforeImageUrl || !afterImageUrl) return;
 
-    const wrapper = createComparisonView(beforeImageUrl, afterImageUrl);
-    const visual = card.querySelector("img.arena-img, .arena-compare-wrapper");
+    const existingWrapper = card.querySelector(".arena-compare-wrapper");
+    if (existingWrapper) {
+        existingWrapper.remove();
+    }
 
-    if (visual) {
-        visual.replaceWith(wrapper);
+    const img = card.querySelector("img.arena-img");
+    if (img) {
+        img.style.display = "none";
+    }
+
+    const placeholder = card.querySelector(".img-placeholder");
+    if (placeholder) {
+        placeholder.style.display = "none";
+        card.insertBefore(createComparisonView(beforeImageUrl, afterImageUrl), placeholder);
     } else {
-        card.insertBefore(wrapper, card.querySelector(".img-placeholder"));
+        card.appendChild(createComparisonView(beforeImageUrl, afterImageUrl));
     }
 }
 
@@ -1225,7 +1427,11 @@ function displayBeforeAfterImageInput(box, beforeImageUrl, afterImageUrl) {
         }
     }
 
-    const wrapper = createComparisonView(beforeImageUrl, afterImageUrl, initialPercentage);
+    const wrapper = createComparisonView(beforeImageUrl, afterImageUrl, initialPercentage, {
+        splitLoadingPlaceholders: true,
+        beforeLabel: "Low-light image",
+        afterLabel: "GT-mean Enlightened image",
+    });
     const visual = box.querySelector(":scope > #arena-input-img, :scope > .arena-compare-wrapper");
     const placeholder = box.querySelector(".img-placeholder");
 

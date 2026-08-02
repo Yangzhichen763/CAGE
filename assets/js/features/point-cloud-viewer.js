@@ -202,6 +202,9 @@
         this.lineCount = 0;
         this.axesCount = 0;
         this.pointSize = 3;
+        this.sliceEnabled = false;
+        this.sliceMin = 0;
+        this.sliceMax = 1;
         this.showFrame = true;
         this.showAxes = false;
         this.dark = true;
@@ -236,26 +239,70 @@
       precision highp float;
       in vec3 aPosition;
       in vec3 aColor;
+      in float aBrightness;
       uniform mat4 uMVP;
       uniform float uPointSize;
+      uniform bool uSliceEnabled;
+      uniform vec2 uSliceRange;
+      uniform int uPointPass;
       out vec3 vColor;
+      out float vAlpha;
       void main() {
-        gl_Position = uMVP * vec4(aPosition, 1.0);
-        gl_PointSize = uPointSize;
+        bool inSlice = aBrightness >= uSliceRange.x && aBrightness <= uSliceRange.y;
+        bool renderPoint = true;
+        bool muted = false;
+        if (uSliceEnabled) {
+          if (uPointPass == 1) {
+            renderPoint = !inSlice;
+            muted = true;
+          } else if (uPointPass == 2) {
+            renderPoint = inSlice;
+          }
+        }
+        if (renderPoint) {
+          gl_Position = uMVP * vec4(aPosition, 1.0);
+          gl_PointSize = muted ? max(1.0, uPointSize * 0.45) : uPointSize;
+        } else {
+          gl_Position = vec4(2.0, 2.0, 2.0, 1.0);
+          gl_PointSize = 0.0;
+        }
         vColor = aColor;
+        vAlpha = muted ? 1.0 : 1.0;
       }
     `
             : `
       precision highp float;
       attribute vec3 aPosition;
       attribute vec3 aColor;
+      attribute float aBrightness;
       uniform mat4 uMVP;
       uniform float uPointSize;
+      uniform bool uSliceEnabled;
+      uniform vec2 uSliceRange;
+      uniform int uPointPass;
       varying vec3 vColor;
+      varying float vAlpha;
       void main() {
-        gl_Position = uMVP * vec4(aPosition, 1.0);
-        gl_PointSize = uPointSize;
+        bool inSlice = aBrightness >= uSliceRange.x && aBrightness <= uSliceRange.y;
+        bool renderPoint = true;
+        bool muted = false;
+        if (uSliceEnabled) {
+          if (uPointPass == 1) {
+            renderPoint = !inSlice;
+            muted = true;
+          } else if (uPointPass == 2) {
+            renderPoint = inSlice;
+          }
+        }
+        if (renderPoint) {
+          gl_Position = uMVP * vec4(aPosition, 1.0);
+          gl_PointSize = muted ? max(1.0, uPointSize * 0.45) : uPointSize;
+        } else {
+          gl_Position = vec4(2.0, 2.0, 2.0, 1.0);
+          gl_PointSize = 0.0;
+        }
         vColor = aColor;
+        vAlpha = muted ? 1.0 : 1.0;
       }
     `;
 
@@ -263,6 +310,7 @@
             ? `#version 300 es
       precision highp float;
       in vec3 vColor;
+      in float vAlpha;
       uniform bool uIsPoint;
       out vec4 outColor;
       vec3 linearToSrgb(vec3 c) {
@@ -275,7 +323,7 @@
           vec2 q = gl_PointCoord * 2.0 - 1.0;
           float d = dot(q, q);
           if (d > 1.0) discard;
-          outColor = vec4(linearToSrgb(vColor), 1.0);
+          outColor = vec4(linearToSrgb(vColor), vAlpha);
         } else {
           outColor = vec4(vColor, 0.72);
         }
@@ -284,6 +332,7 @@
             : `
       precision highp float;
       varying vec3 vColor;
+      varying float vAlpha;
       uniform bool uIsPoint;
       vec3 linearToSrgb(vec3 c) {
         vec3 lo = 12.92 * c;
@@ -295,7 +344,7 @@
           vec2 q = gl_PointCoord * 2.0 - 1.0;
           float d = dot(q, q);
           if (d > 1.0) discard;
-          gl_FragColor = vec4(linearToSrgb(vColor), 1.0);
+          gl_FragColor = vec4(linearToSrgb(vColor), vAlpha);
         } else {
           gl_FragColor = vec4(vColor, 0.72);
         }
@@ -306,13 +355,18 @@
         this.locations = {
             position: gl.getAttribLocation(this.program, "aPosition"),
             color: gl.getAttribLocation(this.program, "aColor"),
+            brightness: gl.getAttribLocation(this.program, "aBrightness"),
             mvp: gl.getUniformLocation(this.program, "uMVP"),
             pointSize: gl.getUniformLocation(this.program, "uPointSize"),
             isPoint: gl.getUniformLocation(this.program, "uIsPoint"),
+            sliceEnabled: gl.getUniformLocation(this.program, "uSliceEnabled"),
+            sliceRange: gl.getUniformLocation(this.program, "uSliceRange"),
+            pointPass: gl.getUniformLocation(this.program, "uPointPass"),
         };
 
         this.pointPositionBuffer = gl.createBuffer();
         this.pointColorBuffer = gl.createBuffer();
+        this.pointBrightnessBuffer = gl.createBuffer();
         this.linePositionBuffer = gl.createBuffer();
         this.lineColorBuffer = gl.createBuffer();
         this.axesPositionBuffer = gl.createBuffer();
@@ -501,7 +555,7 @@
         }
     };
 
-    PointCloudViewer.prototype.setData = function (positions, colors, bounds) {
+    PointCloudViewer.prototype.setData = function (positions, colors, bounds, brightness) {
         const gl = this.gl;
         if (!(positions instanceof Float32Array) || !(colors instanceof Float32Array)) {
             throw new Error("Point positions and colors must be Float32Array values.");
@@ -510,11 +564,20 @@
             throw new Error("Point position and color buffers must have equal lengths.");
         }
 
+        const pointCount = positions.length / 3;
+        let brightnessBuffer = brightness;
+        if (!(brightnessBuffer instanceof Float32Array) || brightnessBuffer.length !== pointCount) {
+            brightnessBuffer = new Float32Array(pointCount);
+            brightnessBuffer.fill(0.5);
+        }
+
         gl.bindBuffer(gl.ARRAY_BUFFER, this.pointPositionBuffer);
         gl.bufferData(gl.ARRAY_BUFFER, positions, gl.STATIC_DRAW);
         gl.bindBuffer(gl.ARRAY_BUFFER, this.pointColorBuffer);
         gl.bufferData(gl.ARRAY_BUFFER, colors, gl.STATIC_DRAW);
-        this.pointCount = positions.length / 3;
+        gl.bindBuffer(gl.ARRAY_BUFFER, this.pointBrightnessBuffer);
+        gl.bufferData(gl.ARRAY_BUFFER, brightnessBuffer, gl.STATIC_DRAW);
+        this.pointCount = pointCount;
 
         const box = buildBoxLines(bounds || { min: [-1, -1, -1], max: [1, 1, 1] });
         gl.bindBuffer(gl.ARRAY_BUFFER, this.linePositionBuffer);
@@ -526,6 +589,14 @@
 
     PointCloudViewer.prototype.setPointSize = function (value) {
         this.pointSize = clamp(Number(value) || 3, 1, 18);
+    };
+
+    PointCloudViewer.prototype.setSliceRange = function (minValue, maxValue, enabled) {
+        const min = clamp(Number(minValue) || 0, 0, 1);
+        const max = clamp(Number(maxValue) || 0, min, 1);
+        this.sliceMin = min;
+        this.sliceMax = max;
+        this.sliceEnabled = Boolean(enabled);
     };
 
     PointCloudViewer.prototype.setTheme = function (dark) {
@@ -564,7 +635,7 @@
         this._emitCameraChange();
     };
 
-    PointCloudViewer.prototype._bindAttributes = function (positionBuffer, colorBuffer) {
+    PointCloudViewer.prototype._bindAttributes = function (positionBuffer, colorBuffer, brightnessBuffer) {
         const gl = this.gl;
         gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer);
         gl.enableVertexAttribArray(this.locations.position);
@@ -572,6 +643,15 @@
         gl.bindBuffer(gl.ARRAY_BUFFER, colorBuffer);
         gl.enableVertexAttribArray(this.locations.color);
         gl.vertexAttribPointer(this.locations.color, 3, gl.FLOAT, false, 0, 0);
+
+        if (brightnessBuffer) {
+            gl.bindBuffer(gl.ARRAY_BUFFER, brightnessBuffer);
+            gl.enableVertexAttribArray(this.locations.brightness);
+            gl.vertexAttribPointer(this.locations.brightness, 1, gl.FLOAT, false, 0, 0);
+        } else {
+            gl.disableVertexAttribArray(this.locations.brightness);
+            gl.vertexAttrib1f(this.locations.brightness, 0.5);
+        }
     };
 
     PointCloudViewer.prototype._draw = function () {
@@ -601,20 +681,37 @@
 
         if (this.showFrame && this.lineCount > 0) {
             gl.uniform1i(this.locations.isPoint, 0);
-            this._bindAttributes(this.linePositionBuffer, this.lineColorBuffer);
+            gl.uniform1i(this.locations.sliceEnabled, 0);
+            gl.uniform1i(this.locations.pointPass, 0);
+            this._bindAttributes(this.linePositionBuffer, this.lineColorBuffer, null);
             gl.drawArrays(gl.LINES, 0, this.lineCount);
         }
 
         if (this.showAxes && this.axesCount > 0) {
             gl.uniform1i(this.locations.isPoint, 0);
-            this._bindAttributes(this.axesPositionBuffer, this.axesColorBuffer);
+            gl.uniform1i(this.locations.sliceEnabled, 0);
+            gl.uniform1i(this.locations.pointPass, 0);
+            this._bindAttributes(this.axesPositionBuffer, this.axesColorBuffer, null);
             gl.drawArrays(gl.LINES, 0, this.axesCount);
         }
 
         if (this.pointCount > 0) {
             gl.uniform1i(this.locations.isPoint, 1);
-            this._bindAttributes(this.pointPositionBuffer, this.pointColorBuffer);
-            gl.drawArrays(gl.POINTS, 0, this.pointCount);
+            gl.uniform1i(this.locations.sliceEnabled, this.sliceEnabled ? 1 : 0);
+            gl.uniform2f(this.locations.sliceRange, this.sliceMin, this.sliceMax);
+            this._bindAttributes(this.pointPositionBuffer, this.pointColorBuffer, this.pointBrightnessBuffer);
+
+            if (this.sliceEnabled) {
+                gl.depthMask(false);
+                gl.uniform1i(this.locations.pointPass, 1);
+                gl.drawArrays(gl.POINTS, 0, this.pointCount);
+                gl.depthMask(true);
+                gl.uniform1i(this.locations.pointPass, 2);
+                gl.drawArrays(gl.POINTS, 0, this.pointCount);
+            } else {
+                gl.uniform1i(this.locations.pointPass, 0);
+                gl.drawArrays(gl.POINTS, 0, this.pointCount);
+            }
         }
     };
 

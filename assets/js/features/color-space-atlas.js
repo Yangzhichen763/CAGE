@@ -1,7 +1,8 @@
 (function () {
     "use strict";
 
-    const DEFAULT_SOURCE_IMAGE = "figures/example_input_00049.png";
+    const DEFAULT_SOURCE_MODE = "normal-light";
+    const DEFAULT_SOURCE_IMAGE = "figures/example_output_00049.png";
     const DEFAULT_SOURCE_NAME = DEFAULT_SOURCE_IMAGE.split("/").pop();
 
     const state = {
@@ -9,7 +10,7 @@
         hsvProjection: "cylindrical",
         hviDensity: 0.2,
         labProjection: "cylindrical",
-        normalizeRange: false,
+        normalizeRange: true,
         imageBudget: 32000,
         latticeResolution: 32,
         imageRGB: null,
@@ -30,6 +31,24 @@
     let isLoading = false;
     let loadingAnimationId = null;
     let isInitializing = true;
+    const sharedSliceRange = { min: 0.45, max: 0.55 };
+    const sliceStates = {
+        image: { enabled: false },
+        lattice: { enabled: false },
+    };
+    const sliceDatasets = { image: null, lattice: null };
+    let activeSliceKind = null;
+    let sliceUI = null;
+    let slicePreviewFrame = 0;
+    let sliceWindowDrag = null;
+    let sliceBoundaryObserver = null;
+    let slicePositionFrame = 0;
+    let slicePopoverDrag = null;
+    const slicePopoverPosition = {
+        x: null,
+        y: null,
+        userPlaced: false,
+    };
 
     function selectElements() {
         const ids = [
@@ -123,6 +142,781 @@
 
     function formatCount(value) {
         return new Intl.NumberFormat("en-US").format(value) + " points";
+    }
+
+
+    function clampSliceValue(value) {
+        return Math.min(1, Math.max(0, Number(value) || 0));
+    }
+
+    function getSliceViewer(kind) {
+        return kind === "image" ? imageViewer : latticeViewer;
+    }
+
+    function getSliceStage(kind) {
+        return kind === "image" ? elements.imageViewer : elements.latticeViewer;
+    }
+
+    function getSliceCountElement(kind) {
+        return kind === "image" ? elements.imagePointCount : elements.latticePointCount;
+    }
+
+    function getSliceTitle(kind) {
+        return kind === "image" ? "Image brightness slice" : "Gamut brightness slice";
+    }
+
+    function isSlicePopoverOpen() {
+        return Boolean(sliceUI && sliceUI.popover.classList.contains("is-open"));
+    }
+
+    function positionSlicePopover() {
+        if (!sliceUI) return;
+        const boundary = document.querySelector("#gallery .cs-four-column");
+        if (!boundary) return;
+
+        const rect = boundary.getBoundingClientRect();
+        const viewportWidth = document.documentElement.clientWidth;
+        const viewportHeight = document.documentElement.clientHeight;
+        const horizontalInset = 12;
+        const topbar = document.querySelector("nav.top");
+        const topbarRect = topbar ? topbar.getBoundingClientRect() : null;
+        const topbarBottom = topbarRect
+            ? Math.min(viewportHeight, Math.max(0, topbarRect.bottom))
+            : 0;
+        const boundaryTop = Math.max(0, topbarBottom, rect.top);
+        const boundaryBottom = Math.min(viewportHeight, rect.bottom);
+        const panelWidth = Math.max(1, Math.min(356, viewportWidth - horizontalInset * 2));
+
+        sliceUI.popover.style.width = panelWidth + "px";
+        sliceUI.popover.style.height = "auto";
+        sliceUI.popover.style.maxHeight = "none";
+        const panelHeight = Math.max(1, sliceUI.popover.getBoundingClientRect().height);
+        const availableHeight = boundaryBottom - boundaryTop;
+        const outsideBoundary =
+            rect.bottom <= topbarBottom ||
+            rect.top >= viewportHeight ||
+            availableHeight < panelHeight;
+
+        sliceUI.popover.classList.toggle("is-outside-boundary", outsideBoundary);
+        if (outsideBoundary) return;
+
+        const minX = horizontalInset;
+        const maxX = Math.max(minX, viewportWidth - horizontalInset - panelWidth);
+        const minY = boundaryTop;
+        const maxY = Math.max(minY, boundaryBottom - panelHeight);
+        const defaultX = maxX;
+        const defaultY = minY;
+        const requestedX = slicePopoverPosition.userPlaced
+            ? slicePopoverPosition.x
+            : defaultX;
+        const requestedY = slicePopoverPosition.userPlaced
+            ? slicePopoverPosition.y
+            : defaultY;
+        const left = Math.min(maxX, Math.max(minX, Number(requestedX) || defaultX));
+        const top = Math.min(maxY, Math.max(minY, Number(requestedY) || defaultY));
+
+        slicePopoverPosition.x = left;
+        slicePopoverPosition.y = top;
+        sliceUI.popover.style.setProperty("--cs-slice-popover-x", left + "px");
+        sliceUI.popover.style.setProperty("--cs-slice-popover-y", top + "px");
+    }
+
+    function scheduleSlicePopoverPosition() {
+        if (slicePositionFrame) cancelAnimationFrame(slicePositionFrame);
+        slicePositionFrame = requestAnimationFrame(function () {
+            slicePositionFrame = 0;
+            positionSlicePopover();
+        });
+    }
+
+    function getBrightnessAxisMeta() {
+        if (state.space === "RGB") {
+            return {
+                label: "RGB diagonal brightness axis",
+                detail: "(0, 0, 0) → (1, 1, 1)",
+                horizontalX: "Chroma u",
+                horizontalY: "Chroma v",
+            };
+        }
+
+        const info = ColorSpaces.getSpaceInfo(state.space, currentTransformOptions());
+        const verticalAxis = info.axes[1] || "Lightness";
+        return {
+            label: info.displayName + " vertical brightness axis",
+            detail: verticalAxis + " ∈ [0, 1]",
+            horizontalX: info.axes[0] || "x",
+            horizontalY: info.axes[2] || "z",
+        };
+    }
+
+    function computeSliceProjectionBounds(coordinateDomain) {
+        if (!coordinateDomain) {
+            return null;
+        }
+
+        let minU = Infinity;
+        let maxU = -Infinity;
+        let minV = Infinity;
+        let maxV = -Infinity;
+
+        if (state.space === "RGB") {
+            const xValues = [coordinateDomain.min[0], coordinateDomain.max[0]];
+            const yValues = [coordinateDomain.min[1], coordinateDomain.max[1]];
+            const zValues = [coordinateDomain.min[2], coordinateDomain.max[2]];
+
+            xValues.forEach(function (x) {
+                yValues.forEach(function (y) {
+                    zValues.forEach(function (z) {
+                        const projectedU = (x - z) / Math.sqrt(2);
+                        const projectedV = (x + z - 2 * y) / Math.sqrt(6);
+                        if (projectedU < minU) minU = projectedU;
+                        if (projectedU > maxU) maxU = projectedU;
+                        if (projectedV < minV) minV = projectedV;
+                        if (projectedV > maxV) maxV = projectedV;
+                    });
+                });
+            });
+        } else {
+            minU = coordinateDomain.min[0];
+            maxU = coordinateDomain.max[0];
+            minV = coordinateDomain.min[2];
+            maxV = coordinateDomain.max[2];
+        }
+
+        if (![minU, maxU, minV, maxV].every(Number.isFinite)) {
+            return null;
+        }
+        if (Math.abs(maxU - minU) < 1e-8) {
+            minU -= 0.5;
+            maxU += 0.5;
+        }
+        if (Math.abs(maxV - minV) < 1e-8) {
+            minV -= 0.5;
+            maxV += 0.5;
+        }
+
+        return {
+            minU: minU,
+            maxU: maxU,
+            minV: minV,
+            maxV: maxV,
+        };
+    }
+
+    function computeBrightnessBuffer(rgbBuffer, transformedCoordinates) {
+        const count = Math.floor(rgbBuffer.length / 3);
+        const brightness = new Float32Array(count);
+
+        for (let index = 0; index < count; index += 1) {
+            const offset = index * 3;
+            const r = rgbBuffer[offset];
+            const g = rgbBuffer[offset + 1];
+            const b = rgbBuffer[offset + 2];
+            let value;
+
+            if (state.space === "RGB") {
+                value = (r + g + b) / 3;
+            } else if (state.space === "HSV" || state.space === "HVI") {
+                value = Math.max(r, g, b);
+            } else {
+                value = transformedCoordinates[offset + 1];
+            }
+
+            brightness[index] = clampSliceValue(value);
+        }
+
+        return brightness;
+    }
+
+    function buildBrightnessHistogram(brightness) {
+        const binCount = 1000;
+        const bins = new Uint32Array(binCount + 1);
+        for (let index = 0; index < brightness.length; index += 1) {
+            const bin = Math.min(binCount, Math.max(0, Math.round(brightness[index] * binCount)));
+            bins[bin] += 1;
+        }
+
+        const prefix = new Uint32Array(binCount + 2);
+        for (let index = 0; index <= binCount; index += 1) {
+            prefix[index + 1] = prefix[index] + bins[index];
+        }
+        return { binCount: binCount, prefix: prefix };
+    }
+
+    function countBrightnessRange(dataset, minValue, maxValue) {
+        if (!dataset || !dataset.histogram) return 0;
+        const histogram = dataset.histogram;
+        const lower = Math.min(
+            histogram.binCount,
+            Math.max(0, Math.ceil(clampSliceValue(minValue) * histogram.binCount - 1e-8)),
+        );
+        const upper = Math.min(
+            histogram.binCount,
+            Math.max(lower, Math.floor(clampSliceValue(maxValue) * histogram.binCount + 1e-8)),
+        );
+        return histogram.prefix[upper + 1] - histogram.prefix[lower];
+    }
+
+    function buildSlicePreviewData(rgbBuffer, displayCoordinates, brightness, projectionBounds) {
+        const totalCount = Math.floor(rgbBuffer.length / 3);
+        const u = new Float32Array(totalCount);
+        const v = new Float32Array(totalCount);
+        const lightness = new Float32Array(totalCount);
+        const colors = new Uint8ClampedArray(totalCount * 3);
+        let minU = Infinity;
+        let maxU = -Infinity;
+        let minV = Infinity;
+        let maxV = -Infinity;
+
+        // Keep every point from the current 3D mapping dataset. The slice preview
+        // does not apply a second sampling limit, so its visual density matches the
+        // Image 3D Mapping or Gamut 3D Mapping data used for the current view.
+        for (let index = 0; index < totalCount; index += 1) {
+            const offset = index * 3;
+            const x = displayCoordinates[offset];
+            const y = displayCoordinates[offset + 1];
+            const z = displayCoordinates[offset + 2];
+            let projectedU;
+            let projectedV;
+
+            if (state.space === "RGB") {
+                projectedU = (x - z) / Math.sqrt(2);
+                projectedV = (x + z - 2 * y) / Math.sqrt(6);
+            } else {
+                projectedU = x;
+                projectedV = z;
+            }
+
+            u[index] = projectedU;
+            v[index] = projectedV;
+            lightness[index] = brightness[index];
+            colors[offset] = Math.round(clampSliceValue(rgbBuffer[offset]) * 255);
+            colors[offset + 1] = Math.round(clampSliceValue(rgbBuffer[offset + 1]) * 255);
+            colors[offset + 2] = Math.round(clampSliceValue(rgbBuffer[offset + 2]) * 255);
+
+            if (projectedU < minU) minU = projectedU;
+            if (projectedU > maxU) maxU = projectedU;
+            if (projectedV < minV) minV = projectedV;
+            if (projectedV > maxV) maxV = projectedV;
+        }
+
+        if (
+            projectionBounds &&
+            [
+                projectionBounds.minU,
+                projectionBounds.maxU,
+                projectionBounds.minV,
+                projectionBounds.maxV,
+            ].every(Number.isFinite)
+        ) {
+            minU = projectionBounds.minU;
+            maxU = projectionBounds.maxU;
+            minV = projectionBounds.minV;
+            maxV = projectionBounds.maxV;
+        } else {
+        if (!Number.isFinite(minU) || !Number.isFinite(maxU)) {
+            minU = -1;
+            maxU = 1;
+            minV = -1;
+            maxV = 1;
+        }
+        if (Math.abs(maxU - minU) < 1e-8) {
+            minU -= 0.5;
+            maxU += 0.5;
+        }
+        if (Math.abs(maxV - minV) < 1e-8) {
+            minV -= 0.5;
+            maxV += 0.5;
+            }
+        }
+
+        const brightnessDrawOrder = new Uint32Array(totalCount);
+        for (let index = 0; index < totalCount; index += 1) {
+            brightnessDrawOrder[index] = index;
+        }
+        brightnessDrawOrder.sort(function (leftIndex, rightIndex) {
+            const brightnessDelta = lightness[leftIndex] - lightness[rightIndex];
+            return brightnessDelta !== 0 ? brightnessDelta : leftIndex - rightIndex;
+        });
+
+        return {
+            u: u,
+            v: v,
+            brightness: lightness,
+            colors: colors,
+            brightnessDrawOrder: brightnessDrawOrder,
+            minU: minU,
+            maxU: maxU,
+            minV: minV,
+            maxV: maxV,
+        };
+    }
+
+    function buildSliceDataset(rgbBuffer, rawCoordinates, displayCoordinates, projectionBounds) {
+        const brightness = computeBrightnessBuffer(rgbBuffer, rawCoordinates);
+        return {
+            brightness: brightness,
+            histogram: buildBrightnessHistogram(brightness),
+            preview: buildSlicePreviewData(
+                rgbBuffer,
+                displayCoordinates,
+                brightness,
+                projectionBounds,
+            ),
+            totalCount: brightness.length,
+        };
+    }
+
+    function applySliceState(kind) {
+        const viewer = getSliceViewer(kind);
+        if (!viewer) return;
+
+        viewer.setSliceRange(0, 1, false);
+        updateSlicePointCount(kind);
+    }
+
+    function updateSlicePointCount(kind) {
+        const countElement = getSliceCountElement(kind);
+        const dataset = sliceDatasets[kind];
+        if (!countElement || !dataset) return;
+        countElement.textContent = formatCount(dataset.totalCount);
+    }
+
+    function getThemeColor(name, fallback) {
+        const rootStyle = getComputedStyle(document.documentElement);
+        const value = rootStyle.getPropertyValue(name).trim();
+        return value || fallback;
+    }
+
+    function drawSlicePreview(kind) {
+        if (!sliceUI || activeSliceKind !== kind || !isSlicePopoverOpen()) return;
+        const canvas = sliceUI.canvas;
+        const context = canvas.getContext("2d");
+        const dataset = sliceDatasets[kind];
+        const sliceRange = sharedSliceRange;
+        const width = canvas.width;
+        const height = canvas.height;
+        const padding = { left: 38, right: 16, top: 16, bottom: 32 };
+        const availableWidth = width - padding.left - padding.right;
+        const availableHeight = height - padding.top - padding.bottom;
+        const panelColor = getThemeColor("--surface", "#ffffff");
+        const lineColor = getThemeColor("--line", "#d7d9de");
+        const mutedColor = getThemeColor("--muted", "#69707c");
+        const inkColor = getThemeColor("--ink", "#15171b");
+
+        context.clearRect(0, 0, width, height);
+        context.fillStyle = panelColor;
+        context.fillRect(0, 0, width, height);
+
+        if (!dataset || !dataset.preview || dataset.preview.u.length === 0) {
+            context.strokeStyle = lineColor;
+            context.lineWidth = 1;
+            for (let index = 0; index <= 4; index += 1) {
+                const x = padding.left + (availableWidth * index) / 4;
+                const y = padding.top + (availableHeight * index) / 4;
+                context.beginPath();
+                context.moveTo(x, padding.top);
+                context.lineTo(x, padding.top + availableHeight);
+                context.stroke();
+                context.beginPath();
+                context.moveTo(padding.left, y);
+                context.lineTo(padding.left + availableWidth, y);
+                context.stroke();
+            }
+            context.strokeStyle = mutedColor;
+            context.strokeRect(padding.left, padding.top, availableWidth, availableHeight);
+            context.fillStyle = mutedColor;
+            context.font = "600 14px system-ui, sans-serif";
+            context.textAlign = "center";
+            context.textBaseline = "middle";
+            context.fillText("Preparing slice preview…", width / 2, height / 2);
+            sliceUI.selectedCount.textContent = "0 points";
+            return;
+        }
+
+        const preview = dataset.preview;
+        const spanU = Math.max(1e-8, preview.maxU - preview.minU);
+        const spanV = Math.max(1e-8, preview.maxV - preview.minV);
+        const uniformScale = Math.min(availableWidth / spanU, availableHeight / spanV);
+        const plotWidth = spanU * uniformScale;
+        const plotHeight = spanV * uniformScale;
+        const plotLeft = padding.left + (availableWidth - plotWidth) * 0.5;
+        const plotTop = padding.top + (availableHeight - plotHeight) * 0.5;
+        const pointSize = kind === "lattice" ? 6.0 : 4.8;
+        let selectedPreviewCount = 0;
+
+        context.strokeStyle = lineColor;
+        context.lineWidth = 1;
+        for (let index = 0; index <= 4; index += 1) {
+            const x = plotLeft + (plotWidth * index) / 4;
+            const y = plotTop + (plotHeight * index) / 4;
+            context.beginPath();
+            context.moveTo(x, plotTop);
+            context.lineTo(x, plotTop + plotHeight);
+            context.stroke();
+            context.beginPath();
+            context.moveTo(plotLeft, y);
+            context.lineTo(plotLeft + plotWidth, y);
+            context.stroke();
+        }
+        context.strokeStyle = mutedColor;
+        context.strokeRect(plotLeft, plotTop, plotWidth, plotHeight);
+
+        context.save();
+        context.globalCompositeOperation = "source-over";
+        context.fillStyle = mutedColor;
+        context.globalAlpha = 0.055;
+        for (let index = 0; index < preview.u.length; index += 1) {
+            const x = plotLeft + (preview.u[index] - preview.minU) * uniformScale;
+            const y = plotTop + plotHeight - (preview.v[index] - preview.minV) * uniformScale;
+            context.fillRect(x - 0.9, y - 0.9, 1.8, 1.8);
+        }
+        context.restore();
+
+        context.save();
+        context.globalCompositeOperation = "source-over";
+        context.globalAlpha = kind === "lattice" ? 1.0 : 0.5;
+        const brightnessDrawOrder = preview.brightnessDrawOrder;
+        const orderedPointCount = brightnessDrawOrder
+            ? brightnessDrawOrder.length
+            : preview.u.length;
+
+        for (let drawIndex = 0; drawIndex < orderedPointCount; drawIndex += 1) {
+            const index = brightnessDrawOrder
+                ? brightnessDrawOrder[drawIndex]
+                : drawIndex;
+            const brightness = preview.brightness[index];
+            if (brightness < sliceRange.min || brightness > sliceRange.max) continue;
+
+            const x = plotLeft + (preview.u[index] - preview.minU) * uniformScale;
+            const y = plotTop + plotHeight - (preview.v[index] - preview.minV) * uniformScale;
+            const colorOffset = index * 3;
+            context.fillStyle =
+                "rgb(" +
+                preview.colors[colorOffset] +
+                "," +
+                preview.colors[colorOffset + 1] +
+                "," +
+                preview.colors[colorOffset + 2] +
+                ")";
+            context.fillRect(x - pointSize * 0.5, y - pointSize * 0.5, pointSize, pointSize);
+            selectedPreviewCount += 1;
+        }
+        context.restore();
+
+        const axis = getBrightnessAxisMeta();
+        context.fillStyle = mutedColor;
+        context.font = "600 11px system-ui, sans-serif";
+        context.textAlign = "center";
+        context.textBaseline = "alphabetic";
+        context.fillText(axis.horizontalX, plotLeft + plotWidth / 2, height - 8);
+
+        context.save();
+        context.translate(12, plotTop + plotHeight / 2);
+        context.rotate(-Math.PI / 2);
+        context.fillText(axis.horizontalY, 0, 0);
+        context.restore();
+
+        if (selectedPreviewCount === 0) {
+            context.fillStyle = inkColor;
+            context.globalAlpha = 0.82;
+            context.font = "600 14px system-ui, sans-serif";
+            context.textAlign = "center";
+            context.textBaseline = "middle";
+            context.fillText("No points in this interval", plotLeft + plotWidth / 2, plotTop + plotHeight / 2);
+            context.globalAlpha = 1;
+        }
+
+        const selectedTotal = countBrightnessRange(dataset, sliceRange.min, sliceRange.max);
+        sliceUI.selectedCount.textContent =
+            new Intl.NumberFormat("en-US").format(selectedTotal) +
+            " of " +
+            new Intl.NumberFormat("en-US").format(dataset.totalCount) +
+            " points";
+    }
+
+    function scheduleSlicePreview(kind) {
+        if (slicePreviewFrame) cancelAnimationFrame(slicePreviewFrame);
+        slicePreviewFrame = requestAnimationFrame(function () {
+            slicePreviewFrame = 0;
+            drawSlicePreview(kind);
+        });
+    }
+
+    function syncSliceControls(kind) {
+        if (!sliceUI || activeSliceKind !== kind) return;
+        const axis = getBrightnessAxisMeta();
+        sliceUI.title.textContent = getSliceTitle(kind);
+        sliceUI.axisLabel.textContent = axis.label;
+        sliceUI.axisDetail.textContent = axis.detail;
+        sliceUI.minInput.value = sharedSliceRange.min.toFixed(3);
+        sliceUI.maxInput.value = sharedSliceRange.max.toFixed(3);
+        sliceUI.minValue.textContent = sharedSliceRange.min.toFixed(3);
+        sliceUI.maxValue.textContent = sharedSliceRange.max.toFixed(3);
+        sliceUI.rangeRoot.style.setProperty("--slice-min", (sharedSliceRange.min * 100).toFixed(3) + "%");
+        sliceUI.rangeRoot.style.setProperty("--slice-max", (sharedSliceRange.max * 100).toFixed(3) + "%");
+        sliceUI.rangeWindow.setAttribute(
+            "aria-valuetext",
+            sharedSliceRange.min.toFixed(3) + " to " + sharedSliceRange.max.toFixed(3),
+        );
+        scheduleSlicePreview(kind);
+        positionSlicePopover();
+    }
+
+    function setSliceRange(kind, minValue, maxValue) {
+        if (!sliceStates[kind]) return;
+        let min = clampSliceValue(minValue);
+        let max = clampSliceValue(maxValue);
+        if (min > max) {
+            if (Math.abs(min - sharedSliceRange.min) > Math.abs(max - sharedSliceRange.max)) {
+                min = max;
+            } else {
+                max = min;
+            }
+        }
+        sharedSliceRange.min = min;
+        sharedSliceRange.max = max;
+        applySliceState("image");
+        applySliceState("lattice");
+        syncSliceControls(kind);
+    }
+
+    function closeSlicePanel() {
+        if (!sliceUI) return;
+        if (activeSliceKind) {
+            sliceStates[activeSliceKind].enabled = false;
+            applySliceState(activeSliceKind);
+            if (sliceUI.buttons[activeSliceKind]) {
+                sliceUI.buttons[activeSliceKind].classList.remove("is-active");
+                sliceUI.buttons[activeSliceKind].setAttribute("aria-pressed", "false");
+            }
+        }
+        activeSliceKind = null;
+        sliceUI.popover.classList.remove("is-open", "is-outside-boundary");
+        sliceUI.popover.setAttribute("aria-hidden", "true");
+        sliceUI.popover.setAttribute("inert", "");
+    }
+
+    function openSlicePanel(kind) {
+        if (!sliceUI) return;
+        if (activeSliceKind === kind && isSlicePopoverOpen()) {
+            closeSlicePanel();
+            return;
+        }
+
+        if (activeSliceKind && activeSliceKind !== kind) {
+            sliceStates[activeSliceKind].enabled = false;
+            applySliceState(activeSliceKind);
+            sliceUI.buttons[activeSliceKind].classList.remove("is-active");
+            sliceUI.buttons[activeSliceKind].setAttribute("aria-pressed", "false");
+        }
+
+        activeSliceKind = kind;
+        sliceStates[kind].enabled = true;
+        Object.keys(sliceUI.buttons).forEach(function (buttonKind) {
+            const active = buttonKind === kind;
+            sliceUI.buttons[buttonKind].classList.toggle("is-active", active);
+            sliceUI.buttons[buttonKind].setAttribute("aria-pressed", String(active));
+        });
+        applySliceState(kind);
+        syncSliceControls(kind);
+        positionSlicePopover();
+        sliceUI.popover.removeAttribute("inert");
+        sliceUI.popover.setAttribute("aria-hidden", "false");
+        sliceUI.popover.classList.add("is-open");
+        scheduleSlicePreview(kind);
+    }
+
+    function createSliceToggleButton(kind) {
+        const button = document.createElement("button");
+        button.type = "button";
+        button.className = "cs-slice-toggle";
+        button.setAttribute("aria-label", "Open " + getSliceTitle(kind).toLowerCase());
+        button.setAttribute("aria-pressed", "false");
+        button.innerHTML =
+            '<svg aria-hidden="true" viewBox="0 0 24 24">' +
+            '<path d="M5 7.5 12 4l7 3.5-7 3.5-7-3.5Z"></path>' +
+            '<path d="m5 12 7 3.5 7-3.5"></path>' +
+            '<path d="m5 16.5 7 3.5 7-3.5"></path>' +
+            '</svg>';
+        button.addEventListener("pointerdown", function (event) {
+            event.stopPropagation();
+        });
+        button.addEventListener("click", function (event) {
+            event.preventDefault();
+            event.stopPropagation();
+            openSlicePanel(kind);
+        });
+        getSliceStage(kind).appendChild(button);
+        return button;
+    }
+
+    function setupSliceVisualization() {
+        if (sliceUI) return;
+        const overlayLayer = document.createElement("div");
+        overlayLayer.className = "cs-slice-overlay-layer";
+        overlayLayer.setAttribute("aria-hidden", "false");
+        const popover = document.createElement("section");
+        popover.className = "cs-slice-popover";
+        popover.setAttribute("aria-label", "Brightness slice controls and preview");
+        popover.setAttribute("aria-hidden", "true");
+        popover.setAttribute("inert", "");
+        popover.innerHTML =
+            '<div class="cs-slice-popover-head">' +
+            '<div><h3 class="cs-slice-title">Brightness slice</h3><p class="cs-slice-axis"><span></span><small></small></p></div>' +
+            '<button class="cs-slice-close" type="button" aria-label="Close brightness slice">×</button>' +
+            '</div>' +
+            '<div class="cs-slice-preview-shell cs-slice-overview">' +
+            '<canvas class="cs-slice-preview" width="680" height="420" aria-label="Orthographic brightness slice preview"></canvas>' +
+            '<span class="cs-slice-preview-caption">Chroma Distribution Map</span>' +
+            '</div>' +
+            '<div class="cs-slice-range-head"><span>Brightness interval</span><strong class="cs-slice-selected-count">0 points</strong></div>' +
+            '<div class="cs-dual-range">' +
+            '<div class="cs-dual-range-rail">' +
+            '<div class="cs-dual-range-track" aria-hidden="true"></div>' +
+            '<div class="cs-dual-range-window" role="slider" tabindex="0" aria-label="Move the complete brightness interval" aria-valuemin="0" aria-valuemax="1"></div>' +
+            '</div>' +
+            '<input class="cs-dual-range-input cs-dual-range-min" type="range" min="0" max="1" step="0.001" value="0.45" aria-label="Minimum brightness">' +
+            '<input class="cs-dual-range-input cs-dual-range-max" type="range" min="0" max="1" step="0.001" value="0.55" aria-label="Maximum brightness">' +
+            '</div>' +
+            '<div class="cs-slice-values"><output class="cs-slice-min-value">0.450</output><span class="cs-slice-scale"><i>0</i><i>1</i></span><output class="cs-slice-max-value">0.550</output></div>' +
+            '<div class="cs-slice-actions"><span>Drag either handle, or drag the highlighted interval to move both bounds.</span><button type="button" class="cs-slice-reset">Full range</button></div>';
+        overlayLayer.appendChild(popover);
+        document.body.appendChild(overlayLayer);
+
+        const axisParts = popover.querySelectorAll(".cs-slice-axis > *");
+        sliceUI = {
+            layer: overlayLayer,
+            popover: popover,
+            head: popover.querySelector(".cs-slice-popover-head"),
+            title: popover.querySelector(".cs-slice-title"),
+            axisLabel: axisParts[0],
+            axisDetail: axisParts[1],
+            canvas: popover.querySelector(".cs-slice-preview"),
+            selectedCount: popover.querySelector(".cs-slice-selected-count"),
+            minInput: popover.querySelector(".cs-dual-range-min"),
+            maxInput: popover.querySelector(".cs-dual-range-max"),
+            rangeWindow: popover.querySelector(".cs-dual-range-window"),
+            rangeRail: popover.querySelector(".cs-dual-range-rail"),
+            rangeRoot: popover.querySelector(".cs-dual-range"),
+            minValue: popover.querySelector(".cs-slice-min-value"),
+            maxValue: popover.querySelector(".cs-slice-max-value"),
+            close: popover.querySelector(".cs-slice-close"),
+            reset: popover.querySelector(".cs-slice-reset"),
+            buttons: {},
+        };
+
+        positionSlicePopover();
+
+        sliceUI.buttons.image = createSliceToggleButton("image");
+        sliceUI.buttons.lattice = createSliceToggleButton("lattice");
+
+        sliceUI.head.addEventListener("pointerdown", function (event) {
+            if (event.button !== 0 || event.target.closest("button")) return;
+            const rect = sliceUI.popover.getBoundingClientRect();
+            event.preventDefault();
+            slicePopoverDrag = {
+                pointerId: event.pointerId,
+                offsetX: event.clientX - rect.left,
+                offsetY: event.clientY - rect.top,
+            };
+            slicePopoverPosition.userPlaced = true;
+            sliceUI.head.setPointerCapture(event.pointerId);
+            sliceUI.popover.classList.add("is-dragging");
+        });
+
+        sliceUI.head.addEventListener("pointermove", function (event) {
+            if (!slicePopoverDrag || event.pointerId !== slicePopoverDrag.pointerId) return;
+            slicePopoverPosition.x = event.clientX - slicePopoverDrag.offsetX;
+            slicePopoverPosition.y = event.clientY - slicePopoverDrag.offsetY;
+            positionSlicePopover();
+        });
+
+        function endSlicePopoverDrag(event) {
+            if (!slicePopoverDrag || event.pointerId !== slicePopoverDrag.pointerId) return;
+            sliceUI.popover.classList.remove("is-dragging");
+            if (sliceUI.head.hasPointerCapture(event.pointerId)) {
+                sliceUI.head.releasePointerCapture(event.pointerId);
+            }
+            slicePopoverDrag = null;
+        }
+
+        sliceUI.head.addEventListener("pointerup", endSlicePopoverDrag);
+        sliceUI.head.addEventListener("pointercancel", endSlicePopoverDrag);
+
+        sliceUI.close.addEventListener("click", closeSlicePanel);
+        sliceUI.reset.addEventListener("click", function () {
+            if (activeSliceKind) setSliceRange(activeSliceKind, 0, 1);
+        });
+
+        sliceUI.minInput.addEventListener("input", function () {
+            if (!activeSliceKind) return;
+            const max = sharedSliceRange.max;
+            setSliceRange(activeSliceKind, Math.min(Number(sliceUI.minInput.value), max), max);
+        });
+        sliceUI.maxInput.addEventListener("input", function () {
+            if (!activeSliceKind) return;
+            const min = sharedSliceRange.min;
+            setSliceRange(activeSliceKind, min, Math.max(Number(sliceUI.maxInput.value), min));
+        });
+
+        sliceUI.rangeWindow.addEventListener("pointerdown", function (event) {
+            if (!activeSliceKind || event.button !== 0) return;
+            event.preventDefault();
+            sliceWindowDrag = {
+                pointerId: event.pointerId,
+                startX: event.clientX,
+                startMin: sharedSliceRange.min,
+                startMax: sharedSliceRange.max,
+                kind: activeSliceKind,
+            };
+            sliceUI.rangeWindow.setPointerCapture(event.pointerId);
+            sliceUI.rangeWindow.classList.add("is-dragging");
+        });
+
+        sliceUI.rangeWindow.addEventListener("pointermove", function (event) {
+            if (!sliceWindowDrag || event.pointerId !== sliceWindowDrag.pointerId) return;
+            const rect = sliceUI.rangeRail.getBoundingClientRect();
+            if (rect.width <= 1) return;
+            const delta = (event.clientX - sliceWindowDrag.startX) / rect.width;
+            const intervalWidth = sliceWindowDrag.startMax - sliceWindowDrag.startMin;
+            const min = Math.min(1 - intervalWidth, Math.max(0, sliceWindowDrag.startMin + delta));
+            setSliceRange(sliceWindowDrag.kind, min, min + intervalWidth);
+        });
+
+        function endSliceWindowDrag(event) {
+            if (!sliceWindowDrag || event.pointerId !== sliceWindowDrag.pointerId) return;
+            sliceUI.rangeWindow.classList.remove("is-dragging");
+            if (sliceUI.rangeWindow.hasPointerCapture(event.pointerId)) {
+                sliceUI.rangeWindow.releasePointerCapture(event.pointerId);
+            }
+            sliceWindowDrag = null;
+        }
+
+        sliceUI.rangeWindow.addEventListener("pointerup", endSliceWindowDrag);
+        sliceUI.rangeWindow.addEventListener("pointercancel", endSliceWindowDrag);
+        sliceUI.rangeWindow.addEventListener("keydown", function (event) {
+            if (!activeSliceKind || (event.key !== "ArrowLeft" && event.key !== "ArrowRight")) return;
+            event.preventDefault();
+            const width = sharedSliceRange.max - sharedSliceRange.min;
+            const step = event.shiftKey ? 0.05 : 0.01;
+            const direction = event.key === "ArrowLeft" ? -1 : 1;
+            const min = Math.min(1 - width, Math.max(0, sharedSliceRange.min + direction * step));
+            setSliceRange(activeSliceKind, min, min + width);
+        });
+
+        document.addEventListener("keydown", function (event) {
+            if (event.key === "Escape" && activeSliceKind) closeSlicePanel();
+        });
+
+        window.addEventListener("scroll", scheduleSlicePopoverPosition, { passive: true });
+        window.addEventListener("resize", scheduleSlicePopoverPosition);
+        const sliceBoundary = document.querySelector("#gallery .cs-four-column");
+        if (sliceBoundary && typeof ResizeObserver === "function") {
+            sliceBoundaryObserver = new ResizeObserver(scheduleSlicePopoverPosition);
+            sliceBoundaryObserver.observe(sliceBoundary);
+        }
+        scheduleSlicePopoverPosition();
     }
 
     function loadDefaultSourceImage(sourcePath) {
@@ -433,16 +1227,44 @@
             const latticePositions = fitPointsToScene(latticeCoordinates, coordinateDomain);
             const imagePositions = imageRaw ? fitPointsToScene(imageCoordinates, coordinateDomain) : null;
             const bounds = fittedBounds(coordinateDomain);
+            const sliceProjectionBounds = computeSliceProjectionBounds(coordinateDomain);
 
-            latticeViewer.setData(latticePositions, state.latticeLinearColors, bounds);
+            sliceDatasets.lattice = buildSliceDataset(
+                state.latticeRGB,
+                latticeRaw,
+                latticeCoordinates,
+                sliceProjectionBounds,
+            );
+            latticeViewer.setData(
+                latticePositions,
+                state.latticeLinearColors,
+                bounds,
+                sliceDatasets.lattice.brightness,
+            );
+
             if (imagePositions && state.imageLinearColors) {
-                imageViewer.setData(imagePositions, state.imageLinearColors, bounds);
-                elements.imagePointCount.textContent = formatCount(imagePositions.length / 3);
+                sliceDatasets.image = buildSliceDataset(
+                    state.imageRGB,
+                    imageRaw,
+                    imageCoordinates,
+                    sliceProjectionBounds,
+                );
+                imageViewer.setData(
+                    imagePositions,
+                    state.imageLinearColors,
+                    bounds,
+                    sliceDatasets.image.brightness,
+                );
+            } else {
+                sliceDatasets.image = null;
             }
-            elements.latticePointCount.textContent = formatCount(latticePositions.length / 3);
+
+            applySliceState("image");
+            applySliceState("lattice");
             updateSpaceSummary(coordinateDomain);
             updateAxisGizmo(elements.imageAxisGizmo, imageViewer.getCameraState(), state.space);
             updateAxisGizmo(elements.latticeAxisGizmo, latticeViewer.getCameraState(), state.space);
+            if (activeSliceKind) syncSliceControls(activeSliceKind);
             setStatus((reason || "Updated") + " · " + state.space + " ready");
         });
     }
@@ -986,7 +1808,10 @@
         }
 
         syncCanvasTheme();
-        document.addEventListener("theme-change", syncCanvasTheme);
+        document.addEventListener("theme-change", function () {
+            syncCanvasTheme();
+            if (activeSliceKind) scheduleSlicePreview(activeSliceKind);
+        });
 
         function setupSelectArrowToggle() {
             const selects = document.querySelectorAll("#gallery .cs-field select");
@@ -1131,6 +1956,7 @@
         updateAxisGizmo(elements.imageAxisGizmo, imageViewer.getCameraState(), state.space);
         updateAxisGizmo(elements.latticeAxisGizmo, latticeViewer.getCameraState(), state.space);
         wireInteractionPause();
+        setupSliceVisualization();
         wireUI();
 
         state.latticeRGB = generateRGBLattice(state.latticeResolution);
@@ -1140,9 +1966,12 @@
             " samples per axis · " +
             new Intl.NumberFormat("en-US").format(state.latticeResolution ** 3) +
             " points";
-        elements.patternMode.value = "low-light";
+        elements.patternMode.value = DEFAULT_SOURCE_MODE;
         updateRerandomButton();
         loadDefaultSourceImage(DEFAULT_SOURCE_IMAGE);
+        requestAnimationFrame(function () {
+            openSlicePanel("image");
+        });
         
         setTimeout(function () {
             isInitializing = false;

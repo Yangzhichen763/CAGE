@@ -6,6 +6,14 @@ if (!window.__CAGE_METHOD_INITIALIZED__) {
         const methodRoot = document.getElementById("method");
         if (!methodRoot) return;
 
+        const methodImageObjectUrls = new Map();
+        window.addEventListener("beforeunload", function () {
+            methodImageObjectUrls.forEach(function (objectUrl) {
+                URL.revokeObjectURL(objectUrl);
+            });
+            methodImageObjectUrls.clear();
+        });
+
         const mainData = {
             input: {
                 tag: "Image",
@@ -237,6 +245,161 @@ if (!window.__CAGE_METHOD_INITIALIZED__) {
             );
         }
 
+        function setMethodImageLoading(img, placeholder) {
+            const node = img.closest(".md-image-node");
+            if (node) {
+                node.classList.add("is-loading");
+                node.classList.remove("is-error");
+            }
+
+            img.style.visibility = "hidden";
+            img.style.opacity = "0";
+
+            if (!placeholder?.classList.contains("img-placeholder")) return;
+            placeholder.classList.remove("is-hidden");
+            placeholder.style.display = "flex";
+
+            const icon = placeholder.querySelector(".icon");
+            if (icon) icon.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
+
+            const filename = placeholder.querySelector(".filename");
+            if (filename) filename.textContent = "Loading...";
+
+            const label = placeholder.querySelector(".label");
+            if (label) label.textContent = "0%";
+        }
+
+        function showMethodImage(img, placeholder) {
+            const node = img.closest(".md-image-node");
+            if (node) {
+                node.classList.remove("is-loading", "is-error");
+            }
+
+            img.style.display = "block";
+            img.style.visibility = "visible";
+            img.style.opacity = "1";
+
+            if (placeholder?.classList.contains("img-placeholder")) {
+                placeholder.classList.add("is-hidden");
+                placeholder.style.display = "none";
+            }
+        }
+
+        function loadImageWithPlaceholder(img) {
+            const src = img.dataset.src;
+            if (!src) {
+                showImageError(img);
+                return;
+            }
+
+            const placeholder = img.nextElementSibling;
+            const cachedUrl = methodImageObjectUrls.get(src);
+            if (cachedUrl) {
+                img.onload = function () {
+                    showMethodImage(img, placeholder);
+                };
+                img.onerror = function () {
+                    methodImageObjectUrls.delete(src);
+                    URL.revokeObjectURL(cachedUrl);
+                    showImageError(img);
+                };
+                img.src = cachedUrl;
+                if (img.complete && img.naturalWidth > 0) {
+                    showMethodImage(img, placeholder);
+                }
+                return;
+            }
+
+            setMethodImageLoading(img, placeholder);
+
+            fetch(src)
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error("Network response was not ok");
+                    }
+
+                    const contentLength = response.headers.get("content-length");
+                    const total = contentLength ? parseInt(contentLength, 10) : null;
+                    if (!response.body || !total) {
+                        return response.blob();
+                    }
+
+                    let loaded = 0;
+                    const reader = response.body.getReader();
+                    return new Response(
+                        new ReadableStream({
+                            async start(controller) {
+                                while (true) {
+                                    const { done, value } = await reader.read();
+                                    if (done) break;
+
+                                    loaded += value.length;
+                                    const progress = Math.round((loaded / total) * 100);
+                                    if (placeholder?.classList.contains("img-placeholder")) {
+                                        const label = placeholder.querySelector(".label");
+                                        if (label) label.textContent = progress + "%";
+                                    }
+                                    controller.enqueue(value);
+                                }
+                                controller.close();
+                            },
+                        }),
+                    ).blob();
+                })
+                .then(blob => {
+                    if (!blob) return;
+
+                    const objectUrl = URL.createObjectURL(blob);
+                    const previousUrl = methodImageObjectUrls.get(src);
+                    if (previousUrl && previousUrl !== objectUrl) {
+                        URL.revokeObjectURL(previousUrl);
+                    }
+                    methodImageObjectUrls.set(src, objectUrl);
+
+                    img.onload = function () {
+                        showMethodImage(img, placeholder);
+                    };
+                    img.onerror = function () {
+                        if (methodImageObjectUrls.get(src) === objectUrl) {
+                            methodImageObjectUrls.delete(src);
+                            URL.revokeObjectURL(objectUrl);
+                        }
+                        showImageError(img);
+                    };
+                    img.src = objectUrl;
+                })
+                .catch(() => {
+                    showImageError(img);
+                });
+        }
+
+        function showImageError(img) {
+            const node = img.closest(".md-image-node");
+            if (node) {
+                node.classList.remove("is-loading");
+                node.classList.add("is-error");
+            }
+
+            img.style.visibility = "hidden";
+            img.style.opacity = "0";
+
+            const placeholder = img.nextElementSibling;
+            if (placeholder?.classList.contains("img-placeholder")) {
+                placeholder.classList.remove("is-hidden");
+                placeholder.style.display = "flex";
+                const icon = placeholder.querySelector(".icon");
+                if (icon) {
+                    icon.innerHTML = '<svg fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.6" viewBox="0 0 24 24"><rect height="18" rx="2" width="18" x="3" y="3"></rect><circle cx="9" cy="9" r="2"></circle><path d="M21 15l-5-5L5 21"></path></svg>';
+                }
+                const filename = placeholder.querySelector(".filename");
+                if (filename) {
+                    filename.textContent = (img.dataset.src || "image.png").split(/[\\/]/).pop() || "image.png";
+                }
+                const label = placeholder.querySelector(".label");
+                if (label) label.textContent = "Image unavailable";
+            }
+        }
+
         function buildSimpleVisual(kind) {
             if (kind === "params") {
                 return (
@@ -254,10 +417,10 @@ if (!window.__CAGE_METHOD_INITIALIZED__) {
                 return '<div class="md-simple-visual vertical-flow"><button type="button" class="md-simple-node dashed" data-simple-key="backbone-input">AdaLAB Input</button><span class="md-simple-arrow">↓</span><button type="button" class="md-simple-node" data-simple-key="backbone-core">LLIE Backbone</button><span class="md-simple-arrow">↓</span><button type="button" class="md-simple-node dashed" data-simple-key="backbone-output">AdaLAB Output</button></div>';
             }
             if (kind === "input") {
-                return '<div class="md-simple-visual md-image-visual"><div class="md-simple-node dashed md-image-node md-static-node"><img src="figures/example_input_00049.png" alt="Input Low-light Image" loading="lazy"><span class="md-image-label">Input Low-light Image</span></div></div>';
+                return '<div class="md-simple-visual md-image-visual"><div class="md-simple-node dashed md-image-node md-static-node"><img data-src="figures/example_input_00049.png" alt="Input Low-light Image" loading="lazy"><div class="img-placeholder is-hidden"><div class="icon"><svg fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.6" viewBox="0 0 24 24"><rect height="18" rx="2" width="18" x="3" y="3"></rect><circle cx="9" cy="9" r="2"></circle><path d="M21 15l-5-5L5 21"></path></svg></div><div class="filename">example_input_00049.png</div><div class="label">Loading...</div></div><span class="md-image-label">Input Low-light Image</span></div></div>';
             }
             if (kind === "output") {
-                return '<div class="md-simple-visual md-image-visual"><div class="md-simple-node dashed md-image-node md-static-node"><img src="figures/example_output_00049.png" alt="Output Enhanced Image" loading="lazy"><span class="md-image-label">Output Enhanced Image</span></div></div>';
+                return '<div class="md-simple-visual md-image-visual"><div class="md-simple-node dashed md-image-node md-static-node"><img data-src="figures/example_output_00049.png" alt="Output Enhanced Image" loading="lazy"><div class="img-placeholder is-hidden"><div class="icon"><svg fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.6" viewBox="0 0 24 24"><rect height="18" rx="2" width="18" x="3" y="3"></rect><circle cx="9" cy="9" r="2"></circle><path d="M21 15l-5-5L5 21"></path></svg></div><div class="filename">example_output_00049.png</div><div class="label">Loading...</div></div><span class="md-image-label">Output Enhanced Image</span></div></div>';
             }
             return (
                 '<div class="md-simple-visual"><button type="button" class="md-simple-node dashed" data-simple-key="single-' +
@@ -431,6 +594,10 @@ if (!window.__CAGE_METHOD_INITIALIZED__) {
                     children[next].focus();
                     selectSimpleChild(children[next].dataset.simpleKey);
                 });
+            });
+
+            detailMedia.querySelectorAll("img[data-src]").forEach(function (img) {
+                loadImageWithPlaceholder(img);
             });
         }
 

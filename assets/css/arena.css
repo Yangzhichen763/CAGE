@@ -969,7 +969,7 @@ pre {
     transform: translateX(-50%);
     background: transparent;
     cursor: ew-resize;
-    z-index: 12;
+    z-index: 99;
     touch-action: none;
 }
 
@@ -1029,7 +1029,7 @@ pre {
     background: var(--accent);
     transform: translate(-50%, -50%);
     cursor: move;
-    z-index: 13;
+    z-index: 100;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -1097,9 +1097,15 @@ pre {
 }
 
 .arena-compare-wrapper .compare-loading i {
-    font-size: 1.5rem;
+    font-size: 1rem;
     color: var(--accent);
     animation: spin 1s linear infinite;
+}
+
+.arena-compare-wrapper .compare-loading svg {
+    width: 16px;
+    height: 16px;
+    color: var(--muted);
 }
 
 .arena-compare-wrapper .compare-loading .progress-bar {
@@ -1120,4 +1126,38 @@ pre {
 .arena-compare-wrapper .compare-loading .progress-text {
     font-size: 12px;
     color: var(--muted);
+}
+/* Independent loading states for the Low-light / GT-mean comparison. */
+.arena-compare-wrapper .background-img {
+    z-index: 1;
+}
+
+.arena-compare-wrapper .foreground-img {
+    z-index: 3;
+}
+
+.arena-compare-wrapper .compare-image-placeholder {
+    top: 0;
+    bottom: 0;
+    margin: 0;
+    min-width: 0;
+    border-radius: 6px;
+    pointer-events: none;
+    overflow: hidden;
+}
+
+.arena-compare-wrapper .compare-image-placeholder.background-placeholder {
+    z-index: 2;
+}
+
+.arena-compare-wrapper .compare-image-placeholder.foreground-placeholder {
+    z-index: 4;
+}
+
+.arena-compare-wrapper .compare-image-placeholder .filename,
+.arena-compare-wrapper .compare-image-placeholder .label {
+    max-width: calc(100% - 14px);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
 }

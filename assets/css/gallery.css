@@ -1058,3 +1058,468 @@
         text-align: left;
     }
 }
+/* Brightness slice controls */
+#gallery .cs-slice-toggle {
+    position: absolute;
+    top: 9px;
+    right: 9px;
+    z-index: 5;
+    width: 32px;
+    height: 32px;
+    display: grid;
+    place-items: center;
+    padding: 0;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: 50%;
+    color: rgba(255, 255, 255, 0.76);
+    background: rgba(8, 9, 11, 0.68);
+    box-shadow: 0 8px 18px -12px rgba(0, 0, 0, 0.85);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    cursor: pointer;
+    transition:
+        transform var(--cs-transition),
+        color var(--cs-transition),
+        border-color var(--cs-transition),
+        background var(--cs-transition);
+}
+
+#gallery .cs-slice-toggle svg {
+    width: 17px;
+    height: 17px;
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 1.7;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+}
+
+#gallery .cs-slice-toggle:hover,
+#gallery .cs-slice-toggle:focus-visible {
+    transform: translateY(-1px);
+    color: #fff;
+    border-color: color-mix(in srgb, var(--accent) 68%, rgba(255, 255, 255, 0.2));
+    background: color-mix(in srgb, var(--accent) 74%, rgba(8, 9, 11, 0.78));
+}
+
+#gallery .cs-slice-toggle.is-active {
+    color: var(--accent-text, #fff);
+    border-color: color-mix(in srgb, var(--accent) 84%, white);
+    background: var(--accent);
+}
+
+#gallery .cs-viewer-stage.is-light .cs-slice-toggle {
+    color: rgba(20, 20, 18, 0.68);
+    border-color: rgba(20, 20, 18, 0.14);
+    background: rgba(255, 255, 255, 0.84);
+}
+
+#gallery .cs-viewer-stage.is-light .cs-slice-toggle:hover,
+#gallery .cs-viewer-stage.is-light .cs-slice-toggle:focus-visible,
+#gallery .cs-viewer-stage.is-light .cs-slice-toggle.is-active {
+    color: var(--accent-text, #fff);
+    border-color: var(--accent);
+    background: var(--accent);
+}
+
+.cs-slice-overlay-layer {
+    position: fixed;
+    inset: 0;
+    z-index: 1200;
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+    overflow: clip;
+    contain: strict;
+    isolation: isolate;
+    overflow-anchor: none;
+    pointer-events: none;
+}
+
+.cs-slice-popover {
+    --cs-slice-popover-x: calc(100vw - 374px);
+    --cs-slice-popover-y: 82px;
+    position: absolute;
+    top: 0;
+    left: 0;
+    z-index: 1;
+    box-sizing: border-box;
+    width: min(356px, calc(100vw - 28px));
+    height: auto;
+    max-height: none;
+    overflow: hidden;
+    padding: 14px 14px 13px;
+    border: 1px solid var(--line);
+    border-radius: 16px;
+    color: var(--ink);
+    background: color-mix(in srgb, var(--surface) 94%, transparent);
+    box-shadow: 0 22px 54px -28px var(--shadow);
+    backdrop-filter: blur(18px) saturate(150%);
+    -webkit-backdrop-filter: blur(18px) saturate(150%);
+    overscroll-behavior: contain;
+    overflow-anchor: none;
+    contain: layout paint style;
+    transform: translate3d(
+        var(--cs-slice-popover-x),
+        var(--cs-slice-popover-y),
+        0
+    );
+    will-change: transform, opacity;
+    opacity: 0;
+    visibility: hidden;
+    pointer-events: none;
+    transition:
+        opacity 0.14s ease,
+        visibility 0s linear 0.14s;
+}
+
+.cs-slice-popover.is-open {
+    opacity: 1;
+    visibility: visible;
+    pointer-events: auto;
+    transition-delay: 0s;
+}
+
+.cs-slice-popover.is-dragging {
+    user-select: none;
+}
+
+.cs-slice-popover.is-outside-boundary {
+    opacity: 0;
+    visibility: hidden;
+    pointer-events: none;
+}
+
+.cs-slice-popover-head {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 14px;
+    margin-bottom: 11px;
+    cursor: grab;
+    touch-action: none;
+    user-select: none;
+}
+
+.cs-slice-popover.is-dragging .cs-slice-popover-head {
+    cursor: grabbing;
+}
+
+.cs-slice-popover-head > div {
+    min-width: 0;
+}
+
+.cs-slice-popover-head h3 {
+    margin: 0;
+    color: var(--ink);
+    font-size: 0.88rem;
+    line-height: 1.3;
+}
+
+.cs-slice-axis {
+    display: grid;
+    gap: 1px;
+    margin: 4px 0 0;
+    color: var(--muted);
+    font-size: 0.61rem;
+    line-height: 1.35;
+}
+
+.cs-slice-axis small {
+    color: var(--accent);
+    font-size: 0.58rem;
+    font-weight: 700;
+    font-variant-numeric: tabular-nums;
+}
+
+.cs-slice-close {
+    flex: 0 0 auto;
+    width: auto;
+    height: auto;
+    display: block;
+    padding: 0 1px;
+    border: 0;
+    border-radius: 0;
+    color: var(--muted);
+    background: transparent;
+    cursor: pointer;
+    font-size: 1.42rem;
+    font-weight: 300;
+    line-height: 0.9;
+    transition: color 0.16s ease, transform 0.16s ease;
+}
+
+.cs-slice-close:hover,
+.cs-slice-close:focus-visible {
+    color: var(--accent);
+    background: transparent;
+    transform: scale(1.06);
+}
+
+.cs-slice-preview-shell {
+    position: relative;
+    overflow: hidden;
+    border: 1px solid var(--line);
+    border-radius: 12px;
+    background: var(--surface);
+}
+
+.cs-slice-overview {
+    aspect-ratio: 680 / 420;
+}
+
+.cs-slice-preview {
+    display: block;
+    width: 100%;
+    height: 100%;
+}
+
+.cs-slice-preview-caption {
+    position: absolute;
+    right: 8px;
+    bottom: 7px;
+    padding: 4px 6px;
+    border: 1px solid color-mix(in srgb, var(--line) 80%, transparent);
+    border-radius: 999px;
+    color: var(--muted);
+    background: color-mix(in srgb, var(--surface) 84%, transparent);
+    font-size: 0.5rem;
+    font-weight: 700;
+    line-height: 1;
+    pointer-events: none;
+}
+
+.cs-slice-range-head {
+    flex: 0 0 auto;
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 12px;
+    margin-top: 12px;
+    color: var(--muted);
+    font-size: 0.61rem;
+    font-weight: 700;
+}
+
+.cs-slice-selected-count {
+    min-width: 0;
+    overflow: hidden;
+    color: var(--ink);
+    font-size: 0.59rem;
+    font-variant-numeric: tabular-nums;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.cs-dual-range {
+    --slice-min: 25%;
+    --slice-max: 75%;
+    --cs-slice-thumb-size: 14px;
+    position: relative;
+    flex: 0 0 36px;
+    height: 36px;
+    margin-top: 5px;
+    touch-action: none;
+}
+
+.cs-dual-range-rail {
+    position: absolute;
+    inset: 0 calc(var(--cs-slice-thumb-size) / 2);
+    z-index: 2;
+    pointer-events: none;
+}
+
+.cs-dual-range-track {
+    position: absolute;
+    top: 16px;
+    right: 0;
+    left: 0;
+    height: 5px;
+    overflow: hidden;
+    border-radius: 999px;
+    background: color-mix(in srgb, var(--muted) 18%, var(--surface-2));
+    pointer-events: none;
+}
+
+.cs-dual-range-track::after {
+    content: "";
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    left: var(--slice-min);
+    right: calc(100% - var(--slice-max));
+    border-radius: inherit;
+    background: var(--accent);
+}
+
+.cs-dual-range-window {
+    position: absolute;
+    top: 10px;
+    bottom: 9px;
+    left: var(--slice-min);
+    right: calc(100% - var(--slice-max));
+    z-index: 1;
+    min-width: 0;
+    border: 1px solid color-mix(in srgb, var(--accent) 42%, transparent);
+    border-radius: 999px;
+    background: color-mix(in srgb, var(--accent) 11%, transparent);
+    cursor: grab;
+    pointer-events: auto;
+    touch-action: none;
+}
+
+.cs-dual-range-window:hover,
+.cs-dual-range-window:focus-visible,
+.cs-dual-range-window.is-dragging {
+    border-color: color-mix(in srgb, var(--accent) 72%, transparent);
+    background: color-mix(in srgb, var(--accent) 17%, transparent);
+}
+
+.cs-dual-range-window.is-dragging {
+    cursor: grabbing;
+}
+
+.cs-dual-range-input {
+    position: absolute;
+    inset: 0;
+    z-index: 3;
+    width: 100%;
+    height: 36px;
+    padding: 0;
+    margin: 0;
+    appearance: none;
+    -webkit-appearance: none;
+    border: 0;
+    outline: 0;
+    background: transparent;
+    pointer-events: none;
+}
+
+.cs-dual-range-input::-webkit-slider-runnable-track {
+    height: 5px;
+    border: 0;
+    background: transparent;
+}
+
+.cs-dual-range-input::-moz-range-track {
+    height: 5px;
+    border: 0;
+    background: transparent;
+}
+
+.cs-dual-range-input::-webkit-slider-thumb {
+    box-sizing: border-box;
+    width: var(--cs-slice-thumb-size);
+    height: var(--cs-slice-thumb-size);
+    margin-top: calc((5px - var(--cs-slice-thumb-size)) / 2);
+    appearance: none;
+    -webkit-appearance: none;
+    border: 2px solid var(--accent);
+    border-radius: 50%;
+    background: var(--surface);
+    box-shadow: 0 2px 8px -3px var(--shadow);
+    cursor: ew-resize;
+    pointer-events: auto;
+}
+
+.cs-dual-range-input::-moz-range-thumb {
+    box-sizing: border-box;
+    width: var(--cs-slice-thumb-size);
+    height: var(--cs-slice-thumb-size);
+    border: 2px solid var(--accent);
+    border-radius: 50%;
+    background: var(--surface);
+    box-shadow: 0 2px 8px -3px var(--shadow);
+    cursor: ew-resize;
+    pointer-events: auto;
+}
+
+.cs-dual-range-input:focus-visible::-webkit-slider-thumb {
+    box-shadow: 0 0 0 4px color-mix(in srgb, var(--accent) 20%, transparent);
+}
+
+.cs-dual-range-input:focus-visible::-moz-range-thumb {
+    box-shadow: 0 0 0 4px color-mix(in srgb, var(--accent) 20%, transparent);
+}
+
+.cs-slice-values {
+    flex: 0 0 auto;
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr) auto;
+    align-items: center;
+    gap: 8px;
+    margin-top: -2px;
+    color: var(--muted);
+    font-size: 0.55rem;
+}
+
+.cs-slice-values output {
+    min-width: 44px;
+    padding: 4px 6px;
+    border: 1px solid var(--line);
+    border-radius: 7px;
+    color: var(--ink);
+    background: var(--surface-2);
+    font-size: 0.58rem;
+    font-weight: 750;
+    font-variant-numeric: tabular-nums;
+    text-align: center;
+}
+
+.cs-slice-scale {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    min-width: 0;
+}
+
+.cs-slice-scale i {
+    font-style: normal;
+}
+
+.cs-slice-actions {
+    flex: 0 0 auto;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    margin-top: 10px;
+    padding-top: 9px;
+    border-top: 1px solid var(--line);
+}
+
+.cs-slice-actions span {
+    color: var(--muted);
+    font-size: 0.54rem;
+    line-height: 1.4;
+}
+
+.cs-slice-reset {
+    flex: 0 0 auto;
+    min-height: 27px;
+    padding: 0 9px;
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    color: var(--ink);
+    background: var(--surface-2);
+    cursor: pointer;
+    font-size: 0.56rem;
+    font-weight: 750;
+    transition:
+        color 0.16s ease,
+        border-color 0.16s ease,
+        background 0.16s ease;
+}
+
+.cs-slice-reset:hover,
+.cs-slice-reset:focus-visible {
+    color: var(--accent);
+    border-color: var(--accent);
+    background: var(--accent-soft);
+}
+
+@media (max-width: 760px) {
+    .cs-slice-popover {
+        width: min(356px, calc(100vw - 24px));
+    }
+}

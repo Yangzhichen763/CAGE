@@ -4,24 +4,35 @@ function revealImage(img) {
     if (img.dataset.src) {
         const src = img.dataset.src;
         delete img.dataset.src;
-        
-        fetch(src)
+
+        if (!src) {
+            showMediaFallback(img);
+            return;
+        }
+
+        fetch(src, { method: 'HEAD' })
+            .then(headResponse => {
+                if (!headResponse.ok) {
+                    throw new Error("Image not found");
+                }
+                return fetch(src);
+            })
             .then(response => {
                 if (!response.ok) {
                     throw new Error("Network response was not ok");
                 }
-                
+
                 const contentLength = response.headers.get("content-length");
                 const total = contentLength ? parseInt(contentLength, 10) : null;
                 let loaded = 0;
                 const reader = response.body.getReader();
-                
+
                 return new ReadableStream({
                     async start(controller) {
                         while (true) {
                             const { done, value } = await reader.read();
                             if (done) break;
-                            
+
                             loaded += value.length;
                             if (total) {
                                 const progress = Math.round((loaded / total) * 100);
@@ -31,7 +42,7 @@ function revealImage(img) {
                                     if (label) label.textContent = progress + "%";
                                 }
                             }
-                            
+
                             controller.enqueue(value);
                         }
                         controller.close();
@@ -82,6 +93,12 @@ function showMediaFallback(img) {
     if (placeholder?.classList.contains("img-placeholder")) {
         img.style.visibility = "hidden";
         placeholder.style.display = "flex";
+        
+        const icon = placeholder.querySelector(".icon");
+        if (icon) {
+            icon.innerHTML = '<svg fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.6" viewBox="0 0 24 24"><rect height="18" rx="2" width="18" x="3" y="3"></rect><circle cx="9" cy="9" r="2"></circle><path d="M21 15l-5-5L5 21"></path></svg>';
+        }
+        
         const filename = placeholder.querySelector(".filename");
         const label = placeholder.querySelector(".label");
         if (filename) filename.textContent = img.dataset.placeholderFile || "image.png";
