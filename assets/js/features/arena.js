@@ -28,8 +28,28 @@ const arenaImageObjectUrls = new Map();
 const arenaPreloadPromises = new Map();
 let arenaImageGeneration = 0;
 
+function getArenaImageLoader() {
+    return window.CAGEImageLoader || null;
+}
+
+function ensureArenaSpinner(icon) {
+    const loader = getArenaImageLoader();
+    if (loader?.ensureSpinner) {
+        loader.ensureSpinner(icon);
+        return;
+    }
+    if (!icon || icon.querySelector(".fa-spinner")) return;
+    icon.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
+}
+
+function clearArenaSpinnerMarker(icon) {
+    getArenaImageLoader()?.clearSpinnerMarker?.(icon);
+}
+
 function getArenaCachedImageUrl(source) {
-    return source ? arenaImageObjectUrls.get(source) || "" : "";
+    if (!source) return "";
+    const sharedUrl = getArenaImageLoader()?.get?.(source) || "";
+    return sharedUrl || arenaImageObjectUrls.get(source) || "";
 }
 
 function setArenaCachedImageUrl(source, objectUrl) {
@@ -44,6 +64,7 @@ function setArenaCachedImageUrl(source, objectUrl) {
 
 function clearArenaCachedImages() {
     arenaImageGeneration++;
+    if (getArenaImageLoader()) return;
     arenaImageObjectUrls.forEach(function (objectUrl) {
         URL.revokeObjectURL(objectUrl);
     });
@@ -55,25 +76,29 @@ function preloadArenaSource(source) {
         return arenaPreloadPromises.get(source) || Promise.resolve(false);
     }
 
-    const promise = new Promise(function (resolve) {
-        const image = new Image();
-        image.decoding = "async";
-        image.fetchPriority = "low";
-        image.onload = function () {
-            if (typeof image.decode === "function") {
-                image.decode().catch(function () {}).finally(function () { resolve(true); });
-            } else {
-                resolve(true);
-            }
-        };
-        image.onerror = function () { resolve(false); };
-        image.src = source;
-    }).finally(function () {
+    const sharedLoader = getArenaImageLoader();
+    const promise = sharedLoader?.preload
+        ? sharedLoader.preload(source)
+        : new Promise(function (resolve) {
+            const image = new Image();
+            image.decoding = "async";
+            image.fetchPriority = "low";
+            image.onload = function () {
+                if (typeof image.decode === "function") {
+                    image.decode().catch(function () {}).finally(function () { resolve(true); });
+                } else {
+                    resolve(true);
+                }
+            };
+            image.onerror = function () { resolve(false); };
+            image.src = source;
+        });
+
+    const trackedPromise = promise.finally(function () {
         arenaPreloadPromises.delete(source);
     });
-
-    arenaPreloadPromises.set(source, promise);
-    return promise;
+    arenaPreloadPromises.set(source, trackedPromise);
+    return trackedPromise;
 }
 
 function getArenaRoundSources(data) {
@@ -157,12 +182,16 @@ function getArenaSourceLabel(source) {
 function setArenaLoadingPlaceholder(card, progress) {
     const placeholder = card?.querySelector(".img-placeholder");
     if (!placeholder) return;
+    if (window.CAGELoadingUI?.setLoading) {
+        window.CAGELoadingUI.setLoading(placeholder, progress);
+        return;
+    }
     const icon = placeholder.querySelector(".icon");
+    ensureArenaSpinner(icon);
     const filename = placeholder.querySelector(".filename");
     const label = placeholder.querySelector(".label");
-    if (icon) icon.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
     if (filename) filename.textContent = "Loading...";
-    if (label) label.textContent = Math.max(0, Math.min(100, Math.round(progress || 0))) + "%";
+    if (label) label.textContent = Number.isFinite(progress) ? Math.round(progress) + "%" : "Receiving image...";
     placeholder.style.display = "flex";
 }
 
@@ -211,25 +240,46 @@ function decodeArenaCardImage(img, objectUrl) {
 
 async function loadArenaCardImage(card, img, source, generation) {
     let objectUrl = "";
+    let sharedManaged = false;
     try {
-        const blob = await fetchArenaImageBlob(source, function (progress) {
-            if (generation !== arenaImageGeneration || card.dataset.src !== source) return;
-            setArenaLoadingPlaceholder(card, progress);
-        });
-        if (generation !== arenaImageGeneration || card.dataset.src !== source) return;
-        objectUrl = URL.createObjectURL(blob);
-        await decodeArenaCardImage(img, objectUrl);
+        const sharedLoader = getArenaImageLoader();
+        if (sharedLoader?.load) {
+            const resource = await sharedLoader.load(source, {
+                onProgress: function (progress) {
+                    if (generation !== arenaImageGeneration || card.dataset.src !== source) return;
+                    setArenaLoadingPlaceholder(card, progress);
+                },
+            });
+            objectUrl = resource.url;
+            sharedManaged = true;
+        } else {
+            const blob = await fetchArenaImageBlob(source, function (progress) {
+                if (generation !== arenaImageGeneration || card.dataset.src !== source) return;
+                setArenaLoadingPlaceholder(card, progress);
+            });
+            objectUrl = URL.createObjectURL(blob);
+        }
+
         if (generation !== arenaImageGeneration || card.dataset.src !== source) {
-            URL.revokeObjectURL(objectUrl);
+            if (objectUrl && !sharedManaged) URL.revokeObjectURL(objectUrl);
             return;
         }
-        setArenaCachedImageUrl(source, objectUrl);
-        objectUrl = "";
+
+        await decodeArenaCardImage(img, objectUrl);
+        if (generation !== arenaImageGeneration || card.dataset.src !== source) {
+            if (objectUrl && !sharedManaged) URL.revokeObjectURL(objectUrl);
+            return;
+        }
+
+        if (!sharedManaged) {
+            setArenaCachedImageUrl(source, objectUrl);
+            objectUrl = "";
+        }
         img.dataset.loadedSource = source;
         setArenaCardLoadState(card, "ready");
         hideCardPlaceholder(img);
     } catch (_) {
-        if (objectUrl) URL.revokeObjectURL(objectUrl);
+        if (objectUrl && !sharedManaged) URL.revokeObjectURL(objectUrl);
         if (generation !== arenaImageGeneration || card.dataset.src !== source) return;
         img.removeAttribute("src");
         img.dataset.loadedSource = "";
@@ -815,7 +865,7 @@ function loadRound(roundIndex) {
         img.removeAttribute("src");
         img.dataset.loadedSource = "";
         img.style.display = "none";
-        setArenaLoadingPlaceholder(card, 0);
+        setArenaLoadingPlaceholder(card, null);
 
         const indexEl = card.querySelector(".arena-card-index");
         if (indexEl) indexEl.textContent = ARENA_CONFIG.cardLabels[i] || String.fromCharCode(65 + i);
@@ -922,11 +972,13 @@ function hideArenaCardIndexForComparison(card) {
         indexEl.dataset.comparisonPreviousHidden = String(indexEl.hidden);
     }
     indexEl.hidden = true;
+    indexEl.classList.add("is-comparison-hidden");
 }
 
 function restoreArenaCardIndexAfterComparison(card) {
     const indexEl = card?.querySelector(".arena-card-index");
     if (!indexEl) return;
+    indexEl.classList.remove("is-comparison-hidden");
     const previousHidden = indexEl.dataset.comparisonPreviousHidden;
     if (previousHidden !== undefined) {
         indexEl.hidden = previousHidden === "true";
@@ -1066,8 +1118,9 @@ function showCardPlaceholder(img, isLoading = false) {
             const icon = placeholder.querySelector(".icon");
             if (icon) {
                 if (isLoading) {
-                    icon.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
+                    ensureArenaSpinner(icon);
                 } else {
+                    clearArenaSpinnerMarker(icon);
                     icon.innerHTML = '<svg fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.6" viewBox="0 0 24 24"><rect height="18" rx="2" width="18" x="3" y="3"></rect><circle cx="9" cy="9" r="2"></circle><path d="M21 15l-5-5L5 21"></path></svg>';
                 }
             }
@@ -1076,7 +1129,7 @@ function showCardPlaceholder(img, isLoading = false) {
             const labelEl = placeholder.querySelector(".label");
             if (isLoading) {
                 if (filenameEl) filenameEl.textContent = "Loading...";
-                if (labelEl) labelEl.textContent = "0%";
+                if (labelEl) labelEl.textContent = "Loading...";
             } else {
                 if (img.src) {
                     const path = img.currentSrc || img.getAttribute("src") || img.src || "";
@@ -1135,13 +1188,13 @@ function createComparisonView(beforeImageUrl, afterImageUrl, initialPercentage =
 
     function createSplitPlaceholder(side, label, source, isCached) {
         const placeholder = document.createElement("div");
-        placeholder.className = `img-placeholder compare-image-placeholder ${side}-placeholder`;
+        placeholder.className = `img-placeholder cage-loading-surface compare-image-placeholder ${side}-placeholder`;
         placeholder.dataset.source = source || "";
         placeholder.setAttribute("aria-label", `${label} loading state`);
         placeholder.innerHTML = `
             <div class="icon"><i class="fas fa-spinner fa-spin"></i></div>
             <div class="filename"></div>
-            <div class="label">0%</div>
+            <div class="label">Loading...</div>
         `;
         const filename = placeholder.querySelector(".filename");
         if (filename) filename.textContent = "Loading...";
@@ -1159,20 +1212,22 @@ function createComparisonView(beforeImageUrl, afterImageUrl, initialPercentage =
         : null;
 
     const loadingIndicator = document.createElement("div");
-    loadingIndicator.className = "compare-loading";
+    loadingIndicator.className = "compare-loading cage-loading-surface";
     loadingIndicator.innerHTML = `
-        <i class="fas fa-spinner fa-spin"></i>
+        <div class="icon"><i class="fas fa-spinner fa-spin"></i></div>
+        <div class="filename">Loading...</div>
         <div class="progress-bar">
             <div class="progress-bar-fill"></div>
         </div>
-        <div class="progress-text">Loading...</div>
+        <div class="progress-text">Receiving image...</div>
     `;
 
+    window.CAGELoadingUI?.ensure?.(loadingIndicator);
     const progressBarFill = loadingIndicator.querySelector(".progress-bar-fill");
     const progressText = loadingIndicator.querySelector(".progress-text");
     const progressBySource = new Map([
-        [beforeImageUrl, beforeCachedUrl ? 100 : 0],
-        [afterImageUrl, afterCachedUrl ? 100 : 0],
+        [beforeImageUrl, beforeCachedUrl ? 100 : null],
+        [afterImageUrl, afterCachedUrl ? 100 : null],
     ]);
 
     const states = [
@@ -1199,21 +1254,26 @@ function createComparisonView(beforeImageUrl, afterImageUrl, initialPercentage =
     const generation = arenaImageGeneration;
 
     function updateProgress(state, progress) {
-        const boundedProgress = Math.max(0, Math.min(100, progress));
+        const hasProgress = Number.isFinite(progress);
+        const boundedProgress = hasProgress ? Math.max(0, Math.min(100, progress)) : null;
 
         if (useSplitPlaceholders) {
-            const label = state.placeholder?.querySelector(".label");
-            if (label) label.textContent = Math.round(boundedProgress) + "%";
+            if (window.CAGELoadingUI?.setLoading && state.placeholder) {
+                window.CAGELoadingUI.setLoading(state.placeholder, boundedProgress);
+            } else {
+                const label = state.placeholder?.querySelector(".label");
+                if (label) label.textContent = boundedProgress === null ? "Receiving image..." : Math.round(boundedProgress) + "%";
+            }
             return;
         }
 
-        progressBySource.set(state.source, boundedProgress);
-        const values = Array.from(progressBySource.values());
+        if (boundedProgress !== null) progressBySource.set(state.source, boundedProgress);
+        const values = Array.from(progressBySource.values()).filter(Number.isFinite);
         const average = values.length
             ? Math.round(values.reduce((sum, value) => sum + value, 0) / values.length)
-            : 0;
-        if (progressBarFill) progressBarFill.style.width = average + "%";
-        if (progressText) progressText.textContent = average + "%";
+            : null;
+        if (progressBarFill && average !== null) progressBarFill.style.width = average + "%";
+        if (progressText) progressText.textContent = average === null ? "Receiving image..." : average + "%";
     }
 
     function showSplitError(state) {
@@ -1308,53 +1368,42 @@ function createComparisonView(beforeImageUrl, afterImageUrl, initialPercentage =
 
         const cachedUrl = getArenaCachedImageUrl(state.source);
         if (cachedUrl) {
+            updateProgress(state, 100);
             assignImageSource(state, cachedUrl);
             return;
         }
 
-        fetch(state.source)
-            .then(response => {
-                if (!response.ok) {
-                    throw new Error("Network response was not ok");
-                }
+        const sharedLoader = getArenaImageLoader();
+        if (sharedLoader?.load) {
+            sharedLoader.load(state.source, {
+                onProgress: function (progress) {
+                    if (generation === arenaImageGeneration && wrapper.isConnected) {
+                        updateProgress(state, progress);
+                    }
+                },
+            }).then(function (resource) {
+                if (generation !== arenaImageGeneration || !wrapper.isConnected) return;
+                assignImageSource(state, resource.url);
+            }).catch(function () {
+                if (generation === arenaImageGeneration && wrapper.isConnected) failState(state);
+            });
+            return;
+        }
 
-                const contentLength = response.headers.get("content-length");
-                const total = contentLength ? parseInt(contentLength, 10) : null;
-                if (!response.body || !total) {
-                    return response.blob();
-                }
-
-                let loaded = 0;
-                const reader = response.body.getReader();
-                return new Response(
-                    new ReadableStream({
-                        async start(controller) {
-                            while (true) {
-                                const { done, value } = await reader.read();
-                                if (done) break;
-
-                                loaded += value.length;
-                                updateProgress(state, Math.round((loaded / total) * 100));
-                                controller.enqueue(value);
-                            }
-                            controller.close();
-                        },
-                    }),
-                ).blob();
+        fetch(state.source, { cache: "force-cache" })
+            .then(function (response) {
+                if (!response.ok) throw new Error("Network response was not ok");
+                return response.blob();
             })
-            .then(blob => {
-                if (!blob || generation !== arenaImageGeneration || !wrapper.isConnected) {
-                    return;
-                }
-
+            .then(function (blob) {
+                if (!blob || generation !== arenaImageGeneration || !wrapper.isConnected) return;
                 const objectUrl = URL.createObjectURL(blob);
                 setArenaCachedImageUrl(state.source, objectUrl);
+                updateProgress(state, 100);
                 assignImageSource(state, objectUrl);
             })
-            .catch(() => {
-                if (generation === arenaImageGeneration && wrapper.isConnected) {
-                    failState(state);
-                }
+            .catch(function () {
+                if (generation === arenaImageGeneration && wrapper.isConnected) failState(state);
             });
     }
 

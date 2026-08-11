@@ -49,8 +49,6 @@
     let latticeViewer;
     let updateTimer = null;
     const randomModes = ["image-random", "random", "gaussian", "perlin", "fractal", "turbulence", "voronoi", "cellular", "mosaic"];
-    let isLoading = false;
-    let loadingAnimationId = null;
     let isInitializing = true;
     const sharedSliceRange = { min: SLICE_CONFIG.min, max: SLICE_CONFIG.max };
     const sliceStates = {
@@ -64,6 +62,8 @@
     let sliceWindowDrag = null;
     let slicePopoverDrag = null;
     let slicePositionFrame = 0;
+    let sliceSectionObserver = null;
+    let colorImageLoadToken = 0;
     const slicePopoverOffsets = {
         image: { x: 0, y: 0, userPlaced: false },
         lattice: { x: 0, y: 0, userPlaced: false },
@@ -74,6 +74,7 @@
             "imageInput",
             "dropZone",
             "previewCanvas",
+            "colorInputLoading",
             "imageMeta",
             "spaceTabs",
             "patternMode",
@@ -193,58 +194,31 @@
         if (!button) return null;
 
         const buttonRect = button.getBoundingClientRect();
-        const viewportWidth = document.documentElement.clientWidth;
-        const viewportHeight = document.documentElement.clientHeight;
-        const horizontalInset = Math.max(0, SLICE_CONFIG.horizontalViewportInset);
         const anchorGap = Math.max(0, Number(SLICE_CONFIG.anchorGap) || 10);
-        const topbarBottom = document.querySelector("nav.top")?.getBoundingClientRect().bottom || 0;
 
-        // The default position is anchored to the active Slice toggle: the panel sits
-        // above the corresponding Mapping view and follows the toggle while scrolling.
-        const defaultLeft = buttonRect.right - panelWidth;
-        const defaultTop = buttonRect.top - anchorGap - panelHeight;
-        const minX = horizontalInset;
-        const maxX = Math.max(minX, viewportWidth - horizontalInset - panelWidth);
-        const minY = Math.max(0, topbarBottom);
-        const maxY = Math.max(minY, viewportHeight - Math.min(horizontalInset, 8) - panelHeight);
-
+        // Keep the floating panel geometrically attached to the toggle.
+        // Do not clamp it to the viewport: when the page moves, the panel moves
+        // by exactly the same amount as the active Mapping toggle.
         return {
-            left: Math.min(maxX, Math.max(minX, defaultLeft)),
-            top: Math.min(maxY, Math.max(minY, defaultTop)),
+            left: buttonRect.right - panelWidth,
+            top: buttonRect.top - anchorGap - panelHeight,
         };
     }
 
     function positionSlicePopover() {
         if (!sliceUI || !activeSliceKind) return;
 
-        const viewportWidth = document.documentElement.clientWidth;
-        const viewportHeight = document.documentElement.clientHeight;
-        const horizontalInset = Math.max(0, SLICE_CONFIG.horizontalViewportInset);
-        const panelWidth = Math.max(1, Math.min(
-            SLICE_CONFIG.popoverWidth,
-            viewportWidth - horizontalInset * 2,
-        ));
-
+        const panelWidth = Math.max(1, Number(SLICE_CONFIG.popoverWidth) || 356);
         sliceUI.popover.style.width = panelWidth + "px";
-        sliceUI.popover.style.maxHeight = Math.max(1, viewportHeight - 8) + "px";
+        sliceUI.popover.style.maxHeight = "none";
 
-        const panelHeight = Math.min(
-            sliceUI.popover.getBoundingClientRect().height,
-            Math.max(1, viewportHeight - 8),
-        );
+        const panelHeight = Math.max(1, sliceUI.popover.getBoundingClientRect().height);
         const anchor = getSliceAnchorPosition(activeSliceKind, panelWidth, panelHeight);
         if (!anchor) return;
 
         const offset = slicePopoverOffsets[activeSliceKind];
-        const requestedLeft = anchor.left + (offset?.userPlaced ? offset.x : 0);
-        const requestedTop = anchor.top + (offset?.userPlaced ? offset.y : 0);
-        const minX = horizontalInset;
-        const maxX = Math.max(minX, viewportWidth - horizontalInset - panelWidth);
-        const topbarBottom = document.querySelector("nav.top")?.getBoundingClientRect().bottom || 0;
-        const minY = Math.max(0, topbarBottom);
-        const maxY = Math.max(minY, viewportHeight - Math.min(horizontalInset, 8) - panelHeight);
-        const left = Math.min(maxX, Math.max(minX, requestedLeft));
-        const top = Math.min(maxY, Math.max(minY, requestedTop));
+        const left = anchor.left + (offset?.userPlaced ? offset.x : 0);
+        const top = anchor.top + (offset?.userPlaced ? offset.y : 0);
 
         sliceUI.popover.style.left = left + "px";
         sliceUI.popover.style.top = top + "px";
@@ -769,8 +743,9 @@
         const button = document.createElement("button");
         button.type = "button";
         button.className = "cs-slice-toggle";
-        button.setAttribute("aria-label", "Open " + getSliceTitle(kind).toLowerCase());
+        button.setAttribute("aria-label", "Open Chroma Distribution Map for " + getSliceTitle(kind).toLowerCase());
         button.setAttribute("aria-pressed", "false");
+        button.title = "Chroma Distribution Map";
         button.innerHTML =
             '<svg aria-hidden="true" viewBox="0 0 24 24">' +
             '<path d="M5 7.5 12 4l7 3.5-7 3.5-7-3.5Z"></path>' +
@@ -804,7 +779,7 @@
         popover.style.setProperty("--cs-slice-preview-ratio", SLICE_CONFIG.canvasWidth + " / " + SLICE_CONFIG.canvasHeight);
         popover.innerHTML =
             '<div class="cs-slice-popover-head">' +
-            '<div><h3 class="cs-slice-title">Brightness Slice</h3><p class="cs-slice-axis"><span></span><small></small></p></div>' +
+            '<div><h3 class="cs-slice-title">Brightness Slice</h3></div>' +
             '<button class="cs-slice-close" type="button" aria-label="Close brightness slice">×</button>' +
             '</div>' +
             '<div class="cs-slice-preview-shell cs-slice-overview">' +
@@ -812,6 +787,7 @@
             '<span class="cs-slice-preview-caption">Chroma Distribution Map</span>' +
             '</div>' +
             '<div class="cs-slice-range-head"><span>Brightness interval</span><strong class="cs-slice-selected-count">0 points</strong></div>' +
+            '<p class="cs-slice-axis"><span></span><small></small></p>' +
             '<div class="cs-dual-range">' +
             '<div class="cs-dual-range-rail">' +
             '<div class="cs-dual-range-window" role="slider" tabindex="0" aria-label="Move the complete brightness interval" aria-valuemin="0" aria-valuemax="1"></div>' +
@@ -967,32 +943,104 @@
             stageObserver.observe(getSliceStage("lattice"));
         }
 
+        const colorSpaceSection = document.getElementById("galleryColorSpace");
+        if (colorSpaceSection && typeof IntersectionObserver === "function") {
+            sliceSectionObserver = new IntersectionObserver(function (entries) {
+                const entry = entries[0];
+                if (entry && !entry.isIntersecting && activeSliceKind) {
+                    closeSlicePanel();
+                }
+            }, { threshold: 0 });
+            sliceSectionObserver.observe(colorSpaceSection);
+        }
+
         // The floating Slice window starts closed. The toggle buttons remain available.
         closeSlicePanel();
     }
 
-    function loadDefaultSourceImage(sourcePath) {
-        if (loadingAnimationId) {
-            cancelAnimationFrame(loadingAnimationId);
-            loadingAnimationId = null;
+    function showColorImageLoadingState(show, progress) {
+        const placeholder = elements.colorInputLoading;
+        if (!placeholder) return;
+
+        if (!show) {
+            placeholder.classList.add("is-hidden");
+            placeholder.style.display = "none";
+            return;
         }
-        
-        const image = new Image();
-        image.decoding = "async";
-        image.onload = function () {
-            const canvas = imageToSamplingCanvas(image);
-            rebuildImageSamples(
-                canvas,
-                sourcePath.split("/").pop() || "example_input_00049.png",
-            );
-            setStatus("Default image loaded");
-        };
-        image.onerror = function () {
-            const fallbackCanvas = createDefaultImage("mosaic");
-            rebuildImageSamples(fallbackCanvas, "Generated color chart");
-            setStatus("Default image was unavailable; generated chart loaded");
-        };
-        image.src = sourcePath;
+
+        placeholder.classList.remove("is-hidden");
+        if (window.CAGELoadingUI?.setLoading) {
+            window.CAGELoadingUI.setLoading(placeholder, progress);
+        } else {
+            placeholder.style.display = "flex";
+            const label = placeholder.querySelector(".label");
+            if (label) label.textContent = Number.isFinite(progress) ? Math.round(progress) + "%" : "Receiving image...";
+        }
+    }
+
+    function decodeColorImage(sourceUrl) {
+        return new Promise(function (resolve, reject) {
+            const image = new Image();
+            image.decoding = "async";
+            image.onload = async function () {
+                try { if (typeof image.decode === "function") await image.decode(); } catch (_) {}
+                if (image.naturalWidth > 0) resolve(image);
+                else reject(new Error("Image decode failed"));
+            };
+            image.onerror = function () { reject(new Error("Image decode failed")); };
+            image.src = sourceUrl;
+            if (image.complete && image.naturalWidth > 0) resolve(image);
+        });
+    }
+
+    function cancelColorImageLoad() {
+        colorImageLoadToken += 1;
+    }
+
+    async function loadImageFromFile(src, name) {
+        const token = ++colorImageLoadToken;
+        showColorImageLoadingState(true, null);
+
+        try {
+            let sourceUrl = src;
+            if (window.CAGEImageLoader?.load) {
+                const resource = await window.CAGEImageLoader.load(src, {
+                    onProgress: function (progress) {
+                        if (token !== colorImageLoadToken) return;
+                        showColorImageLoadingState(true, progress);
+                    },
+                });
+                sourceUrl = resource.url;
+            }
+
+            if (token !== colorImageLoadToken) return;
+            const image = await decodeColorImage(sourceUrl);
+            if (token !== colorImageLoadToken) return;
+
+            const canvas = document.createElement("canvas");
+            canvas.width = COLOR_CONFIG.loadedCanvasWidth;
+            canvas.height = COLOR_CONFIG.loadedCanvasHeight;
+            const ctx = canvas.getContext("2d", { willReadFrequently: true });
+            ctx.drawImage(image, 0, 0, canvas.width, canvas.height);
+
+                showColorImageLoadingState(false);
+            rebuildImageSamples(canvas, name);
+        } catch (error) {
+            if (token !== colorImageLoadToken) return;
+                showColorImageLoadingState(false);
+            console.error("Error loading image:", error);
+            const canvas = createDefaultImage("structured");
+            rebuildImageSamples(canvas, "Error loading image: " + name);
+        }
+    }
+
+    function loadDefaultSourceImage(sourcePath) {
+        const name = DEFAULT_SOURCE_MODE === "low-light"
+            ? "Low-light Image"
+            : DEFAULT_SOURCE_MODE === "gt-mean"
+                ? "GT-Mean Enlightened"
+                : "Normal-light Image";
+        loadImageFromFile(sourcePath, name);
     }
 
     function drawPreview(sourceCanvas) {
@@ -1345,6 +1393,7 @@
             return;
         }
 
+        cancelColorImageLoad();
         setStatus("Reading " + file.name);
         const reader = new FileReader();
         reader.onerror = function () {
@@ -1622,6 +1671,7 @@
                 if (mode === "image-random") {
                     loadRandomExampleImage();
                 } else {
+                    cancelColorImageLoad();
                     const canvas = createDefaultImage(mode);
                     rebuildImageSamples(canvas, "Pattern: " + mode);
                 }
@@ -1638,6 +1688,7 @@
                 loadImageFromFile("figures/example_gtmeanlit_00049.png", "GT-Mean Enlightened");
                 lastNonRandomMode = mode;
             } else {
+                cancelColorImageLoad();
                 const canvas = createDefaultImage(mode);
                 rebuildImageSamples(canvas, "Pattern: " + mode);
                 lastNonRandomMode = mode;
@@ -1654,87 +1705,6 @@
             }
         });
 
-        function showLoadingState(show, progress = 0) {
-            if (!elements.previewCanvas) return;
-            
-            const canvas = elements.previewCanvas;
-            const ctx = canvas.getContext("2d");
-            
-            if (loadingAnimationId) {
-                cancelAnimationFrame(loadingAnimationId);
-                loadingAnimationId = null;
-            }
-            
-            if (show) {
-                function drawLoading() {
-                    ctx.fillStyle = "#f1f5f9";
-                    ctx.fillRect(0, 0, canvas.width, canvas.height);
-                    
-                    for (let x = 0; x < canvas.width; x += 16) {
-                        for (let y = 0; y < canvas.height; y += 16) {
-                            ctx.fillStyle = "rgba(226, 232, 240, 0.8)";
-                            ctx.fillRect(x, y, 1, 1);
-                        }
-                    }
-                    
-                    ctx.fillStyle = "#64748b";
-                    ctx.font = "14px sans-serif";
-                    ctx.textAlign = "center";
-                    ctx.textBaseline = "middle";
-                    ctx.fillText("Loading...", canvas.width / 2, canvas.height / 2 - 20);
-                    
-                    const progressBarWidth = 200;
-                    const progressBarHeight = 6;
-                    const progressBarX = (canvas.width - progressBarWidth) / 2;
-                    const progressBarY = canvas.height / 2;
-                    
-                    ctx.fillStyle = "rgba(226, 232, 240, 0.8)";
-                    ctx.fillRect(progressBarX, progressBarY, progressBarWidth, progressBarHeight);
-                    
-                    ctx.fillStyle = "#3b82f6";
-                    ctx.fillRect(progressBarX, progressBarY, progressBarWidth * (progress / 100), progressBarHeight);
-                    
-                    ctx.fillStyle = "#64748b";
-                    ctx.font = "12px sans-serif";
-                    ctx.fillText(progress + "%", canvas.width / 2, canvas.height / 2 + 20);
-                }
-                
-                drawLoading();
-            } else {
-                ctx.clearRect(0, 0, canvas.width, canvas.height);
-            }
-        }
-
-        function loadImageFromFile(src, name) {
-            if (isLoading) return;
-            isLoading = true;
-            showLoadingState(true, 0);
-
-            const image = new Image();
-            image.decoding = "async";
-            image.onload = async function () {
-                try {
-                    if (typeof image.decode === "function") await image.decode();
-                } catch (_) {}
-
-                isLoading = false;
-                showLoadingState(false);
-
-                const canvas = document.createElement("canvas");
-                canvas.width = COLOR_CONFIG.loadedCanvasWidth;
-                canvas.height = COLOR_CONFIG.loadedCanvasHeight;
-                const ctx = canvas.getContext("2d");
-                ctx.drawImage(image, 0, 0, canvas.width, canvas.height);
-                rebuildImageSamples(canvas, name);
-            };
-            image.onerror = function () {
-                isLoading = false;
-                showLoadingState(false);
-                const canvas = createDefaultImage("structured");
-                rebuildImageSamples(canvas, "Error loading image: " + name);
-            };
-            image.src = src;
-        }
 
         function loadRandomExampleImage() {
             const subfolders = [
@@ -1972,9 +1942,7 @@
         
         setTimeout(function () {
             isInitializing = false;
-            isLoading = false;
-            loadingAnimationId = null;
-        }, 500);
+            }, 500);
         
         window.ColorSpaceAtlas = {
             refresh: function () {

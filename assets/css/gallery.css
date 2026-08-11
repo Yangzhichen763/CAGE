@@ -121,10 +121,15 @@
     grid-area: mapping;
     position: sticky;
     top: var(--cs-sticky-top);
-    max-height: calc(100vh - var(--cs-sticky-top) - 16px);
+    align-self: start;
+    height: fit-content;
+    max-height: var(
+        --cs-mapping-max-height,
+        calc(100vh - var(--cs-sticky-top) - 16px)
+    );
     overflow-x: hidden;
     overflow-y: auto;
-    overscroll-behavior: auto;
+    overscroll-behavior: contain;
     scrollbar-gutter: stable;
     scrollbar-width: thin;
     scrollbar-color: color-mix(in srgb, var(--muted) 35%, transparent) transparent;
@@ -139,10 +144,14 @@
 
 #gallery .cs-panel {
     padding: var(--cs-panel-padding);
-    border: var(--cs-border);
     border-radius: var(--cs-panel-radius);
     background: var(--surface);
-    box-shadow: 0 16px 38px -34px var(--shadow);
+}
+
+#gallery .cs-panel.settings {
+    border: var(--cs-border);
+    box-shadow: 0 0px 12px -2px var(--shadow);
+    /* background: var(--surface-2); */
 }
 
 #gallery .cs-combined-panel {
@@ -494,14 +503,14 @@
 #gallery .cs-space-tabs-top {
     position: relative;
     grid-template-columns: repeat(5, minmax(0, 1fr));
-    gap: 5px;
-    margin-bottom: 14px;
+    gap: 6px;
+    margin-bottom: 16px;
     padding: 6px;
     border-color: color-mix(in srgb, var(--accent) 28%, var(--line));
     border-radius: 14px;
     isolation: isolate;
     background: color-mix(in srgb, var(--accent) 4%, var(--surface-2));
-    box-shadow: 0 10px 24px -22px color-mix(in srgb, var(--accent) 48%, var(--shadow));
+    box-shadow: 0 0px 8px -1px var(--shadow);
 }
 
 #gallery .cs-space-tabs-top::before {
@@ -1186,7 +1195,7 @@
     left: 12px;
     top: 72px;
     width: min(var(--cs-slice-popover-width), calc(100vw - 24px));
-    max-height: calc(100vh - 72px);
+    max-height: none;
     box-sizing: border-box;
     overflow: auto;
     padding: 14px;
@@ -1245,7 +1254,7 @@
 .cs-slice-axis {
     display: grid;
     gap: 1px;
-    margin: 4px 0 0;
+    margin: 4px 0 1px;
     color: var(--muted);
     font-size: 0.61rem;
     line-height: 1.35;
@@ -1672,6 +1681,25 @@
     margin-top: 30px;
 }
 
+#gallery .gallery-feature-card-color {
+    position: relative;
+    overflow: visible;
+}
+
+#gallery .gallery-feature-card-color.animate-on-scroll.visible {
+    transform: none;
+}
+
+#galleryColorSpace,
+#galleryColorSpace .cs-atlas,
+#galleryColorSpace .cs-four-column {
+    overflow: visible;
+}
+
+#galleryColorSpace .cs-four-column {
+    position: relative;
+}
+
 #gallery .gallery-feature-heading {
     box-sizing: border-box;
     width: 100%;
@@ -1728,4 +1756,20 @@
         transition: none;
         transform: none;
     }
+}
+
+
+/* Color Space Input Image uses the same shared Loading visual. */
+#gallery .cs-drop-zone { position: relative; }
+#gallery .cs-input-loading {
+    position: absolute;
+    inset: 0;
+    z-index: 4;
+    border-radius: inherit;
+    gap: 7px;
+}
+#gallery .cs-input-loading.is-hidden { display: none !important; }
+#gallery .cs-input-loading:not(.is-hidden) + .cs-drop-overlay {
+    opacity: 0;
+    pointer-events: none;
 }

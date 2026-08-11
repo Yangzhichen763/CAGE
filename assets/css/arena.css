@@ -290,6 +290,11 @@ pre {
     z-index: 10;
 }
 
+.arena-card-index.is-comparison-hidden,
+.arena-card-index[hidden] {
+    display: none !important;
+}
+
 .arena-card.correct .arena-card-index {
     background: rgba(185, 152, 6, 0.64);
 }
@@ -1219,4 +1224,37 @@ pre {
 
 .arena-compare-wrapper .compare-corner-label-right {
     right: 8px;
+}
+
+/* Loading visuals inherit the shared surface; only Arena geometry remains local. */
+.arena-image-box .img-placeholder.cage-loading-surface,
+.arena-card .img-placeholder.cage-loading-surface,
+.arena-compare-wrapper .compare-image-placeholder.cage-loading-surface,
+.arena-compare-wrapper .compare-loading.cage-loading-surface {
+    gap: 7px;
+}
+
+.arena-compare-wrapper .compare-loading.cage-loading-surface {
+    inset: 0;
+    z-index: 20;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+}
+
+.arena-image-box .img-placeholder.cage-loading-surface .icon,
+.arena-card .img-placeholder.cage-loading-surface .icon {
+    border: 0 !important;
+    color: var(--accent) !important;
+}
+
+/* Keep Arena Loading surfaces visually identical to the shared component even though Arena owns later CSS. */
+.arena-image-box .img-placeholder.cage-loading-surface,
+.arena-card .img-placeholder.cage-loading-surface,
+.arena-compare-wrapper .compare-image-placeholder.cage-loading-surface,
+.arena-compare-wrapper .compare-loading.cage-loading-surface {
+    background-color: var(--surface-2) !important;
+    background-image: radial-gradient(circle at 1px 1px, color-mix(in srgb, var(--line) 86%, transparent) 1px, transparent 1.15px) !important;
+    background-size: 16px 16px !important;
 }

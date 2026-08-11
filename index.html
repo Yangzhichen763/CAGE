@@ -31,6 +31,7 @@
   <link href="assets/css/interaction.css" rel="stylesheet" />
   <script defer="" src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/js/all.min.js"></script>
   <script src="assets/js/config.js"></script>
+  <script src="assets/js/core/image-loader.js"></script>
   <script defer="" src="assets/js/core/common-ui.js"></script>
   <script src="assets/js/app.js" type="module"></script>
 </head>
@@ -365,6 +366,12 @@
                       </p>
                       <label class="cs-drop-zone" for="imageInput" id="dropZone">
                         <canvas aria-label="Input image preview" height="420" id="previewCanvas" width="640"></canvas>
+                        <div class="img-placeholder cage-loading-surface cs-input-loading is-hidden" id="colorInputLoading" aria-live="polite">
+                          <div class="icon"><i class="fas fa-spinner fa-spin"></i></div>
+                          <div class="filename">Loading...</div>
+                          <div class="progress-bar"><div class="progress-bar-fill"></div></div>
+                          <div class="label">Receiving image...</div>
+                        </div>
                         <span class="cs-drop-overlay">
                           <strong>
                             Choose or drop an image
@@ -463,7 +470,7 @@
                     </div>
                   </article>
                 </div>
-                <aside class="cs-panel cs-mapping-panel">
+                <aside class="cs-panel cs-mapping-panel settings">
                   <div class="cs-panel-head">
                     <div>
                       <h3>Settings</h3>

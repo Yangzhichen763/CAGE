@@ -2,7 +2,39 @@ const observed = new WeakSet();
 const MEDIA_CONFIG = window.CAGE_CONFIG?.media || {};
 const LAZY_ROOT_MARGIN = MEDIA_CONFIG.lazyRootMargin || "1200px 0px";
 
-function revealImage(img) {
+function ensureSpinner(icon) {
+    if (window.CAGEImageLoader?.ensureSpinner) {
+        window.CAGEImageLoader.ensureSpinner(icon);
+        return;
+    }
+    if (!icon || icon.querySelector(".fa-spinner")) return;
+    icon.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
+}
+
+function clearSpinnerMarker(icon) {
+    window.CAGEImageLoader?.clearSpinnerMarker?.(icon);
+}
+
+function updateLoadingPlaceholder(img, progress) {
+    const placeholder = img.nextElementSibling;
+    if (!placeholder?.classList.contains("img-placeholder")) return;
+    img.style.visibility = "hidden";
+    placeholder.style.display = "flex";
+
+    if (window.CAGELoadingUI?.setLoading) {
+        window.CAGELoadingUI.setLoading(placeholder, progress);
+        return;
+    }
+
+    const icon = placeholder.querySelector(".icon");
+    ensureSpinner(icon);
+    const filename = placeholder.querySelector(".filename");
+    if (filename) filename.textContent = "Loading...";
+    const label = placeholder.querySelector(".label");
+    if (label) label.textContent = Number.isFinite(progress) ? Math.round(progress) + "%" : "Receiving image...";
+}
+
+async function revealImage(img) {
     if (img.dataset.src) {
         const src = img.dataset.src;
         delete img.dataset.src;
@@ -12,10 +44,21 @@ function revealImage(img) {
             return;
         }
 
-        // Let the browser own fetching, caching, decoding, and request prioritization.
-        // This avoids the previous HEAD + GET + Blob/ObjectURL round trip.
         img.decoding = img.decoding || "async";
-        img.src = src;
+        if (window.CAGEImageLoader?.load) {
+            try {
+                const resource = await window.CAGEImageLoader.load(src, {
+                    onProgress: function (progress) {
+                        updateLoadingPlaceholder(img, progress);
+                    },
+                });
+                img.src = resource.url;
+            } catch (_) {
+                showMediaFallback(img);
+            }
+        } else {
+            img.src = src;
+        }
     }
 
     if (img.dataset.srcset) {
@@ -35,6 +78,7 @@ function showMedia(img) {
     if (placeholder?.classList.contains("img-placeholder")) {
         img.style.padding = "4px";
         placeholder.style.display = "none";
+        clearSpinnerMarker(placeholder.querySelector(".icon"));
     }
     markState(img, "is-loaded");
 }
@@ -47,6 +91,7 @@ function showMediaFallback(img) {
 
         const icon = placeholder.querySelector(".icon");
         if (icon) {
+            clearSpinnerMarker(icon);
             icon.innerHTML = '<svg fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.6" viewBox="0 0 24 24"><rect height="18" rx="2" width="18" x="3" y="3"></rect><circle cx="9" cy="9" r="2"></circle><path d="M21 15l-5-5L5 21"></path></svg>';
         }
 
@@ -58,30 +103,13 @@ function showMediaFallback(img) {
     markState(img, "is-error");
 }
 
-function showLoadingPlaceholder(img) {
-    const placeholder = img.nextElementSibling;
-    if (placeholder?.classList.contains("img-placeholder")) {
-        img.style.visibility = "hidden";
-        placeholder.style.display = "flex";
-
-        const icon = placeholder.querySelector(".icon");
-        if (icon) icon.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
-
-        const filename = placeholder.querySelector(".filename");
-        if (filename) filename.textContent = "Loading...";
-
-        const label = placeholder.querySelector(".label");
-        if (label) label.textContent = "Loading...";
-    }
-}
-
 const observer = "IntersectionObserver" in window
     ? new IntersectionObserver(
         entries => {
             entries.forEach(entry => {
                 if (!entry.isIntersecting) return;
                 const target = entry.target;
-                if (target.tagName === "IMG") showLoadingPlaceholder(target);
+                if (target.tagName === "IMG") updateLoadingPlaceholder(target, null);
                 revealImage(target);
                 observer.unobserve(target);
             });
@@ -102,7 +130,7 @@ export function observeLazyMedia(root = document) {
 
         if (observer) observer.observe(media);
         else {
-            if (media.tagName === "IMG") showLoadingPlaceholder(media);
+            if (media.tagName === "IMG") updateLoadingPlaceholder(media, null);
             revealImage(media);
         }
     });

@@ -5,6 +5,7 @@
         media: {
             lazyRootMargin: "1400px 0px",
             optimizedFigureDirectory: "figures/web",
+            imageCacheEntries: 36,
         },
         arena: {
             outputCount: 3,

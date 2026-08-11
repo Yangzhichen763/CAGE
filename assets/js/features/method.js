@@ -251,14 +251,17 @@ if (!window.__CAGE_METHOD_INITIALIZED__) {
             placeholder.classList.remove("is-hidden");
             placeholder.style.display = "flex";
 
-            const icon = placeholder.querySelector(".icon");
-            if (icon) icon.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
+            if (window.CAGELoadingUI?.setLoading) {
+                window.CAGELoadingUI.setLoading(placeholder, null);
+                return;
+            }
 
+            const icon = placeholder.querySelector(".icon");
+            if (window.CAGEImageLoader?.ensureSpinner) window.CAGEImageLoader.ensureSpinner(icon);
             const filename = placeholder.querySelector(".filename");
             if (filename) filename.textContent = "Loading...";
-
             const label = placeholder.querySelector(".label");
-            if (label) label.textContent = "0%";
+            if (label) label.textContent = "Receiving image...";
         }
 
         function showMethodImage(img, placeholder) {
@@ -272,6 +275,7 @@ if (!window.__CAGE_METHOD_INITIALIZED__) {
             img.style.opacity = "1";
 
             if (placeholder?.classList.contains("img-placeholder")) {
+                window.CAGEImageLoader?.clearSpinnerMarker?.(placeholder.querySelector(".icon"));
                 placeholder.classList.add("is-hidden");
                 placeholder.style.display = "none";
             }
@@ -287,17 +291,37 @@ if (!window.__CAGE_METHOD_INITIALIZED__) {
             const placeholder = img.nextElementSibling;
             setMethodImageLoading(img, placeholder);
             img.decoding = "async";
-            img.onload = function () {
-                showMethodImage(img, placeholder);
-            };
-            img.onerror = function () {
-                showImageError(img);
-            };
-            img.src = src;
 
-            if (img.complete && img.naturalWidth > 0) {
-                showMethodImage(img, placeholder);
+            function assignSource(sourceUrl) {
+                img.onload = function () {
+                    showMethodImage(img, placeholder);
+                };
+                img.onerror = function () {
+                    showImageError(img);
+                };
+                img.src = sourceUrl;
+                if (img.complete && img.naturalWidth > 0) showMethodImage(img, placeholder);
             }
+
+            if (window.CAGEImageLoader?.load) {
+                window.CAGEImageLoader.load(src, {
+                    onProgress: function (progress) {
+                        if (window.CAGELoadingUI?.setLoading && placeholder) {
+                            window.CAGELoadingUI.setLoading(placeholder, progress);
+                        } else {
+                            const label = placeholder?.querySelector(".label");
+                            if (label) label.textContent = Number.isFinite(progress) ? Math.round(progress) + "%" : "Receiving image...";
+                        }
+                    },
+                }).then(function (resource) {
+                    assignSource(resource.url);
+                }).catch(function () {
+                    showImageError(img);
+                });
+                return;
+            }
+
+            assignSource(src);
         }
 
         function showImageError(img) {
@@ -316,6 +340,7 @@ if (!window.__CAGE_METHOD_INITIALIZED__) {
                 placeholder.style.display = "flex";
                 const icon = placeholder.querySelector(".icon");
                 if (icon) {
+                    window.CAGEImageLoader?.clearSpinnerMarker?.(icon);
                     icon.innerHTML = '<svg fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.6" viewBox="0 0 24 24"><rect height="18" rx="2" width="18" x="3" y="3"></rect><circle cx="9" cy="9" r="2"></circle><path d="M21 15l-5-5L5 21"></path></svg>';
                 }
                 const filename = placeholder.querySelector(".filename");

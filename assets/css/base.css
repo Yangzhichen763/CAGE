@@ -546,6 +546,97 @@ figcaption {
     text-align: center;
 }
 
+/* Unified image Loading surface across Gallery, Method, Compare and lazy media. */
+.cage-loading-surface {
+    --cage-loading-progress-width: min(180px, calc(100% - 40px));
+    --cage-loading-progress-height: 5px;
+    color: var(--muted);
+    background-color: var(--surface-2);
+    background-image: radial-gradient(circle at 1px 1px, color-mix(in srgb, var(--line) 86%, transparent) 1px, transparent 1.15px);
+    background-size: 16px 16px;
+}
+
+.img-placeholder.cage-loading-surface::before { display: none; }
+
+.cage-loading-surface .icon {
+    width: 30px !important;
+    height: 30px !important;
+    display: grid !important;
+    place-items: center !important;
+    margin: 0 0 1px !important;
+    padding: 0 !important;
+    border: 0 !important;
+    border-radius: 0 !important;
+    background: transparent !important;
+    color: var(--accent) !important;
+}
+
+.cage-loading-surface .icon i,
+.cage-loading-surface .icon svg {
+    width: 18px !important;
+    height: 18px !important;
+    font-size: 18px !important;
+}
+
+.cage-loading-surface .filename,
+.cage-loading-surface .cage-loading-title {
+    max-width: calc(100% - 24px);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    color: var(--ink) !important;
+    font-family: inherit !important;
+    font-size: 0.82rem !important;
+    font-weight: 600;
+    line-height: 1.2;
+    text-align: center;
+}
+
+.cage-loading-surface .progress-bar,
+.cage-loading-surface .cage-loading-progress {
+    position: relative;
+    width: var(--cage-loading-progress-width) !important;
+    height: var(--cage-loading-progress-height) !important;
+    margin: 2px 0 0;
+    overflow: hidden;
+    flex: 0 0 auto;
+    border: 0 !important;
+    border-radius: 999px !important;
+    background: color-mix(in srgb, var(--line) 78%, var(--surface)) !important;
+}
+
+.cage-loading-surface .progress-bar-fill,
+.cage-loading-surface .cage-loading-progress-fill {
+    width: 0%;
+    height: 100%;
+    border-radius: inherit;
+    background: var(--accent) !important;
+    transition: width 0.14s linear;
+}
+
+.cage-loading-surface .progress-bar.is-indeterminate .progress-bar-fill,
+.cage-loading-surface .cage-loading-progress.is-indeterminate .cage-loading-progress-fill {
+    width: 34% !important;
+    animation: cage-loading-progress-indeterminate 1.15s ease-in-out infinite;
+}
+
+.cage-loading-surface .label,
+.cage-loading-surface .progress-text,
+.cage-loading-surface .cage-loading-value {
+    color: var(--muted) !important;
+    font-family: inherit !important;
+    font-size: 0.74rem !important;
+    font-weight: 500;
+    line-height: 1.2;
+    text-align: center;
+}
+
+@keyframes cage-loading-progress-indeterminate {
+    0% { transform: translateX(-115%); }
+    55% { transform: translateX(105%); }
+    100% { transform: translateX(295%); }
+}
+
 section.tldr {
     border-bottom: none;
     padding-bottom: 8px;

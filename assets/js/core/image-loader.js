@@ -1,0 +1,254 @@
+(function () {
+    "use strict";
+
+    const MEDIA_CONFIG = window.CAGE_CONFIG?.media || {};
+    const MAX_CACHE_ENTRIES = Math.max(8, Number(MEDIA_CONFIG.imageCacheEntries) || 36);
+    const entries = new Map();
+    let accessCounter = 0;
+
+    function ensureSpinner(icon) {
+        if (!icon) return;
+        if (icon.dataset.cageSpinner === "true" && icon.querySelector(".fa-spinner")) return;
+        icon.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
+        icon.dataset.cageSpinner = "true";
+    }
+
+    function clearSpinnerMarker(icon) {
+        if (!icon) return;
+        delete icon.dataset.cageSpinner;
+    }
+
+    function notify(entry, progress) {
+        entry.progress = progress;
+        entry.listeners.forEach(function (listener) {
+            try {
+                listener(progress);
+            } catch (_) {}
+        });
+    }
+
+    function touch(entry) {
+        entry.lastAccess = ++accessCounter;
+    }
+
+    function evictReadyEntries() {
+        const readyEntries = Array.from(entries.entries())
+            .filter(function ([, entry]) { return entry.state === "ready"; })
+            .sort(function (left, right) { return left[1].lastAccess - right[1].lastAccess; });
+
+        while (readyEntries.length > MAX_CACHE_ENTRIES) {
+            const [source, entry] = readyEntries.shift();
+            if (entry.objectUrl) URL.revokeObjectURL(entry.objectUrl);
+            entries.delete(source);
+        }
+    }
+
+    function get(source) {
+        const entry = entries.get(source);
+        if (!entry || entry.state !== "ready" || !entry.objectUrl) return "";
+        touch(entry);
+        return entry.objectUrl;
+    }
+
+    function createRequest(source) {
+        const entry = {
+            source: source,
+            state: "loading",
+            objectUrl: "",
+            progress: null,
+            listeners: new Set(),
+            lastAccess: ++accessCounter,
+            promise: null,
+        };
+
+        entry.promise = new Promise(function (resolve, reject) {
+            const xhr = new XMLHttpRequest();
+            entry.xhr = xhr;
+            xhr.open("GET", source, true);
+            xhr.responseType = "blob";
+
+            xhr.onprogress = function (event) {
+                if (event.lengthComputable && event.total > 0) {
+                    notify(entry, Math.max(0, Math.min(100, (event.loaded / event.total) * 100)));
+                } else {
+                    notify(entry, null);
+                }
+            };
+
+            xhr.onload = function () {
+                const ok = (xhr.status >= 200 && xhr.status < 300) || (xhr.status === 0 && xhr.response);
+                if (!ok || !(xhr.response instanceof Blob)) {
+                    reject(new Error("Image request failed: " + source));
+                    return;
+                }
+
+                entry.objectUrl = URL.createObjectURL(xhr.response);
+                entry.state = "ready";
+                touch(entry);
+                notify(entry, 100);
+                evictReadyEntries();
+                resolve({
+                    source: source,
+                    url: entry.objectUrl,
+                    fromCache: false,
+                });
+            };
+
+            xhr.onerror = function () {
+                reject(new Error("Image request failed: " + source));
+            };
+            xhr.onabort = function () {
+                reject(new Error("Image request aborted: " + source));
+            };
+            xhr.send();
+        }).catch(function (error) {
+            if (entry.objectUrl) URL.revokeObjectURL(entry.objectUrl);
+            if (entries.get(source) === entry) entries.delete(source);
+            throw error;
+        });
+
+        entries.set(source, entry);
+        return entry;
+    }
+
+    function load(source, options) {
+        const opts = options || {};
+        if (!source) return Promise.reject(new Error("Image source is empty"));
+
+        let entry = entries.get(source);
+        if (entry && entry.state === "ready" && entry.objectUrl) {
+            touch(entry);
+            if (typeof opts.onProgress === "function") {
+                queueMicrotask(function () { opts.onProgress(100); });
+            }
+            return Promise.resolve({
+                source: source,
+                url: entry.objectUrl,
+                fromCache: true,
+            });
+        }
+
+        if (!entry) entry = createRequest(source);
+        touch(entry);
+
+        const listener = typeof opts.onProgress === "function" ? opts.onProgress : null;
+        if (listener) {
+            entry.listeners.add(listener);
+            if (entry.progress !== null) {
+                queueMicrotask(function () { listener(entry.progress); });
+            }
+        }
+
+        return entry.promise.finally(function () {
+            if (listener) entry.listeners.delete(listener);
+        });
+    }
+
+    function preload(source) {
+        return load(source).then(function () { return true; }).catch(function () { return false; });
+    }
+
+    function clear() {
+        entries.forEach(function (entry) {
+            if (entry.state === "loading" && entry.xhr) {
+                try { entry.xhr.abort(); } catch (_) {}
+            }
+            if (entry.objectUrl) URL.revokeObjectURL(entry.objectUrl);
+        });
+        entries.clear();
+    }
+
+    function ensureLoadingUI(container) {
+        if (!container) return null;
+        container.classList.add("cage-loading-surface");
+
+        let icon = container.querySelector(".icon");
+        if (!icon) {
+            icon = document.createElement("div");
+            icon.className = "icon";
+            container.prepend(icon);
+        }
+
+        let title = container.querySelector(".filename, .cage-loading-title");
+        if (!title) {
+            title = document.createElement("div");
+            title.className = "filename cage-loading-title";
+            icon.after(title);
+        }
+
+        let progressBar = container.querySelector(".progress-bar, .cage-loading-progress");
+        if (!progressBar) {
+            progressBar = document.createElement("div");
+            progressBar.className = "progress-bar cage-loading-progress";
+            const fill = document.createElement("div");
+            fill.className = "progress-bar-fill cage-loading-progress-fill";
+            progressBar.appendChild(fill);
+            title.after(progressBar);
+        }
+
+        let value = container.querySelector(".label, .progress-text, .cage-loading-value");
+        if (!value) {
+            value = document.createElement("div");
+            value.className = "label cage-loading-value";
+            progressBar.after(value);
+        }
+
+        return {
+            icon: icon,
+            title: title,
+            progressBar: progressBar,
+            fill: progressBar.querySelector(".progress-bar-fill, .cage-loading-progress-fill"),
+            value: value,
+        };
+    }
+
+    function setLoadingUI(container, progress, options) {
+        const ui = ensureLoadingUI(container);
+        if (!ui) return;
+        const opts = options || {};
+        ensureSpinner(ui.icon);
+        container.classList.remove("is-error");
+        container.classList.add("is-loading");
+        container.style.display = opts.display || "flex";
+        ui.title.textContent = opts.title || "Loading...";
+
+        const bounded = Number.isFinite(progress)
+            ? Math.max(0, Math.min(100, Number(progress)))
+            : null;
+        if (ui.fill) ui.fill.style.width = bounded === null ? "0%" : bounded + "%";
+        if (ui.progressBar) ui.progressBar.classList.toggle("is-indeterminate", bounded === null);
+        ui.value.textContent = bounded === null
+            ? (opts.indeterminateText || "Receiving image...")
+            : Math.round(bounded) + "%";
+    }
+
+    function setLoadingErrorUI(container, options) {
+        const ui = ensureLoadingUI(container);
+        if (!ui) return;
+        const opts = options || {};
+        clearSpinnerMarker(ui.icon);
+        ui.icon.innerHTML = '<svg fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.6" viewBox="0 0 24 24"><rect height="18" rx="2" width="18" x="3" y="3"></rect><circle cx="9" cy="9" r="2"></circle><path d="M21 15l-5-5L5 21"></path></svg>';
+        container.classList.remove("is-loading");
+        container.classList.add("is-error");
+        container.style.display = opts.display || "flex";
+        ui.title.textContent = opts.title || "Image unavailable";
+        if (ui.fill) ui.fill.style.width = "0%";
+        if (ui.progressBar) ui.progressBar.classList.remove("is-indeterminate");
+        ui.value.textContent = opts.detail || "Unable to load image";
+    }
+
+    window.CAGELoadingUI = {
+        ensure: ensureLoadingUI,
+        setLoading: setLoadingUI,
+        setError: setLoadingErrorUI,
+    };
+
+    window.CAGEImageLoader = {
+        load: load,
+        preload: preload,
+        get: get,
+        clear: clear,
+        ensureSpinner: ensureSpinner,
+        clearSpinnerMarker: clearSpinnerMarker,
+    };
+})();
