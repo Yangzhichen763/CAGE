@@ -15,6 +15,8 @@
     --btn-bg: #2c2c2c;
     --btn-text: #ffffff;
     --shadow: rgba(0, 0, 0, 0.1);
+    --section-tone-a: #fafafa;
+    --section-tone-b: #f2f6fd;
 }
 
 [data-theme="dark"] {
@@ -32,6 +34,8 @@
     --btn-bg: #d0d0d0;
     --btn-text: #222228;
     --shadow: rgba(0, 0, 0, 0.3);
+    --section-tone-a: #222228;
+    --section-tone-b: #282832;
 }
 
 @media (prefers-color-scheme: dark) {
@@ -50,6 +54,8 @@
         --btn-bg: #d0d0d0;
         --btn-text: #222228;
         --shadow: rgba(0, 0, 0, 0.3);
+        --section-tone-a: #222228;
+        --section-tone-b: #282832;
     }
 }
 
@@ -421,6 +427,10 @@ p {
     border: 1px solid var(--line);
     border-radius: 10px;
     display: block;
+}
+
+.teaser-compact {
+    padding: 0px 0;
 }
 
 figcaption {
@@ -823,7 +833,7 @@ table.results td:first-child a:hover {
     font-size: 1.1rem;
     font-weight: 700;
     color: var(--accent);
-    margin: 0 0 12px;
+    margin: 0 0 8px;
     text-transform: uppercase;
     letter-spacing: 0.05em;
 }
@@ -1177,3 +1187,32 @@ table.results td:first-child a:hover {
         padding: 0 10px;
     }
 }
+
+/* Alternating full-width chapter surfaces. TL;DR + teaser count as the first chapter. */
+.section-tone-group,
+.wrap > section.tone-single,
+.wrap > section.tone-double {
+    position: relative;
+    z-index: 0;
+    isolation: isolate;
+}
+
+.section-tone-group {
+    display: flow-root;
+}
+
+.section-tone-group::before,
+.wrap > section.tone-single::before,
+.wrap > section.tone-double::before {
+    content: "";
+    position: absolute;
+    z-index: -1;
+    top: 0;
+    bottom: 0;
+    left: 50%;
+    width: 100vw;
+    transform: translateX(-50%);
+}
+
+.tone-single::before { background: var(--section-tone-a); }
+.tone-double::before { background: var(--section-tone-b); }

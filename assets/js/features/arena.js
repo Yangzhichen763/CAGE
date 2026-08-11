@@ -1,5 +1,15 @@
 "use strict";
 
+const ARENA_CONFIG = Object.assign({
+    outputCount: 3,
+    cardLabels: ["A", "B", "C"],
+    prefetchRounds: 2,
+    prefetchDelayMs: 120,
+    randomImageMin: 690,
+    randomImageMax: 789,
+    compareInitialPercentage: 50,
+}, window.CAGE_CONFIG?.arena || {});
+
 let arenaData = [];
 let shuffledArenaData = [];
 
@@ -15,6 +25,7 @@ let isRandomMode = false;
 let voteCounts = {}; // loadVoteCounts();
 
 const arenaImageObjectUrls = new Map();
+const arenaPreloadPromises = new Map();
 let arenaImageGeneration = 0;
 
 function getArenaCachedImageUrl(source) {
@@ -37,6 +48,194 @@ function clearArenaCachedImages() {
         URL.revokeObjectURL(objectUrl);
     });
     arenaImageObjectUrls.clear();
+}
+
+function preloadArenaSource(source) {
+    if (!source || arenaPreloadPromises.has(source)) {
+        return arenaPreloadPromises.get(source) || Promise.resolve(false);
+    }
+
+    const promise = new Promise(function (resolve) {
+        const image = new Image();
+        image.decoding = "async";
+        image.fetchPriority = "low";
+        image.onload = function () {
+            if (typeof image.decode === "function") {
+                image.decode().catch(function () {}).finally(function () { resolve(true); });
+            } else {
+                resolve(true);
+            }
+        };
+        image.onerror = function () { resolve(false); };
+        image.src = source;
+    }).finally(function () {
+        arenaPreloadPromises.delete(source);
+    });
+
+    arenaPreloadPromises.set(source, promise);
+    return promise;
+}
+
+function getArenaRoundSources(data) {
+    if (!data) return [];
+    const sources = [];
+    const input = data.input || "";
+    if (input) {
+        sources.push(input);
+        sources.push(input.replace("/input/", "/enlightened/"));
+    }
+
+    const outputs = (data.outputs || []).filter(function (output) {
+        return !(output.src || "").toLowerCase().includes("gt");
+    });
+    outputs.slice(0, ARENA_CONFIG.outputCount).forEach(function (output) {
+        if (output.src) sources.push(output.src);
+    });
+    return Array.from(new Set(sources.filter(Boolean)));
+}
+
+function scheduleArenaPrefetch(roundIndex) {
+    if (isRandomMode || shuffledArenaData.length === 0 || ARENA_CONFIG.prefetchRounds <= 0) return;
+
+    const run = function () {
+        for (let offset = 1; offset <= ARENA_CONFIG.prefetchRounds; offset++) {
+            const index = (roundIndex + offset) % shuffledArenaData.length;
+            getArenaRoundSources(shuffledArenaData[index]).forEach(preloadArenaSource);
+        }
+    };
+
+    if ("requestIdleCallback" in window) {
+        window.requestIdleCallback(run, { timeout: 900 });
+    } else {
+        window.setTimeout(run, ARENA_CONFIG.prefetchDelayMs);
+    }
+}
+
+function setArenaCardLoadState(card, state) {
+    if (!card) return;
+    card.dataset.loadState = state;
+    const busy = state === "loading";
+    card.classList.toggle("is-loading", busy);
+    card.setAttribute("aria-busy", String(busy));
+    updateArenaGridLoadState();
+}
+
+function updateArenaGridLoadState() {
+    const grid = document.getElementById("arena-grid");
+    if (!grid) return;
+    const loading = Array.from(document.querySelectorAll(".arena-card")).some(function (card) {
+        return card.dataset.loadState === "loading";
+    });
+    grid.classList.toggle("is-loading", loading);
+    grid.setAttribute("aria-busy", String(loading));
+}
+
+function isArenaRoundLoading() {
+    return Array.from(document.querySelectorAll(".arena-card")).some(function (card) {
+        return card.dataset.loadState === "loading";
+    });
+}
+
+function isArenaCardReady(card) {
+    if (!card || card.dataset.loadState !== "ready") return false;
+    const img = card.querySelector("img.arena-img");
+    return Boolean(img && img.dataset.loadedSource === card.dataset.src && img.complete && img.naturalWidth > 0);
+}
+
+function getArenaSourceLabel(source) {
+    if (!source) return "";
+    const inputBox = document.getElementById("arena-input-box");
+    if (inputBox) {
+        if (source === inputBox.dataset.inputSrc) return "Low-light";
+        if (source === inputBox.dataset.enlightenedSrc) return "Enlightened";
+    }
+    const cards = Array.from(document.querySelectorAll(".arena-card"));
+    const index = cards.findIndex(function (card) { return card.dataset.src === source; });
+    return index >= 0 ? (ARENA_CONFIG.cardLabels[index] || String.fromCharCode(65 + index)) : "";
+}
+
+function setArenaLoadingPlaceholder(card, progress) {
+    const placeholder = card?.querySelector(".img-placeholder");
+    if (!placeholder) return;
+    const icon = placeholder.querySelector(".icon");
+    const filename = placeholder.querySelector(".filename");
+    const label = placeholder.querySelector(".label");
+    if (icon) icon.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
+    if (filename) filename.textContent = "Loading...";
+    if (label) label.textContent = Math.max(0, Math.min(100, Math.round(progress || 0))) + "%";
+    placeholder.style.display = "flex";
+}
+
+async function fetchArenaImageBlob(source, onProgress) {
+    const response = await fetch(source, { cache: "force-cache" });
+    if (!response.ok) throw new Error("Image request failed");
+    const total = Number.parseInt(response.headers.get("content-length") || "0", 10);
+    if (!response.body || !Number.isFinite(total) || total <= 0) {
+        const blob = await response.blob();
+        onProgress?.(100);
+        return blob;
+    }
+    let loaded = 0;
+    const chunks = [];
+    const reader = response.body.getReader();
+    while (true) {
+        const result = await reader.read();
+        if (result.done) break;
+        chunks.push(result.value);
+        loaded += result.value.byteLength;
+        onProgress?.((loaded / total) * 100);
+    }
+    onProgress?.(100);
+    return new Blob(chunks, { type: response.headers.get("content-type") || "image/png" });
+}
+
+function decodeArenaCardImage(img, objectUrl) {
+    return new Promise(function (resolve, reject) {
+        let settled = false;
+        function finish(ok) {
+            if (settled) return;
+            settled = true;
+            img.onload = null;
+            img.onerror = null;
+            if (ok) resolve(); else reject(new Error("Image decode failed"));
+        }
+        img.onload = async function () {
+            try { if (typeof img.decode === "function") await img.decode(); } catch (_) {}
+            finish(img.naturalWidth > 0);
+        };
+        img.onerror = function () { finish(false); };
+        img.src = objectUrl;
+        if (img.complete && img.naturalWidth > 0) queueMicrotask(function () { finish(true); });
+    });
+}
+
+async function loadArenaCardImage(card, img, source, generation) {
+    let objectUrl = "";
+    try {
+        const blob = await fetchArenaImageBlob(source, function (progress) {
+            if (generation !== arenaImageGeneration || card.dataset.src !== source) return;
+            setArenaLoadingPlaceholder(card, progress);
+        });
+        if (generation !== arenaImageGeneration || card.dataset.src !== source) return;
+        objectUrl = URL.createObjectURL(blob);
+        await decodeArenaCardImage(img, objectUrl);
+        if (generation !== arenaImageGeneration || card.dataset.src !== source) {
+            URL.revokeObjectURL(objectUrl);
+            return;
+        }
+        setArenaCachedImageUrl(source, objectUrl);
+        objectUrl = "";
+        img.dataset.loadedSource = source;
+        setArenaCardLoadState(card, "ready");
+        hideCardPlaceholder(img);
+    } catch (_) {
+        if (objectUrl) URL.revokeObjectURL(objectUrl);
+        if (generation !== arenaImageGeneration || card.dataset.src !== source) return;
+        img.removeAttribute("src");
+        img.dataset.loadedSource = "";
+        setArenaCardLoadState(card, "error");
+        showCardPlaceholder(img, false);
+    }
 }
 
 let consecutiveCorrectCount = 0;
@@ -494,29 +693,17 @@ function getComparisonSourceAtPoint(wrapper, clientX) {
 
 function addArenaListeners() {
     const nextButton = document.querySelector('[data-action="next-arena-round"]');
-    if (nextButton) {
-        nextButton.addEventListener("click", nextArenaRound);
-    }
-
-    document.querySelectorAll(".arena-card img.arena-img").forEach(function (img) {
-        img.onerror = function () { showCardPlaceholder(this); };
-        img.onload = function () { hideCardPlaceholder(this); };
-    });
+    if (nextButton) nextButton.addEventListener("click", nextArenaRound);
 
     const inputBox = document.getElementById("arena-input-box");
-
     if (inputBox) {
-        inputBox.addEventListener("click", function (e) {
-            // The input area is always a comparison view. Left click does not vote.
-            e.preventDefault();
-        });
-
+        inputBox.addEventListener("click", function (e) { e.preventDefault(); });
         inputBox.addEventListener("contextmenu", function (e) {
             e.preventDefault();
+            if (isArenaRoundLoading()) return;
             const wrapper = inputBox.querySelector(".arena-compare-wrapper");
             const baseSrc = getComparisonSourceAtPoint(wrapper, e.clientX);
             if (!baseSrc) return;
-
             if (isComparisonMode && baseSrc === comparisonBaseSource) {
                 exitComparisonMode();
                 renderInputComparison(inputBox.dataset.inputSrc, inputBox.dataset.enlightenedSrc);
@@ -525,103 +712,82 @@ function addArenaListeners() {
                 enterComparisonModeFromSource(baseSrc);
             }
         });
-
         inputBox.addEventListener("mousedown", function (e) {
-            if (e.button !== 1) return;
+            if (e.button !== 1 || isArenaRoundLoading()) return;
             e.preventDefault();
-
             const wrapper = inputBox.querySelector(".arena-compare-wrapper");
             const src = getComparisonSourceAtPoint(wrapper, e.clientX);
             if (!src) return;
-
-            const title =
-                src === inputBox.dataset.inputSrc ? "Low-light Input" : "GT-mean Enlightened Input";
-
+            const title = src === inputBox.dataset.inputSrc ? "Low-light Input" : "GT-mean Enlightened Input";
             openImageViewerBySource(src, title, "input");
         });
     }
 
     document.querySelectorAll(".arena-card").forEach(function (card, index) {
         card.addEventListener("click", function (e) {
-            if (isComparisonMode) {
+            if (isArenaRoundLoading() || !isArenaCardReady(card) || isComparisonMode) {
                 e.preventDefault();
                 return;
             }
             selectArenaImage(index, e);
         });
-
         card.addEventListener("contextmenu", function (e) {
             e.preventDefault();
-
+            if (isArenaRoundLoading() || !isArenaCardReady(card)) return;
             const wrapper = card.querySelector(".arena-compare-wrapper");
             const baseSrc = wrapper ? getComparisonSourceAtPoint(wrapper, e.clientX) : card.dataset.src;
-
             if (!baseSrc) return;
-
             if (isComparisonMode && baseSrc === comparisonBaseSource) {
                 exitComparisonMode();
                 return;
             }
-
             exitComparisonMode();
             enterComparisonModeFromSource(baseSrc);
         });
-
         card.addEventListener("mousedown", function (e) {
-            if (e.button !== 1) return;
+            if (e.button !== 1 || isArenaRoundLoading() || !isArenaCardReady(card)) return;
             e.preventDefault();
-
             const wrapper = card.querySelector(".arena-compare-wrapper");
             const src = wrapper ? getComparisonSourceAtPoint(wrapper, e.clientX) : card.dataset.src;
-
             if (!src) return;
-
-            openImageViewerBySource(src, `Enhanced image ${String.fromCharCode(65 + index)}`, "enhanced");
+            openImageViewerBySource(src, `Enhanced image ${ARENA_CONFIG.cardLabels[index] || String.fromCharCode(65 + index)}`, "enhanced");
         });
     });
 }
 
 function loadRound(roundIndex) {
-    exitComparisonMode();
+    exitComparisonMode(false);
     clearArenaCachedImages();
+    const generation = arenaImageGeneration;
 
     let data;
-    if (isRandomMode && currentRandomData) {
-        data = currentRandomData;
-    } else {
+    if (isRandomMode && currentRandomData) data = currentRandomData;
+    else {
         if (shuffledArenaData.length === 0 && arenaData.length === 0) {
             const feedback = document.getElementById("arena-feedback");
-            if (feedback) {
-                feedback.textContent = "No arena data available. Enable random mode to load images.";
-            }
+            if (feedback) feedback.textContent = "No arena data available. Enable random mode to load images.";
             return;
         }
-        data =
-            shuffledArenaData[roundIndex % shuffledArenaData.length] ||
-            arenaData[roundIndex % arenaData.length];
+        data = shuffledArenaData[roundIndex % shuffledArenaData.length] || arenaData[roundIndex % arenaData.length];
     }
 
     const outputs = (data.outputs || []).filter(function (output) {
-        const path = output.src || "";
-        return !path.toLowerCase().includes("gt");
+        return !(output.src || "").toLowerCase().includes("gt");
     });
-
-    if (outputs.length < 3) {
+    const cards = document.querySelectorAll(".arena-card");
+    const outputCount = Math.min(ARENA_CONFIG.outputCount, cards.length);
+    if (outputs.length < outputCount) {
         const feedback = document.getElementById("arena-feedback");
         if (feedback) {
-            feedback.textContent = "At least three enhanced results are required.";
+            feedback.textContent = "At least " + outputCount + " enhanced results are required.";
             feedback.className = "arena-feedback";
         }
         return;
     }
 
     const inputSrc = data.input;
-    const enlightenedSrc = inputSrc.replace("/input/", "/enlightened/");
-    renderInputComparison(inputSrc, enlightenedSrc);
-
-    const cards = document.querySelectorAll(".arena-card");
-    const indices = [0, 1, 2];
-
+    renderInputComparison(inputSrc, inputSrc.replace("/input/", "/enlightened/"));
+    const indices = Array.from({ length: outputCount }, function (_, index) { return index; });
     for (let i = indices.length - 1; i > 0; i--) {
         const j = Math.floor(Math.random() * (i + 1));
         [indices[i], indices[j]] = [indices[j], indices[i]];
@@ -630,143 +796,49 @@ function loadRound(roundIndex) {
     cards.forEach(function (card, i) {
         const idx = indices[i];
         const output = outputs[idx];
-
         card.dataset.index = i;
         card.dataset.originalIndex = idx;
         card.dataset.isCAGE = String(output.isCAGE);
-        card.dataset.src = output.src;
+        card.dataset.src = output.src || "";
+        setArenaCardLoadState(card, "loading");
 
-        const oldWrapper = card.querySelector(".arena-compare-wrapper");
-        if (oldWrapper) {
-            oldWrapper.remove();
-        }
-
+        card.querySelector(".arena-compare-wrapper")?.remove();
         let img = card.querySelector("img.arena-img");
         if (!img) {
             img = document.createElement("img");
             img.className = "arena-img";
             img.dataset.index = i;
-            img.onerror = function () {
-                showCardPlaceholder(this);
-            };
-            img.onload = function () {
-                hideCardPlaceholder(this);
-            };
             card.insertBefore(img, card.querySelector(".img-placeholder"));
         }
-
+        img.onload = null;
+        img.onerror = null;
+        img.removeAttribute("src");
+        img.dataset.loadedSource = "";
         img.style.display = "none";
-        
-        const placeholder = card.querySelector(".img-placeholder");
-        if (placeholder) {
-            const icon = placeholder.querySelector(".icon");
-            if (icon) {
-                icon.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
-            }
-            const filenameEl = placeholder.querySelector(".filename");
-            if (filenameEl) {
-                filenameEl.textContent = "Loading...";
-            }
-            const labelEl = placeholder.querySelector(".label");
-            if (labelEl) {
-                labelEl.textContent = "0%";
-            }
-            placeholder.style.display = "flex";
-        }
-        
+        setArenaLoadingPlaceholder(card, 0);
+
+        const indexEl = card.querySelector(".arena-card-index");
+        if (indexEl) indexEl.textContent = ARENA_CONFIG.cardLabels[i] || String.fromCharCode(65 + i);
+        card.classList.remove("selected", "correct", "comparison-base", "comparison-active");
+
         if (!output.src) {
+            setArenaCardLoadState(card, "error");
             showCardPlaceholder(img, false);
             return;
         }
-
-        fetch(output.src, { method: 'HEAD' })
-            .then(headResponse => {
-                if (!headResponse.ok) {
-                    throw new Error("Image not found");
-                }
-                return fetch(output.src);
-            })
-            .then(response => {
-                if (!response.ok) {
-                    throw new Error("Network response was not ok");
-                }
-                
-                const contentLength = response.headers.get("content-length");
-                const total = contentLength ? parseInt(contentLength, 10) : null;
-                let loaded = 0;
-                const reader = response.body.getReader();
-                
-                return new ReadableStream({
-                    async start(controller) {
-                        while (true) {
-                            const { done, value } = await reader.read();
-                            if (done) break;
-                            
-                            loaded += value.length;
-                            if (total) {
-                                const progress = Math.round((loaded / total) * 100);
-                                const labelEl = card.querySelector(".img-placeholder .label");
-                                if (labelEl) {
-                                    labelEl.textContent = progress + "%";
-                                }
-                            }
-                            
-                            controller.enqueue(value);
-                        }
-                        controller.close();
-                    }
-                });
-            })
-            .then(stream => new Response(stream))
-            .then(response => response.blob())
-            .then(blob => {
-                const objectUrl = URL.createObjectURL(blob);
-                if (card.dataset.src !== output.src) {
-                    URL.revokeObjectURL(objectUrl);
-                    return;
-                }
-
-                setArenaCachedImageUrl(output.src, objectUrl);
-                img.onload = function () {
-                    hideCardPlaceholder(img);
-                };
-                img.onerror = function () {
-                    const cachedUrl = getArenaCachedImageUrl(output.src);
-                    if (cachedUrl === objectUrl) {
-                        arenaImageObjectUrls.delete(output.src);
-                        URL.revokeObjectURL(objectUrl);
-                    }
-                    showCardPlaceholder(img, false);
-                };
-                img.src = objectUrl;
-            })
-            .catch(() => {
-                showCardPlaceholder(img, false);
-            });
-
-        const indexEl = card.querySelector(".arena-card-index");
-        if (indexEl) {
-            indexEl.textContent = String.fromCharCode(65 + i);
-        }
-
-        card.classList.remove("selected", "correct", "comparison-base", "comparison-active");
+        loadArenaCardImage(card, img, output.src, generation);
     });
 
     selectedIndex = -1;
     isAnswered = false;
     comparisonBaseIndex = -1;
     comparisonBaseSource = "";
-
     const feedback = document.getElementById("arena-feedback");
-    if (feedback) {
-        feedback.textContent = "";
-        feedback.className = "arena-feedback";
-    }
-
+    if (feedback) { feedback.textContent = ""; feedback.className = "arena-feedback"; }
     const nextBtn = document.getElementById("arena-next-btn");
-    if (nextBtn) {
-        nextBtn.style.display = "none";
-    }
+    if (nextBtn) nextBtn.style.display = "none";
+
+    scheduleArenaPrefetch(roundIndex);
 }
 
 function enterComparisonMode(baseIndex) {
@@ -777,23 +849,27 @@ function enterComparisonMode(baseIndex) {
 }
 
 function enterComparisonModeFromSource(baseSrc) {
-    if (!baseSrc) return;
+    if (!baseSrc || isArenaRoundLoading()) return;
+    const sourceCard = Array.from(document.querySelectorAll(".arena-card")).find(function (card) { return card.dataset.src === baseSrc; });
+    if (sourceCard && !isArenaCardReady(sourceCard)) return;
 
     isComparisonMode = true;
     comparisonBaseSource = baseSrc;
     comparisonBaseIndex = -1;
-
+    const rightBadge = getArenaSourceLabel(baseSrc);
     document.querySelectorAll(".arena-card").forEach(function (card, index) {
-        const afterSrc = card.dataset.src;
+        const compareSrc = card.dataset.src;
         card.classList.add("comparison-active");
-
-        if (afterSrc === baseSrc) {
+        if (compareSrc === baseSrc) {
             comparisonBaseIndex = index;
             card.classList.add("comparison-base");
             return;
         }
-
-        displayBeforeAfterImage(card, baseSrc, afterSrc);
+        if (!isArenaCardReady(card)) return;
+        displayBeforeAfterImage(card, compareSrc, baseSrc, {
+            beforeBadge: getArenaSourceLabel(compareSrc),
+            afterBadge: rightBadge,
+        });
     });
 }
 
@@ -839,37 +915,43 @@ function enterInputComparisonMode() {
     renderInputComparison(inputBox.dataset.inputSrc, inputBox.dataset.enlightenedSrc);
 }
 
-function exitComparisonMode() {
+function hideArenaCardIndexForComparison(card) {
+    const indexEl = card?.querySelector(".arena-card-index");
+    if (!indexEl) return;
+    if (indexEl.dataset.comparisonPreviousHidden === undefined) {
+        indexEl.dataset.comparisonPreviousHidden = String(indexEl.hidden);
+    }
+    indexEl.hidden = true;
+}
+
+function restoreArenaCardIndexAfterComparison(card) {
+    const indexEl = card?.querySelector(".arena-card-index");
+    if (!indexEl) return;
+    const previousHidden = indexEl.dataset.comparisonPreviousHidden;
+    if (previousHidden !== undefined) {
+        indexEl.hidden = previousHidden === "true";
+        delete indexEl.dataset.comparisonPreviousHidden;
+    } else {
+        indexEl.hidden = false;
+    }
+}
+
+function exitComparisonMode(restoreImages = true) {
     document.querySelectorAll(".arena-card").forEach(function (card) {
         card.classList.remove("comparison-base", "comparison-active");
-
-        const wrapper = card.querySelector(".arena-compare-wrapper");
-        if (wrapper) {
-            wrapper.remove();
-        }
-
+        card.querySelector(".arena-compare-wrapper")?.remove();
+        restoreArenaCardIndexAfterComparison(card);
+        if (!restoreImages) return;
         const img = card.querySelector("img.arena-img");
         if (!img) return;
-
+        if (card.dataset.loadState === "loading") { showCardPlaceholder(img, true); return; }
+        if (card.dataset.loadState !== "ready") { showCardPlaceholder(img, false); return; }
         const source = card.dataset.src || "";
         const cachedUrl = getArenaCachedImageUrl(source);
-        if (cachedUrl) {
-            if (img.getAttribute("src") !== cachedUrl) {
-                img.src = cachedUrl;
-            }
-            hideCardPlaceholder(img);
-            return;
-        }
-
-        if (img.complete && img.naturalWidth > 0) {
-            hideCardPlaceholder(img);
-        } else if (img.getAttribute("src")) {
-            showCardPlaceholder(img, true);
-        } else {
-            showCardPlaceholder(img, false);
-        }
+        if (!cachedUrl || img.dataset.loadedSource !== source) { showCardPlaceholder(img, false); return; }
+        if (img.getAttribute("src") !== cachedUrl) img.src = cachedUrl;
+        hideCardPlaceholder(img);
     });
-
     isComparisonMode = false;
     comparisonBaseIndex = -1;
     comparisonBaseSource = "";
@@ -916,7 +998,10 @@ async function generateRandomArenaData() {
         (p) => !p.isCAGE && !p.prefix.toLowerCase().includes("gt"),
     );
 
-    const randomNum = String(Math.floor(Math.random() * 100) + 690).padStart(5, "0");
+    const randomSpan = Math.max(1, ARENA_CONFIG.randomImageMax - ARENA_CONFIG.randomImageMin + 1);
+    const randomNum = String(
+        Math.floor(Math.random() * randomSpan) + ARENA_CONFIG.randomImageMin,
+    ).padStart(5, "0");
 
     const cagePattern = cagePatterns[Math.floor(Math.random() * cagePatterns.length)];
     const cageSrc = `examples/${cagePattern.prefix}/${randomNum}.png`;
@@ -1004,17 +1089,16 @@ function showCardPlaceholder(img, isLoading = false) {
 }
 
 function hideCardPlaceholder(img) {
-    img.style.display = "block";
     const card = img.closest(".arena-card");
+    if (card && card.dataset.loadState !== "ready") return;
+    img.style.display = "block";
     if (card) {
         const placeholder = card.querySelector(".img-placeholder");
-        if (placeholder) {
-            placeholder.style.display = "none";
-        }
+        if (placeholder) placeholder.style.display = "none";
     }
 }
 
-function createComparisonView(beforeImageUrl, afterImageUrl, initialPercentage, options = {}) {
+function createComparisonView(beforeImageUrl, afterImageUrl, initialPercentage = ARENA_CONFIG.compareInitialPercentage, options = {}) {
     const useSplitPlaceholders = options.splitLoadingPlaceholders === true;
     const beforeLabel = options.beforeLabel || "Before image";
     const afterLabel = options.afterLabel || "After image";
@@ -1026,6 +1110,16 @@ function createComparisonView(beforeImageUrl, afterImageUrl, initialPercentage, 
 
     const sliderContainer = document.createElement("div");
     sliderContainer.className = "slider-container";
+
+    const compareBadges = document.createElement("div");
+    compareBadges.className = "compare-corner-labels";
+    const beforeBadge = document.createElement("span");
+    beforeBadge.className = "compare-corner-label compare-corner-label-left";
+    beforeBadge.textContent = options.beforeBadge || getArenaSourceLabel(beforeImageUrl) || "L";
+    const afterBadge = document.createElement("span");
+    afterBadge.className = "compare-corner-label compare-corner-label-right";
+    afterBadge.textContent = options.afterBadge || getArenaSourceLabel(afterImageUrl) || "R";
+    compareBadges.append(beforeBadge, afterBadge);
 
     const afterImage = document.createElement("img");
     afterImage.className = "img compare-layer background-img";
@@ -1289,7 +1383,7 @@ function createComparisonView(beforeImageUrl, afterImageUrl, initialPercentage, 
     if (afterPlaceholder) sliderContainer.appendChild(afterPlaceholder);
     sliderContainer.appendChild(beforeImage);
     if (beforePlaceholder) sliderContainer.appendChild(beforePlaceholder);
-    sliderContainer.append(divider, slider, sliderButton);
+    sliderContainer.append(divider, slider, sliderButton, compareBadges);
 
     const needsLoading = !beforeCachedUrl || !afterCachedUrl;
     if (!useSplitPlaceholders && needsLoading) {
@@ -1393,13 +1487,15 @@ function createComparisonView(beforeImageUrl, afterImageUrl, initialPercentage, 
     return wrapper;
 }
 
-function displayBeforeAfterImage(card, beforeImageUrl, afterImageUrl) {
+function displayBeforeAfterImage(card, beforeImageUrl, afterImageUrl, options = {}) {
     if (!card || !beforeImageUrl || !afterImageUrl) return;
 
     const existingWrapper = card.querySelector(".arena-compare-wrapper");
     if (existingWrapper) {
         existingWrapper.remove();
     }
+
+    hideArenaCardIndexForComparison(card);
 
     const img = card.querySelector("img.arena-img");
     if (img) {
@@ -1409,9 +1505,9 @@ function displayBeforeAfterImage(card, beforeImageUrl, afterImageUrl) {
     const placeholder = card.querySelector(".img-placeholder");
     if (placeholder) {
         placeholder.style.display = "none";
-        card.insertBefore(createComparisonView(beforeImageUrl, afterImageUrl), placeholder);
+        card.insertBefore(createComparisonView(beforeImageUrl, afterImageUrl, undefined, options), placeholder);
     } else {
-        card.appendChild(createComparisonView(beforeImageUrl, afterImageUrl));
+        card.appendChild(createComparisonView(beforeImageUrl, afterImageUrl, undefined, options));
     }
 }
 
@@ -1419,7 +1515,7 @@ function displayBeforeAfterImageInput(box, beforeImageUrl, afterImageUrl) {
     if (!box || !beforeImageUrl || !afterImageUrl) return;
 
     const existingWrapper = box.querySelector(".arena-compare-wrapper");
-    let initialPercentage = 50;
+    let initialPercentage = ARENA_CONFIG.compareInitialPercentage;
     if (existingWrapper) {
         const slider = existingWrapper.querySelector(".slider");
         if (slider) {
@@ -1431,6 +1527,8 @@ function displayBeforeAfterImageInput(box, beforeImageUrl, afterImageUrl) {
         splitLoadingPlaceholders: true,
         beforeLabel: "Low-light image",
         afterLabel: "GT-mean Enlightened image",
+        beforeBadge: "Low-light",
+        afterBadge: "Enlightened",
     });
     const visual = box.querySelector(":scope > #arena-input-img, :scope > .arena-compare-wrapper");
     const placeholder = box.querySelector(".img-placeholder");
@@ -1446,7 +1544,9 @@ function displayBeforeAfterImageInput(box, beforeImageUrl, afterImageUrl) {
 
 function selectArenaImage(index, event) {
     console.log("selectArenaImage called:", index);
-    if (isComparisonMode || isAnswered) return;
+    if (isComparisonMode || isAnswered || isArenaRoundLoading()) return;
+    const candidateCard = document.querySelectorAll(".arena-card")[index];
+    if (!isArenaCardReady(candidateCard)) return;
 
     isAnswered = true;
     selectedIndex = index;
@@ -1529,9 +1629,14 @@ function clearArenaImages() {
     document.querySelectorAll(".arena-card").forEach(function (card) {
         const img = card.querySelector("img.arena-img");
         if (img) {
-            img.src = "";
+            img.onload = null;
+            img.onerror = null;
+            img.removeAttribute("src");
+            img.dataset.loadedSource = "";
             img.style.display = "none";
         }
+        card.dataset.loadState = "loading";
+        card.setAttribute("aria-busy", "true");
         const wrapper = card.querySelector(".arena-compare-wrapper");
         if (wrapper) {
             wrapper.remove();

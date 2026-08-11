@@ -323,10 +323,6 @@ figure .img-container img.is-error {
     font-weight: 700;
 }
 
-.teaser-compact {
-    padding: 15px 0;
-}
-
 .arena-tip-muted {
     color: var(--muted);
     font-weight: 400;

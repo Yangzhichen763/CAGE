@@ -1,0 +1,634 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Dual Range Slider</title>
+  <style>
+    :root {
+      --accent: #1a56db;
+      --ink: #2c2c2c;
+      --muted: #666666;
+      --line: #e0e0e0;
+      --surface: #ffffff;
+      --surface-2: rgba(0, 0, 0, 0.04);
+      --shadow: rgba(0, 0, 0, 0.1);
+    }
+
+    [data-theme="dark"] {
+      --accent: #ff4d4f;
+      --ink: #e0e0e0;
+      --muted: #a0a0a0;
+      --line: #3a3a4a;
+      --surface: #2a2a32;
+      --surface-2: rgba(255, 255, 255, 0.04);
+      --shadow: rgba(0, 0, 0, 0.3);
+    }
+
+    @media (prefers-color-scheme: dark) {
+      :root:not([data-theme="light"]) {
+        --accent: #ff4d4f;
+        --ink: #e0e0e0;
+        --muted: #a0a0a0;
+        --line: #3a3a4a;
+        --surface: #2a2a32;
+        --surface-2: rgba(255, 255, 255, 0.04);
+        --shadow: rgba(0, 0, 0, 0.3);
+      }
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    html,
+    body {
+      margin: 0;
+      min-width: 0;
+      background: transparent;
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    }
+
+    .dual-range-demo {
+      width: min(100%, 520px);
+      margin: 0 auto;
+      padding: 16px;
+      color: var(--ink);
+    }
+
+    .dual-range-slider {
+      --slice-min: 45%;
+      --slice-max: 55%;
+      --dual-range-thumb-size: 14px;
+      --dual-range-handle-size: 16px;
+      width: 100%;
+    }
+
+    .dual-range-control {
+      position: relative;
+      height: 36px;
+      touch-action: none;
+    }
+
+    .dual-range-rail {
+      position: absolute;
+      inset: 0 calc(var(--dual-range-thumb-size) / 2);
+      z-index: 1;
+      pointer-events: none;
+    }
+
+    .dual-range-rail::before {
+      content: "";
+      position: absolute;
+      left: 0;
+      right: 0;
+      top: 50%;
+      height: 4px;
+      border-radius: 999px;
+      background: color-mix(in srgb, var(--line) 86%, var(--surface) 14%);
+      transform: translateY(-50%);
+      pointer-events: none;
+    }
+
+    .dual-range-window {
+      position: absolute;
+      top: 6px;
+      bottom: 6px;
+      left: var(--slice-min);
+      right: calc(100% - var(--slice-max));
+      z-index: 2;
+      min-width: 0;
+      border: 0;
+      border-radius: 999px;
+      background: transparent;
+      cursor: grab;
+      pointer-events: auto;
+      touch-action: none;
+    }
+
+    .dual-range-window::before {
+      content: "";
+      position: absolute;
+      left: 0;
+      right: 0;
+      top: 50%;
+      height: 8px;
+      border: 1px solid color-mix(in srgb, var(--accent) 48%, var(--line) 52%);
+      border-radius: 999px;
+      background: color-mix(in srgb, var(--accent) 24%, var(--surface) 76%);
+      box-shadow: 0 2px 7px -6px var(--shadow);
+      transform: translateY(-50%);
+      transition:
+        background-color 160ms ease,
+        border-color 160ms ease,
+        box-shadow 160ms ease,
+        transform 160ms ease;
+      pointer-events: none;
+    }
+
+    .dual-range-window:hover::before {
+      border-color: color-mix(in srgb, var(--accent) 58%, var(--line) 42%);
+      background: color-mix(in srgb, var(--accent) 28%, var(--surface) 72%);
+    }
+
+    .dual-range-window.is-dragging {
+      cursor: grabbing;
+    }
+
+    .dual-range-window.is-dragging::before {
+      border-color: color-mix(in srgb, var(--accent) 70%, var(--line) 30%);
+      background: color-mix(in srgb, var(--accent) 34%, var(--surface) 66%);
+      box-shadow: 0 4px 11px -8px var(--shadow);
+      transform: translateY(-50%) scaleY(1.08);
+    }
+
+    .dual-range-handle {
+      position: absolute;
+      top: 50%;
+      z-index: 3;
+      width: var(--dual-range-handle-size);
+      height: var(--dual-range-handle-size);
+      pointer-events: none;
+    }
+
+    .dual-range-handle-min {
+      left: var(--slice-min);
+      transform: translate(0, -50%);
+    }
+
+    .dual-range-handle-max {
+      left: var(--slice-max);
+      transform: translate(-100%, -50%);
+    }
+
+    .dual-range-handle::before,
+    .dual-range-handle::after {
+      content: "";
+      position: absolute;
+      inset: 0;
+      margin: auto;
+      transform-origin: 50% 50%;
+      transition:
+        opacity 160ms ease,
+        transform 190ms cubic-bezier(0.2, 0.78, 0.25, 1),
+        box-shadow 190ms ease,
+        background-color 190ms ease,
+        border-color 190ms ease;
+    }
+
+    .dual-range-handle::before {
+      width: 10px;
+      height: 10px;
+      opacity: 1;
+      background: var(--accent);
+      transform: scale(1);
+      -webkit-mask-position: center;
+      -webkit-mask-repeat: no-repeat;
+      -webkit-mask-size: 10px 10px;
+      mask-position: center;
+      mask-repeat: no-repeat;
+      mask-size: 10px 10px;
+    }
+
+    .dual-range-handle-min::before {
+      -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M14.5 6.5 9 12l5.5 5.5' fill='none' stroke='black' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+      mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M14.5 6.5 9 12l5.5 5.5' fill='none' stroke='black' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+    }
+
+    .dual-range-handle-max::before {
+      -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='m9.5 6.5 5.5 5.5-5.5 5.5' fill='none' stroke='black' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+      mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='m9.5 6.5 5.5 5.5-5.5 5.5' fill='none' stroke='black' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+    }
+
+    .dual-range-handle::after {
+      width: 14px;
+      height: 14px;
+      border: 2px solid var(--accent);
+      border-radius: 50%;
+      opacity: 0;
+      background: var(--surface);
+      box-shadow: 0 2px 8px -3px var(--shadow);
+      transform: scale(0.64);
+    }
+
+    .dual-range-slider.is-min-active .dual-range-handle-min::before,
+    .dual-range-slider.is-max-active .dual-range-handle-max::before {
+      opacity: 0;
+      transform: scale(0.58);
+    }
+
+    .dual-range-slider.is-min-active .dual-range-handle-min::after,
+    .dual-range-slider.is-max-active .dual-range-handle-max::after {
+      opacity: 1;
+      transform: scale(1);
+    }
+
+    .dual-range-slider.is-min-focus .dual-range-handle-min::after,
+    .dual-range-slider.is-max-focus .dual-range-handle-max::after {
+      box-shadow: 0 0 0 4px color-mix(in srgb, var(--accent) 20%, transparent);
+    }
+
+    .dual-range-input {
+      position: absolute;
+      inset: 0;
+      z-index: 4;
+      width: 100%;
+      height: 36px;
+      padding: 0;
+      margin: 0;
+      appearance: none;
+      -webkit-appearance: none;
+      border: 0;
+      outline: 0;
+      background: transparent;
+      pointer-events: none;
+    }
+
+    .dual-range-input::-webkit-slider-runnable-track {
+      height: 1px;
+      border: 0;
+      background: transparent;
+    }
+
+    .dual-range-input::-moz-range-track {
+      height: 1px;
+      border: 0;
+      background: transparent;
+    }
+
+    .dual-range-input::-webkit-slider-thumb {
+      box-sizing: border-box;
+      width: var(--dual-range-thumb-size);
+      height: var(--dual-range-thumb-size);
+      margin-top: calc((1px - var(--dual-range-thumb-size)) / 2);
+      appearance: none;
+      -webkit-appearance: none;
+      border: 0;
+      border-radius: 50%;
+      background: transparent;
+      box-shadow: none;
+      cursor: ew-resize;
+      pointer-events: auto;
+    }
+
+    .dual-range-input::-moz-range-thumb {
+      box-sizing: border-box;
+      width: var(--dual-range-thumb-size);
+      height: var(--dual-range-thumb-size);
+      border: 0;
+      border-radius: 50%;
+      background: transparent;
+      box-shadow: none;
+      cursor: ew-resize;
+      pointer-events: auto;
+    }
+
+    .dual-range-values {
+      display: grid;
+      grid-template-columns: auto minmax(0, 1fr) auto;
+      align-items: center;
+      gap: 8px;
+      margin-top: -2px;
+      color: var(--muted);
+      font-size: 0.55rem;
+    }
+
+    .dual-range-values output {
+      min-width: 44px;
+      padding: 4px 6px;
+      border: 1px solid var(--line);
+      border-radius: 7px;
+      color: var(--ink);
+      background: var(--surface-2);
+      font-size: 0.58rem;
+      font-weight: 750;
+      font-variant-numeric: tabular-nums;
+      text-align: center;
+    }
+
+    .dual-range-scale {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      min-width: 0;
+    }
+
+    .dual-range-scale i {
+      font-style: normal;
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      .dual-range-handle::before,
+      .dual-range-handle::after,
+      .dual-range-window::before {
+        transition: none;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="dual-range-demo">
+    <div
+      class="dual-range-slider"
+      id="dualRangeSlider"
+      data-min-limit="0"
+      data-max-limit="1"
+      data-min="0.45"
+      data-max="0.55"
+      data-step="0.001"
+      data-window-step="0.01"
+      data-window-step-large="0.05"
+    >
+      <div class="dual-range-control">
+        <div class="dual-range-rail">
+          <div
+            class="dual-range-window"
+            role="slider"
+            tabindex="0"
+            aria-label="Move the complete range"
+            aria-valuemin="0"
+            aria-valuemax="1"
+          ></div>
+          <span class="dual-range-handle dual-range-handle-min" aria-hidden="true"></span>
+          <span class="dual-range-handle dual-range-handle-max" aria-hidden="true"></span>
+        </div>
+        <input class="dual-range-input dual-range-min" type="range" aria-label="Minimum value">
+        <input class="dual-range-input dual-range-max" type="range" aria-label="Maximum value">
+      </div>
+      <div class="dual-range-values">
+        <output class="dual-range-min-value"></output>
+        <span class="dual-range-scale"><i class="dual-range-limit-min"></i><i class="dual-range-limit-max"></i></span>
+        <output class="dual-range-max-value"></output>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    (function () {
+      "use strict";
+
+      function asNumber(value, fallback) {
+        const number = Number(value);
+        return Number.isFinite(number) ? number : fallback;
+      }
+
+      function precisionFromStep(step) {
+        const text = String(step);
+        if (text.includes("e-")) return Number(text.split("e-")[1]) || 0;
+        const decimal = text.split(".")[1];
+        return decimal ? decimal.length : 0;
+      }
+
+      class DualRangeSlider {
+        constructor(root, options) {
+          if (!root) throw new Error("DualRangeSlider root is required.");
+
+          this.root = root;
+          this.options = Object.assign({}, options || {});
+          this.rail = root.querySelector(".dual-range-rail");
+          this.window = root.querySelector(".dual-range-window");
+          this.minInput = root.querySelector(".dual-range-min");
+          this.maxInput = root.querySelector(".dual-range-max");
+          this.minOutput = root.querySelector(".dual-range-min-value");
+          this.maxOutput = root.querySelector(".dual-range-max-value");
+          this.limitMin = root.querySelector(".dual-range-limit-min");
+          this.limitMax = root.querySelector(".dual-range-limit-max");
+
+          this.minLimit = asNumber(this.options.minLimit ?? root.dataset.minLimit, 0);
+          this.maxLimit = asNumber(this.options.maxLimit ?? root.dataset.maxLimit, 1);
+          if (this.maxLimit <= this.minLimit) this.maxLimit = this.minLimit + 1;
+
+          this.step = Math.max(1e-12, asNumber(this.options.step ?? root.dataset.step, 0.001));
+          this.windowStep = Math.max(this.step, asNumber(this.options.windowStep ?? root.dataset.windowStep, 0.01));
+          this.windowStepLarge = Math.max(this.windowStep, asNumber(this.options.windowStepLarge ?? root.dataset.windowStepLarge, 0.05));
+          this.precision = Math.max(0, precisionFromStep(this.step));
+
+          const startMin = asNumber(this.options.min ?? root.dataset.min, this.minLimit);
+          const startMax = asNumber(this.options.max ?? root.dataset.max, this.maxLimit);
+          this.initialRange = { min: startMin, max: startMax };
+          this.range = { min: startMin, max: startMax };
+          this.windowDrag = null;
+
+          this.setupInputs();
+          this.bind();
+          this.setRange(startMin, startMax, false);
+        }
+
+        clamp(value) {
+          return Math.min(this.maxLimit, Math.max(this.minLimit, Number(value) || this.minLimit));
+        }
+
+        snap(value) {
+          const snapped = this.minLimit + Math.round((value - this.minLimit) / this.step) * this.step;
+          return this.clamp(Number(snapped.toFixed(Math.max(this.precision + 2, 8))));
+        }
+
+        setupInputs() {
+          [this.minInput, this.maxInput].forEach((input) => {
+            input.min = String(this.minLimit);
+            input.max = String(this.maxLimit);
+            input.step = String(this.step);
+          });
+          this.window.setAttribute("aria-valuemin", String(this.minLimit));
+          this.window.setAttribute("aria-valuemax", String(this.maxLimit));
+          this.limitMin.textContent = this.format(this.minLimit);
+          this.limitMax.textContent = this.format(this.maxLimit);
+        }
+
+        format(value) {
+          return Number(value).toFixed(this.precision);
+        }
+
+        percent(value) {
+          return ((value - this.minLimit) / (this.maxLimit - this.minLimit)) * 100;
+        }
+
+        setRange(minValue, maxValue, emit = true) {
+          let min = this.snap(minValue);
+          let max = this.snap(maxValue);
+
+          if (min > max) {
+            const previousMinDistance = Math.abs(min - this.range.min);
+            const previousMaxDistance = Math.abs(max - this.range.max);
+            if (previousMinDistance > previousMaxDistance) min = max;
+            else max = min;
+          }
+
+          this.range.min = min;
+          this.range.max = max;
+          this.render();
+          if (emit) this.emitChange();
+          return this.getRange();
+        }
+
+        getRange() {
+          return { min: this.range.min, max: this.range.max };
+        }
+
+        reset(emit = true) {
+          return this.setRange(this.initialRange.min, this.initialRange.max, emit);
+        }
+
+        setFullRange(emit = true) {
+          return this.setRange(this.minLimit, this.maxLimit, emit);
+        }
+
+        render() {
+          this.minInput.value = String(this.range.min);
+          this.maxInput.value = String(this.range.max);
+          this.minOutput.value = this.format(this.range.min);
+          this.maxOutput.value = this.format(this.range.max);
+
+          this.root.style.setProperty("--slice-min", this.percent(this.range.min).toFixed(3) + "%");
+          this.root.style.setProperty("--slice-max", this.percent(this.range.max).toFixed(3) + "%");
+          this.window.setAttribute(
+            "aria-valuetext",
+            this.format(this.range.min) + " to " + this.format(this.range.max),
+          );
+        }
+
+        emitChange() {
+          const detail = this.getRange();
+          this.root.dispatchEvent(new CustomEvent("dual-range-change", {
+            bubbles: true,
+            detail,
+          }));
+
+          if (window.parent && window.parent !== window) {
+            const targetOrigin = location.origin === "null" ? "*" : location.origin;
+            window.parent.postMessage({ type: "dual-range-change", ...detail }, targetOrigin);
+          }
+        }
+
+        setHandleActive(kind, active, focus) {
+          this.root.classList.toggle("is-" + kind + "-active", active);
+          if (focus !== undefined) {
+            this.root.classList.toggle("is-" + kind + "-focus", focus);
+          }
+        }
+
+        bindHandle(input, kind) {
+          input.addEventListener("input", () => {
+            if (kind === "min") {
+              this.setRange(Math.min(Number(input.value), this.range.max), this.range.max);
+            } else {
+              this.setRange(this.range.min, Math.max(Number(input.value), this.range.min));
+            }
+          });
+
+          input.addEventListener("pointerenter", () => this.setHandleActive(kind, true));
+          input.addEventListener("pointerleave", () => {
+            if (document.activeElement !== input) this.setHandleActive(kind, false);
+          });
+          input.addEventListener("pointerdown", () => this.setHandleActive(kind, true));
+          input.addEventListener("pointerup", () => {
+            if (!input.matches(":hover") && document.activeElement !== input) {
+              this.setHandleActive(kind, false);
+            }
+          });
+          input.addEventListener("focus", () => this.setHandleActive(kind, true, true));
+          input.addEventListener("blur", () => {
+            this.setHandleActive(kind, input.matches(":hover"), false);
+          });
+        }
+
+        bind() {
+          this.bindHandle(this.minInput, "min");
+          this.bindHandle(this.maxInput, "max");
+
+          this.window.addEventListener("pointerdown", (event) => {
+            if (event.button !== 0) return;
+            event.preventDefault();
+            this.windowDrag = {
+              pointerId: event.pointerId,
+              startX: event.clientX,
+              startMin: this.range.min,
+              startMax: this.range.max,
+            };
+            this.window.setPointerCapture(event.pointerId);
+            this.window.classList.add("is-dragging");
+          });
+
+          this.window.addEventListener("pointermove", (event) => {
+            if (!this.windowDrag || event.pointerId !== this.windowDrag.pointerId) return;
+            const rect = this.rail.getBoundingClientRect();
+            if (rect.width <= 1) return;
+
+            const domain = this.maxLimit - this.minLimit;
+            const delta = ((event.clientX - this.windowDrag.startX) / rect.width) * domain;
+            const intervalWidth = this.windowDrag.startMax - this.windowDrag.startMin;
+            const min = Math.min(
+              this.maxLimit - intervalWidth,
+              Math.max(this.minLimit, this.windowDrag.startMin + delta),
+            );
+            this.setRange(min, min + intervalWidth);
+          });
+
+          const finishWindowDrag = (event) => {
+            if (!this.windowDrag || event.pointerId !== this.windowDrag.pointerId) return;
+            this.window.classList.remove("is-dragging");
+            if (this.window.hasPointerCapture(event.pointerId)) {
+              this.window.releasePointerCapture(event.pointerId);
+            }
+            this.windowDrag = null;
+          };
+
+          this.window.addEventListener("pointerup", finishWindowDrag);
+          this.window.addEventListener("pointercancel", finishWindowDrag);
+
+          this.window.addEventListener("keydown", (event) => {
+            if (event.key !== "ArrowLeft" && event.key !== "ArrowRight") return;
+            event.preventDefault();
+
+            const intervalWidth = this.range.max - this.range.min;
+            const step = event.shiftKey ? this.windowStepLarge : this.windowStep;
+            const direction = event.key === "ArrowLeft" ? -1 : 1;
+            const min = Math.min(
+              this.maxLimit - intervalWidth,
+              Math.max(this.minLimit, this.range.min + direction * step),
+            );
+            this.setRange(min, min + intervalWidth);
+          });
+        }
+      }
+
+      function readQueryOptions() {
+        const query = new URLSearchParams(location.search);
+        const options = {};
+        ["min", "max", "step", "minLimit", "maxLimit", "windowStep", "windowStepLarge"].forEach((key) => {
+          if (query.has(key)) options[key] = query.get(key);
+        });
+
+        const accent = query.get("accent");
+        if (accent) document.documentElement.style.setProperty("--accent", accent);
+
+        const theme = query.get("theme");
+        if (theme === "light" || theme === "dark") {
+          document.documentElement.setAttribute("data-theme", theme);
+        }
+        return options;
+      }
+
+      const root = document.getElementById("dualRangeSlider");
+      const instance = new DualRangeSlider(root, readQueryOptions());
+
+      window.DualRangeSlider = DualRangeSlider;
+      window.dualRangeSlider = instance;
+
+      window.addEventListener("message", function (event) {
+        const data = event.data || {};
+        if (data.type === "dual-range-set") {
+          instance.setRange(data.min, data.max);
+        } else if (data.type === "dual-range-reset") {
+          instance.reset();
+        } else if (data.type === "dual-range-full") {
+          instance.setFullRange();
+        } else if (data.type === "dual-range-get") {
+          const targetOrigin = event.origin && event.origin !== "null" ? event.origin : "*";
+          event.source?.postMessage({ type: "dual-range-value", ...instance.getRange() }, targetOrigin);
+        }
+      });
+    })();
+  </script>
+</body>
+</html>

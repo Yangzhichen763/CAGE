@@ -1,5 +1,5 @@
 #gallery {
-    --gallery-shell-max: 840px;
+    --gallery-shell-max: 1180px;
     --gallery-shell-gutter: 32px;
     --gallery-feature-gap: 22px;
     --gallery-heading-gap: 12px;
@@ -67,7 +67,7 @@
 }
 
 #gallery .gallery-feature-heading>p {
-    max-width: 620px;
+    max-width: 740px;
     margin: 0;
     color: var(--muted);
     font-size: 0.78rem;
@@ -76,7 +76,7 @@
 }
 
 #galleryArena {
-    max-width: 1120px;
+    max-width: 1080px;
     margin: 0 auto;
 }
 
@@ -190,7 +190,7 @@
 #gallery .cs-pill,
 #gallery .cs-live-pill {
     flex: 0 0 auto;
-    max-width: 180px;
+    max-width: 240px;
     overflow: hidden;
     border: var(--cs-border);
     border-radius: var(--cs-pill-radius);
@@ -492,8 +492,20 @@
 }
 
 #gallery .cs-space-tabs-top {
+    position: relative;
     grid-template-columns: repeat(5, minmax(0, 1fr));
-    margin-bottom: 12px;
+    gap: 5px;
+    margin-bottom: 14px;
+    padding: 6px;
+    border-color: color-mix(in srgb, var(--accent) 28%, var(--line));
+    border-radius: 14px;
+    isolation: isolate;
+    background: color-mix(in srgb, var(--accent) 4%, var(--surface-2));
+    box-shadow: 0 10px 24px -22px color-mix(in srgb, var(--accent) 48%, var(--shadow));
+}
+
+#gallery .cs-space-tabs-top::before {
+    content: none;
 }
 
 #gallery .cs-seg-button {
@@ -507,6 +519,23 @@
     font-size: 0.64rem;
     font-weight: 750;
     position: relative;
+}
+
+#gallery .cs-space-tabs-top .cs-seg-button {
+    min-height: 40px;
+    padding: 7px 10px;
+    border: 1px solid color-mix(in srgb, var(--line) 82%, transparent);
+    border-radius: 10px;
+    background: var(--surface);
+    font-size: 0.74rem;
+    font-weight: 800;
+    letter-spacing: 0.025em;
+    transition:
+        transform var(--cs-transition),
+        color var(--cs-transition),
+        border-color var(--cs-transition),
+        background-color var(--cs-transition),
+        box-shadow var(--cs-transition);
 }
 
 #gallery .cs-seg-button::after {
@@ -530,6 +559,12 @@
     width: 60%;
 }
 
+#gallery .cs-space-tabs-top .cs-seg-button:hover {
+    transform: translateY(-1px);
+    border-color: color-mix(in srgb, var(--accent) 30%, var(--line));
+    background: color-mix(in srgb, var(--accent) 7%, var(--surface));
+}
+
 #gallery .cs-seg-button.is-active {
     color: var(--accent);
     background: transparent;
@@ -538,6 +573,20 @@
 
 #gallery .cs-seg-button.is-active::after {
     width: 80%;
+}
+
+#gallery .cs-space-tabs-top .cs-seg-button.is-active {
+    color: var(--accent-text, #fff);
+    border-color: var(--accent);
+    background: var(--accent);
+    box-shadow: 0 7px 16px -13px color-mix(in srgb, var(--accent) 82%, var(--shadow));
+}
+
+#gallery .cs-space-tabs-top .cs-seg-button.is-active::after {
+    width: 42%;
+    bottom: 4px;
+    height: 2px;
+    background: color-mix(in srgb, var(--accent-text, #fff) 72%, transparent);
 }
 
 #gallery .cs-summary {
@@ -1122,72 +1171,54 @@
     background: var(--accent);
 }
 
+/* Brightness Slice is a viewport-level floating layer anchored to its active Mapping toggle. */
 .cs-slice-overlay-layer {
     position: fixed;
     inset: 0;
-    z-index: 1200;
-    width: 100%;
-    height: 100%;
-    overflow: hidden;
-    overflow: clip;
-    contain: strict;
-    isolation: isolate;
-    overflow-anchor: none;
+    z-index: 90;
+    overflow: visible;
     pointer-events: none;
 }
 
 .cs-slice-popover {
-    --cs-slice-popover-x: calc(100vw - 374px);
-    --cs-slice-popover-y: 82px;
+    --cs-slice-popover-width: 356px;
     position: absolute;
-    top: 0;
-    left: 0;
-    z-index: 1;
+    left: 12px;
+    top: 72px;
+    width: min(var(--cs-slice-popover-width), calc(100vw - 24px));
+    max-height: calc(100vh - 72px);
     box-sizing: border-box;
-    width: min(356px, calc(100vw - 28px));
-    height: auto;
-    max-height: none;
-    overflow: hidden;
-    padding: 14px 14px 13px;
+    overflow: auto;
+    padding: 14px;
     border: 1px solid var(--line);
-    border-radius: 16px;
+    border-radius: 14px;
     color: var(--ink);
-    background: color-mix(in srgb, var(--surface) 94%, transparent);
-    box-shadow: 0 22px 54px -28px var(--shadow);
-    backdrop-filter: blur(18px) saturate(150%);
-    -webkit-backdrop-filter: blur(18px) saturate(150%);
-    overscroll-behavior: contain;
-    overflow-anchor: none;
-    contain: layout paint style;
-    transform: translate3d(
-        var(--cs-slice-popover-x),
-        var(--cs-slice-popover-y),
-        0
-    );
-    will-change: transform, opacity;
+    background: color-mix(in srgb, var(--surface) 96%, transparent);
+    box-shadow: 0px 0px 24px 3px var(--shadow);
+    backdrop-filter: blur(16px) saturate(145%);
+    -webkit-backdrop-filter: blur(16px) saturate(145%);
     opacity: 0;
     visibility: hidden;
+    transform: translateY(7px) scale(0.985);
+    transform-origin: bottom right;
     pointer-events: none;
     transition:
-        opacity 0.14s ease,
-        visibility 0s linear 0.14s;
+        opacity 0.18s ease,
+        transform 0.18s ease,
+        visibility 0s linear 0.18s;
 }
 
 .cs-slice-popover.is-open {
     opacity: 1;
     visibility: visible;
+    transform: translateY(0) scale(1);
     pointer-events: auto;
     transition-delay: 0s;
 }
 
 .cs-slice-popover.is-dragging {
+    transition: none;
     user-select: none;
-}
-
-.cs-slice-popover.is-outside-boundary {
-    opacity: 0;
-    visibility: hidden;
-    pointer-events: none;
 }
 
 .cs-slice-popover-head {
@@ -1197,12 +1228,7 @@
     gap: 14px;
     margin-bottom: 11px;
     cursor: grab;
-    touch-action: none;
     user-select: none;
-}
-
-.cs-slice-popover.is-dragging .cs-slice-popover-head {
-    cursor: grabbing;
 }
 
 .cs-slice-popover-head > div {
@@ -1265,7 +1291,7 @@
 }
 
 .cs-slice-overview {
-    aspect-ratio: 680 / 420;
+    aspect-ratio: var(--cs-slice-preview-ratio, 680 / 420);
 }
 
 .cs-slice-preview {
@@ -1315,6 +1341,7 @@
     --slice-min: 25%;
     --slice-max: 75%;
     --cs-slice-thumb-size: 14px;
+    --cs-slice-handle-size: 16px;
     position: relative;
     flex: 0 0 36px;
     height: 36px;
@@ -1325,64 +1352,176 @@
 .cs-dual-range-rail {
     position: absolute;
     inset: 0 calc(var(--cs-slice-thumb-size) / 2);
-    z-index: 2;
+    z-index: 1;
     pointer-events: none;
 }
 
-.cs-dual-range-track {
-    position: absolute;
-    top: 16px;
-    right: 0;
-    left: 0;
-    height: 5px;
-    overflow: hidden;
-    border-radius: 999px;
-    background: color-mix(in srgb, var(--muted) 18%, var(--surface-2));
-    pointer-events: none;
-}
-
-.cs-dual-range-track::after {
+.cs-dual-range-rail::before {
     content: "";
     position: absolute;
-    top: 0;
-    bottom: 0;
-    left: var(--slice-min);
-    right: calc(100% - var(--slice-max));
-    border-radius: inherit;
-    background: var(--accent);
+    left: 0;
+    right: 0;
+    top: 50%;
+    height: 4px;
+    border-radius: 999px;
+    background: color-mix(in srgb, var(--line) 86%, var(--surface) 14%);
+    box-shadow: none;
+    transform: translateY(-50%);
+    pointer-events: none;
 }
 
 .cs-dual-range-window {
     position: absolute;
-    top: 10px;
-    bottom: 9px;
+    top: 6px;
+    bottom: 6px;
     left: var(--slice-min);
     right: calc(100% - var(--slice-max));
-    z-index: 1;
+    z-index: 2;
     min-width: 0;
-    border: 1px solid color-mix(in srgb, var(--accent) 42%, transparent);
+    border: 0;
     border-radius: 999px;
-    background: color-mix(in srgb, var(--accent) 11%, transparent);
+    background: transparent;
     cursor: grab;
     pointer-events: auto;
     touch-action: none;
 }
 
-.cs-dual-range-window:hover,
-.cs-dual-range-window:focus-visible,
-.cs-dual-range-window.is-dragging {
-    border-color: color-mix(in srgb, var(--accent) 72%, transparent);
-    background: color-mix(in srgb, var(--accent) 17%, transparent);
+.cs-dual-range-window::before {
+    content: "";
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: 50%;
+    height: 8px;
+    border: 1px solid color-mix(in srgb, var(--accent) 48%, var(--line) 52%);
+    border-radius: 999px;
+    background: color-mix(in srgb, var(--accent) 24%, var(--surface) 76%);
+    box-shadow: 0 2px 7px -6px var(--shadow);
+    transform: translateY(-50%);
+    transition:
+        background-color 160ms ease,
+        border-color 160ms ease,
+        box-shadow 160ms ease,
+        transform 160ms ease;
+    pointer-events: none;
+}
+
+.cs-dual-range-window:hover::before {
+    border-color: color-mix(in srgb, var(--accent) 58%, var(--line) 42%);
+    background: color-mix(in srgb, var(--accent) 28%, var(--surface) 72%);
 }
 
 .cs-dual-range-window.is-dragging {
     cursor: grabbing;
 }
 
+.cs-dual-range-window.is-dragging::before {
+    border-color: color-mix(in srgb, var(--accent) 70%, var(--line) 30%);
+    background: color-mix(in srgb, var(--accent) 34%, var(--surface) 66%);
+    box-shadow: 0 4px 11px -8px var(--shadow);
+    transform: translateY(-50%) scaleY(1.08);
+}
+
+.cs-dual-range-handle {
+    position: absolute;
+    top: 50%;
+    z-index: 3;
+    width: var(--cs-slice-handle-size);
+    height: var(--cs-slice-handle-size);
+    transform: translate(-50%, -50%);
+    pointer-events: none;
+}
+
+.cs-dual-range-handle-min {
+    left: var(--slice-min);
+    transform: translate(0, -50%);
+}
+
+.cs-dual-range-handle-max {
+    left: var(--slice-max);
+    transform: translate(-100%, -50%);
+}
+
+.cs-dual-range-handle::before,
+.cs-dual-range-handle::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    margin: auto;
+    transform-origin: 50% 50%;
+    transition:
+        opacity 160ms ease,
+        transform 190ms cubic-bezier(0.2, 0.78, 0.25, 1),
+        box-shadow 190ms ease,
+        background-color 190ms ease,
+        border-color 190ms ease;
+}
+
+.cs-dual-range-handle::before {
+    width: 10px;
+    height: 10px;
+    opacity: 1;
+    background: var(--accent);
+    transform: scale(1);
+    -webkit-mask-position: center;
+    -webkit-mask-repeat: no-repeat;
+    -webkit-mask-size: 10px 10px;
+    mask-position: center;
+    mask-repeat: no-repeat;
+    mask-size: 10px 10px;
+}
+
+.cs-dual-range-handle-min::before {
+    -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M14.5 6.5 9 12l5.5 5.5' fill='none' stroke='black' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+    mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M14.5 6.5 9 12l5.5 5.5' fill='none' stroke='black' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+}
+
+.cs-dual-range-handle-max::before {
+    -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='m9.5 6.5 5.5 5.5-5.5 5.5' fill='none' stroke='black' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+    mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='m9.5 6.5 5.5 5.5-5.5 5.5' fill='none' stroke='black' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+}
+
+.cs-dual-range-handle::after {
+    width: 14px;
+    height: 14px;
+    box-sizing: border-box;
+    border: 2px solid var(--accent);
+    border-radius: 50%;
+    opacity: 0;
+    background: var(--surface);
+    box-shadow: 0 2px 8px -3px var(--shadow);
+    transform: scale(0.64);
+}
+
+.cs-dual-range:has(.cs-dual-range-min:hover) .cs-dual-range-handle-min::before,
+.cs-dual-range:has(.cs-dual-range-min:active) .cs-dual-range-handle-min::before,
+.cs-dual-range:has(.cs-dual-range-min:focus-visible) .cs-dual-range-handle-min::before,
+.cs-dual-range:has(.cs-dual-range-max:hover) .cs-dual-range-handle-max::before,
+.cs-dual-range:has(.cs-dual-range-max:active) .cs-dual-range-handle-max::before,
+.cs-dual-range:has(.cs-dual-range-max:focus-visible) .cs-dual-range-handle-max::before {
+    opacity: 0;
+    transform: scale(0.58);
+}
+
+.cs-dual-range:has(.cs-dual-range-min:hover) .cs-dual-range-handle-min::after,
+.cs-dual-range:has(.cs-dual-range-min:active) .cs-dual-range-handle-min::after,
+.cs-dual-range:has(.cs-dual-range-min:focus-visible) .cs-dual-range-handle-min::after,
+.cs-dual-range:has(.cs-dual-range-max:hover) .cs-dual-range-handle-max::after,
+.cs-dual-range:has(.cs-dual-range-max:active) .cs-dual-range-handle-max::after,
+.cs-dual-range:has(.cs-dual-range-max:focus-visible) .cs-dual-range-handle-max::after {
+    opacity: 1;
+    transform: scale(1);
+}
+
+.cs-dual-range:has(.cs-dual-range-min:focus-visible) .cs-dual-range-handle-min::after,
+.cs-dual-range:has(.cs-dual-range-max:focus-visible) .cs-dual-range-handle-max::after {
+    box-shadow: 0 0 0 4px color-mix(in srgb, var(--accent) 20%, transparent);
+}
+
 .cs-dual-range-input {
     position: absolute;
     inset: 0;
-    z-index: 3;
+    z-index: 4;
     width: 100%;
     height: 36px;
     padding: 0;
@@ -1396,13 +1535,13 @@
 }
 
 .cs-dual-range-input::-webkit-slider-runnable-track {
-    height: 5px;
+    height: 1px;
     border: 0;
     background: transparent;
 }
 
 .cs-dual-range-input::-moz-range-track {
-    height: 5px;
+    height: 1px;
     border: 0;
     background: transparent;
 }
@@ -1411,13 +1550,13 @@
     box-sizing: border-box;
     width: var(--cs-slice-thumb-size);
     height: var(--cs-slice-thumb-size);
-    margin-top: calc((5px - var(--cs-slice-thumb-size)) / 2);
+    margin-top: calc((1px - var(--cs-slice-thumb-size)) / 2);
     appearance: none;
     -webkit-appearance: none;
-    border: 2px solid var(--accent);
+    border: 0;
     border-radius: 50%;
-    background: var(--surface);
-    box-shadow: 0 2px 8px -3px var(--shadow);
+    background: transparent;
+    box-shadow: none;
     cursor: ew-resize;
     pointer-events: auto;
 }
@@ -1426,20 +1565,19 @@
     box-sizing: border-box;
     width: var(--cs-slice-thumb-size);
     height: var(--cs-slice-thumb-size);
-    border: 2px solid var(--accent);
+    border: 0;
     border-radius: 50%;
-    background: var(--surface);
-    box-shadow: 0 2px 8px -3px var(--shadow);
+    background: transparent;
+    box-shadow: none;
     cursor: ew-resize;
     pointer-events: auto;
 }
 
-.cs-dual-range-input:focus-visible::-webkit-slider-thumb {
-    box-shadow: 0 0 0 4px color-mix(in srgb, var(--accent) 20%, transparent);
-}
-
-.cs-dual-range-input:focus-visible::-moz-range-thumb {
-    box-shadow: 0 0 0 4px color-mix(in srgb, var(--accent) 20%, transparent);
+@media (prefers-reduced-motion: reduce) {
+    .cs-dual-range-handle::before,
+    .cs-dual-range-handle::after {
+        transition: none;
+    }
 }
 
 .cs-slice-values {
@@ -1518,8 +1656,76 @@
     background: var(--accent-soft);
 }
 
+
+/* Gallery feature cards share one border/background geometry for heading and content. */
+#gallery .gallery-feature-card {
+    width: 100%;
+    box-sizing: border-box;
+    overflow: hidden;
+    border: 1px solid var(--line);
+    border-radius: 20px;
+    background: var(--surface);
+    box-shadow: 0 22px 48px -40px var(--shadow);
+}
+
+#gallery .gallery-feature-card + .gallery-feature-card {
+    margin-top: 30px;
+}
+
+#gallery .gallery-feature-heading {
+    box-sizing: border-box;
+    width: 100%;
+    margin: 0;
+    padding: 18px 20px 12px;
+    border: 0;
+    border-bottom: 1px solid var(--line);
+    border-radius: 0;
+    background: transparent;
+}
+
+#gallery .gallery-feature-heading-color {
+    margin-top: 0;
+}
+
+#gallery .gallery-feature-number {
+    min-width: 28px;
+    height: 24px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 999px;
+    color: var(--accent);
+    background: var(--accent-soft);
+}
+
+#gallery .gallery-panel {
+    box-sizing: border-box;
+    width: 100%;
+    padding: 8px 20px 20px;
+    border: 0;
+    border-radius: 0;
+    background: transparent;
+    box-shadow: none;
+}
+
+#galleryArena .arena-container {
+    padding: 12px 0 0;
+}
+
+
 @media (max-width: 760px) {
+    #gallery .gallery-feature-heading {
+        align-items: flex-start;
+    }
+
+    #gallery .gallery-panel {
+        padding: 8px 14px 16px;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
     .cs-slice-popover {
-        width: min(356px, calc(100vw - 24px));
+        transition: none;
+        transform: none;
     }
 }

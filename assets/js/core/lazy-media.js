@@ -1,4 +1,6 @@
 const observed = new WeakSet();
+const MEDIA_CONFIG = window.CAGE_CONFIG?.media || {};
+const LAZY_ROOT_MARGIN = MEDIA_CONFIG.lazyRootMargin || "1200px 0px";
 
 function revealImage(img) {
     if (img.dataset.src) {
@@ -10,63 +12,12 @@ function revealImage(img) {
             return;
         }
 
-        fetch(src, { method: 'HEAD' })
-            .then(headResponse => {
-                if (!headResponse.ok) {
-                    throw new Error("Image not found");
-                }
-                return fetch(src);
-            })
-            .then(response => {
-                if (!response.ok) {
-                    throw new Error("Network response was not ok");
-                }
-
-                const contentLength = response.headers.get("content-length");
-                const total = contentLength ? parseInt(contentLength, 10) : null;
-                let loaded = 0;
-                const reader = response.body.getReader();
-
-                return new ReadableStream({
-                    async start(controller) {
-                        while (true) {
-                            const { done, value } = await reader.read();
-                            if (done) break;
-
-                            loaded += value.length;
-                            if (total) {
-                                const progress = Math.round((loaded / total) * 100);
-                                const placeholder = img.nextElementSibling;
-                                if (placeholder?.classList.contains("img-placeholder")) {
-                                    const label = placeholder.querySelector(".label");
-                                    if (label) label.textContent = progress + "%";
-                                }
-                            }
-
-                            controller.enqueue(value);
-                        }
-                        controller.close();
-                    }
-                });
-            })
-            .then(stream => new Response(stream))
-            .then(response => response.blob())
-            .then(blob => {
-                const objectUrl = URL.createObjectURL(blob);
-                img.src = objectUrl;
-                img.onload = function () {
-                    URL.revokeObjectURL(objectUrl);
-                    showMedia(img);
-                };
-                img.onerror = function () {
-                    URL.revokeObjectURL(objectUrl);
-                    showMediaFallback(img);
-                };
-            })
-            .catch(() => {
-                showMediaFallback(img);
-            });
+        // Let the browser own fetching, caching, decoding, and request prioritization.
+        // This avoids the previous HEAD + GET + Blob/ObjectURL round trip.
+        img.decoding = img.decoding || "async";
+        img.src = src;
     }
+
     if (img.dataset.srcset) {
         img.srcset = img.dataset.srcset;
         delete img.dataset.srcset;
@@ -93,12 +44,12 @@ function showMediaFallback(img) {
     if (placeholder?.classList.contains("img-placeholder")) {
         img.style.visibility = "hidden";
         placeholder.style.display = "flex";
-        
+
         const icon = placeholder.querySelector(".icon");
         if (icon) {
             icon.innerHTML = '<svg fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.6" viewBox="0 0 24 24"><rect height="18" rx="2" width="18" x="3" y="3"></rect><circle cx="9" cy="9" r="2"></circle><path d="M21 15l-5-5L5 21"></path></svg>';
         }
-        
+
         const filename = placeholder.querySelector(".filename");
         const label = placeholder.querySelector(".label");
         if (filename) filename.textContent = img.dataset.placeholderFile || "image.png";
@@ -112,17 +63,15 @@ function showLoadingPlaceholder(img) {
     if (placeholder?.classList.contains("img-placeholder")) {
         img.style.visibility = "hidden";
         placeholder.style.display = "flex";
-        
+
         const icon = placeholder.querySelector(".icon");
-        if (icon) {
-            icon.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
-        }
-        
+        if (icon) icon.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
+
         const filename = placeholder.querySelector(".filename");
         if (filename) filename.textContent = "Loading...";
-        
+
         const label = placeholder.querySelector(".label");
-        if (label) label.textContent = "0%";
+        if (label) label.textContent = "Loading...";
     }
 }
 
@@ -132,14 +81,12 @@ const observer = "IntersectionObserver" in window
             entries.forEach(entry => {
                 if (!entry.isIntersecting) return;
                 const target = entry.target;
-                if (target.tagName === "IMG") {
-                    showLoadingPlaceholder(target);
-                }
+                if (target.tagName === "IMG") showLoadingPlaceholder(target);
                 revealImage(target);
                 observer.unobserve(target);
             });
         },
-        { rootMargin: "600px 0px", threshold: 0.01 },
+        { rootMargin: LAZY_ROOT_MARGIN, threshold: 0.01 },
     )
     : null;
 
@@ -155,9 +102,7 @@ export function observeLazyMedia(root = document) {
 
         if (observer) observer.observe(media);
         else {
-            if (media.tagName === "IMG") {
-                showLoadingPlaceholder(media);
-            }
+            if (media.tagName === "IMG") showLoadingPlaceholder(media);
             revealImage(media);
         }
     });

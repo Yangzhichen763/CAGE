@@ -1,18 +1,39 @@
 (function () {
     "use strict";
 
-    const DEFAULT_SOURCE_MODE = "normal-light";
-    const DEFAULT_SOURCE_IMAGE = "figures/example_output_00049.png";
+    const COLOR_CONFIG = Object.assign({
+        defaultSourceMode: "normal-light",
+        defaultSourceImage: "figures/example_output_00049.png",
+        imageBudget: 32000,
+        latticeResolution: 32,
+        hviDensity: 0.2,
+        maxSamplingDimension: 1400,
+        loadedCanvasWidth: 720,
+        loadedCanvasHeight: 480,
+        pointSize: 3,
+    }, window.CAGE_CONFIG?.colorSpace || {});
+    const SLICE_CONFIG = Object.assign({
+        min: 0.45,
+        max: 0.55,
+        step: 0.001,
+        canvasWidth: 680,
+        canvasHeight: 420,
+        popoverWidth: 356,
+        horizontalViewportInset: 12,
+        anchorGap: 10,
+    }, COLOR_CONFIG.slice || {});
+    const DEFAULT_SOURCE_MODE = COLOR_CONFIG.defaultSourceMode;
+    const DEFAULT_SOURCE_IMAGE = COLOR_CONFIG.defaultSourceImage;
     const DEFAULT_SOURCE_NAME = DEFAULT_SOURCE_IMAGE.split("/").pop();
 
     const state = {
         space: "RGB",
         hsvProjection: "cylindrical",
-        hviDensity: 0.2,
+        hviDensity: COLOR_CONFIG.hviDensity,
         labProjection: "cylindrical",
         normalizeRange: true,
-        imageBudget: 32000,
-        latticeResolution: 32,
+        imageBudget: COLOR_CONFIG.imageBudget,
+        latticeResolution: COLOR_CONFIG.latticeResolution,
         imageRGB: null,
         imageLinearColors: null,
         latticeRGB: null,
@@ -31,7 +52,7 @@
     let isLoading = false;
     let loadingAnimationId = null;
     let isInitializing = true;
-    const sharedSliceRange = { min: 0.45, max: 0.55 };
+    const sharedSliceRange = { min: SLICE_CONFIG.min, max: SLICE_CONFIG.max };
     const sliceStates = {
         image: { enabled: false },
         lattice: { enabled: false },
@@ -41,13 +62,11 @@
     let sliceUI = null;
     let slicePreviewFrame = 0;
     let sliceWindowDrag = null;
-    let sliceBoundaryObserver = null;
-    let slicePositionFrame = 0;
     let slicePopoverDrag = null;
-    const slicePopoverPosition = {
-        x: null,
-        y: null,
-        userPlaced: false,
+    let slicePositionFrame = 0;
+    const slicePopoverOffsets = {
+        image: { x: 0, y: 0, userPlaced: false },
+        lattice: { x: 0, y: 0, userPlaced: false },
     };
 
     function selectElements() {
@@ -141,7 +160,7 @@
     }
 
     function formatCount(value) {
-        return new Intl.NumberFormat("en-US").format(value) + " points";
+        return new Intl.NumberFormat("en-US").format(value) + " pts.";
     }
 
 
@@ -162,63 +181,73 @@
     }
 
     function getSliceTitle(kind) {
-        return kind === "image" ? "Image brightness slice" : "Gamut brightness slice";
+        return kind === "image" ? "Image Brightness Slice" : "Gamut Brightness Slice";
     }
 
     function isSlicePopoverOpen() {
         return Boolean(sliceUI && sliceUI.popover.classList.contains("is-open"));
     }
 
-    function positionSlicePopover() {
-        if (!sliceUI) return;
-        const boundary = document.querySelector("#gallery .cs-four-column");
-        if (!boundary) return;
+    function getSliceAnchorPosition(kind, panelWidth, panelHeight) {
+        const button = sliceUI?.buttons?.[kind];
+        if (!button) return null;
 
-        const rect = boundary.getBoundingClientRect();
+        const buttonRect = button.getBoundingClientRect();
         const viewportWidth = document.documentElement.clientWidth;
         const viewportHeight = document.documentElement.clientHeight;
-        const horizontalInset = 12;
-        const topbar = document.querySelector("nav.top");
-        const topbarRect = topbar ? topbar.getBoundingClientRect() : null;
-        const topbarBottom = topbarRect
-            ? Math.min(viewportHeight, Math.max(0, topbarRect.bottom))
-            : 0;
-        const boundaryTop = Math.max(0, topbarBottom, rect.top);
-        const boundaryBottom = Math.min(viewportHeight, rect.bottom);
-        const panelWidth = Math.max(1, Math.min(356, viewportWidth - horizontalInset * 2));
+        const horizontalInset = Math.max(0, SLICE_CONFIG.horizontalViewportInset);
+        const anchorGap = Math.max(0, Number(SLICE_CONFIG.anchorGap) || 10);
+        const topbarBottom = document.querySelector("nav.top")?.getBoundingClientRect().bottom || 0;
 
-        sliceUI.popover.style.width = panelWidth + "px";
-        sliceUI.popover.style.height = "auto";
-        sliceUI.popover.style.maxHeight = "none";
-        const panelHeight = Math.max(1, sliceUI.popover.getBoundingClientRect().height);
-        const availableHeight = boundaryBottom - boundaryTop;
-        const outsideBoundary =
-            rect.bottom <= topbarBottom ||
-            rect.top >= viewportHeight ||
-            availableHeight < panelHeight;
-
-        sliceUI.popover.classList.toggle("is-outside-boundary", outsideBoundary);
-        if (outsideBoundary) return;
-
+        // The default position is anchored to the active Slice toggle: the panel sits
+        // above the corresponding Mapping view and follows the toggle while scrolling.
+        const defaultLeft = buttonRect.right - panelWidth;
+        const defaultTop = buttonRect.top - anchorGap - panelHeight;
         const minX = horizontalInset;
         const maxX = Math.max(minX, viewportWidth - horizontalInset - panelWidth);
-        const minY = boundaryTop;
-        const maxY = Math.max(minY, boundaryBottom - panelHeight);
-        const defaultX = maxX;
-        const defaultY = minY;
-        const requestedX = slicePopoverPosition.userPlaced
-            ? slicePopoverPosition.x
-            : defaultX;
-        const requestedY = slicePopoverPosition.userPlaced
-            ? slicePopoverPosition.y
-            : defaultY;
-        const left = Math.min(maxX, Math.max(minX, Number(requestedX) || defaultX));
-        const top = Math.min(maxY, Math.max(minY, Number(requestedY) || defaultY));
+        const minY = Math.max(0, topbarBottom);
+        const maxY = Math.max(minY, viewportHeight - Math.min(horizontalInset, 8) - panelHeight);
 
-        slicePopoverPosition.x = left;
-        slicePopoverPosition.y = top;
-        sliceUI.popover.style.setProperty("--cs-slice-popover-x", left + "px");
-        sliceUI.popover.style.setProperty("--cs-slice-popover-y", top + "px");
+        return {
+            left: Math.min(maxX, Math.max(minX, defaultLeft)),
+            top: Math.min(maxY, Math.max(minY, defaultTop)),
+        };
+    }
+
+    function positionSlicePopover() {
+        if (!sliceUI || !activeSliceKind) return;
+
+        const viewportWidth = document.documentElement.clientWidth;
+        const viewportHeight = document.documentElement.clientHeight;
+        const horizontalInset = Math.max(0, SLICE_CONFIG.horizontalViewportInset);
+        const panelWidth = Math.max(1, Math.min(
+            SLICE_CONFIG.popoverWidth,
+            viewportWidth - horizontalInset * 2,
+        ));
+
+        sliceUI.popover.style.width = panelWidth + "px";
+        sliceUI.popover.style.maxHeight = Math.max(1, viewportHeight - 8) + "px";
+
+        const panelHeight = Math.min(
+            sliceUI.popover.getBoundingClientRect().height,
+            Math.max(1, viewportHeight - 8),
+        );
+        const anchor = getSliceAnchorPosition(activeSliceKind, panelWidth, panelHeight);
+        if (!anchor) return;
+
+        const offset = slicePopoverOffsets[activeSliceKind];
+        const requestedLeft = anchor.left + (offset?.userPlaced ? offset.x : 0);
+        const requestedTop = anchor.top + (offset?.userPlaced ? offset.y : 0);
+        const minX = horizontalInset;
+        const maxX = Math.max(minX, viewportWidth - horizontalInset - panelWidth);
+        const topbarBottom = document.querySelector("nav.top")?.getBoundingClientRect().bottom || 0;
+        const minY = Math.max(0, topbarBottom);
+        const maxY = Math.max(minY, viewportHeight - Math.min(horizontalInset, 8) - panelHeight);
+        const left = Math.min(maxX, Math.max(minX, requestedLeft));
+        const top = Math.min(maxY, Math.max(minY, requestedTop));
+
+        sliceUI.popover.style.left = left + "px";
+        sliceUI.popover.style.top = top + "px";
     }
 
     function scheduleSlicePopoverPosition() {
@@ -489,7 +518,7 @@
     }
 
     function drawSlicePreview(kind) {
-        if (!sliceUI || activeSliceKind !== kind || !isSlicePopoverOpen()) return;
+        if (!sliceUI || activeSliceKind !== kind) return;
         const canvas = sliceUI.canvas;
         const context = canvas.getContext("2d");
         const dataset = sliceDatasets[kind];
@@ -530,7 +559,7 @@
             context.textAlign = "center";
             context.textBaseline = "middle";
             context.fillText("Preparing slice preview…", width / 2, height / 2);
-            sliceUI.selectedCount.textContent = "0 points";
+            sliceUI.selectedCount.textContent = "0 pts.";
             return;
         }
 
@@ -632,7 +661,7 @@
             new Intl.NumberFormat("en-US").format(selectedTotal) +
             " of " +
             new Intl.NumberFormat("en-US").format(dataset.totalCount) +
-            " points";
+            " pts.";
     }
 
     function scheduleSlicePreview(kind) {
@@ -660,7 +689,7 @@
             sharedSliceRange.min.toFixed(3) + " to " + sharedSliceRange.max.toFixed(3),
         );
         scheduleSlicePreview(kind);
-        positionSlicePopover();
+        scheduleSlicePopoverPosition();
     }
 
     function setSliceRange(kind, minValue, maxValue) {
@@ -686,13 +715,15 @@
         if (activeSliceKind) {
             sliceStates[activeSliceKind].enabled = false;
             applySliceState(activeSliceKind);
-            if (sliceUI.buttons[activeSliceKind]) {
-                sliceUI.buttons[activeSliceKind].classList.remove("is-active");
-                sliceUI.buttons[activeSliceKind].setAttribute("aria-pressed", "false");
-            }
         }
+
+        Object.keys(sliceUI.buttons).forEach(function (buttonKind) {
+            sliceUI.buttons[buttonKind].classList.remove("is-active");
+            sliceUI.buttons[buttonKind].setAttribute("aria-pressed", "false");
+        });
+
         activeSliceKind = null;
-        sliceUI.popover.classList.remove("is-open", "is-outside-boundary");
+        sliceUI.popover.classList.remove("is-open");
         sliceUI.popover.setAttribute("aria-hidden", "true");
         sliceUI.popover.setAttribute("inert", "");
     }
@@ -707,8 +738,6 @@
         if (activeSliceKind && activeSliceKind !== kind) {
             sliceStates[activeSliceKind].enabled = false;
             applySliceState(activeSliceKind);
-            sliceUI.buttons[activeSliceKind].classList.remove("is-active");
-            sliceUI.buttons[activeSliceKind].setAttribute("aria-pressed", "false");
         }
 
         activeSliceKind = kind;
@@ -718,13 +747,22 @@
             sliceUI.buttons[buttonKind].classList.toggle("is-active", active);
             sliceUI.buttons[buttonKind].setAttribute("aria-pressed", String(active));
         });
+
+        sliceUI.popover.removeAttribute("inert");
+        sliceUI.popover.setAttribute("aria-hidden", "false");
         applySliceState(kind);
         syncSliceControls(kind);
         positionSlicePopover();
-        sliceUI.popover.removeAttribute("inert");
-        sliceUI.popover.setAttribute("aria-hidden", "false");
-        sliceUI.popover.classList.add("is-open");
-        scheduleSlicePreview(kind);
+        requestAnimationFrame(function () {
+            if (activeSliceKind !== kind) return;
+            sliceUI.popover.classList.add("is-open");
+            requestAnimationFrame(function () {
+                if (activeSliceKind === kind) {
+                    drawSlicePreview(kind);
+                    positionSlicePopover();
+                }
+            });
+        });
     }
 
     function createSliceToggleButton(kind) {
@@ -753,40 +791,45 @@
 
     function setupSliceVisualization() {
         if (sliceUI) return;
-        const overlayLayer = document.createElement("div");
-        overlayLayer.className = "cs-slice-overlay-layer";
-        overlayLayer.setAttribute("aria-hidden", "false");
+
+        const overlay = document.createElement("div");
+        overlay.className = "cs-slice-overlay-layer";
+
         const popover = document.createElement("section");
         popover.className = "cs-slice-popover";
         popover.setAttribute("aria-label", "Brightness slice controls and preview");
         popover.setAttribute("aria-hidden", "true");
         popover.setAttribute("inert", "");
+        popover.style.setProperty("--cs-slice-popover-width", SLICE_CONFIG.popoverWidth + "px");
+        popover.style.setProperty("--cs-slice-preview-ratio", SLICE_CONFIG.canvasWidth + " / " + SLICE_CONFIG.canvasHeight);
         popover.innerHTML =
             '<div class="cs-slice-popover-head">' +
-            '<div><h3 class="cs-slice-title">Brightness slice</h3><p class="cs-slice-axis"><span></span><small></small></p></div>' +
+            '<div><h3 class="cs-slice-title">Brightness Slice</h3><p class="cs-slice-axis"><span></span><small></small></p></div>' +
             '<button class="cs-slice-close" type="button" aria-label="Close brightness slice">×</button>' +
             '</div>' +
             '<div class="cs-slice-preview-shell cs-slice-overview">' +
-            '<canvas class="cs-slice-preview" width="680" height="420" aria-label="Orthographic brightness slice preview"></canvas>' +
+            '<canvas class="cs-slice-preview" width="' + SLICE_CONFIG.canvasWidth + '" height="' + SLICE_CONFIG.canvasHeight + '" aria-label="Orthographic brightness slice preview"></canvas>' +
             '<span class="cs-slice-preview-caption">Chroma Distribution Map</span>' +
             '</div>' +
             '<div class="cs-slice-range-head"><span>Brightness interval</span><strong class="cs-slice-selected-count">0 points</strong></div>' +
             '<div class="cs-dual-range">' +
             '<div class="cs-dual-range-rail">' +
-            '<div class="cs-dual-range-track" aria-hidden="true"></div>' +
             '<div class="cs-dual-range-window" role="slider" tabindex="0" aria-label="Move the complete brightness interval" aria-valuemin="0" aria-valuemax="1"></div>' +
+            '<span class="cs-dual-range-handle cs-dual-range-handle-min" aria-hidden="true"></span>' +
+            '<span class="cs-dual-range-handle cs-dual-range-handle-max" aria-hidden="true"></span>' +
             '</div>' +
-            '<input class="cs-dual-range-input cs-dual-range-min" type="range" min="0" max="1" step="0.001" value="0.45" aria-label="Minimum brightness">' +
-            '<input class="cs-dual-range-input cs-dual-range-max" type="range" min="0" max="1" step="0.001" value="0.55" aria-label="Maximum brightness">' +
+            '<input class="cs-dual-range-input cs-dual-range-min" type="range" min="0" max="1" step="' + SLICE_CONFIG.step + '" value="' + SLICE_CONFIG.min + '" aria-label="Minimum brightness">' +
+            '<input class="cs-dual-range-input cs-dual-range-max" type="range" min="0" max="1" step="' + SLICE_CONFIG.step + '" value="' + SLICE_CONFIG.max + '" aria-label="Maximum brightness">' +
             '</div>' +
-            '<div class="cs-slice-values"><output class="cs-slice-min-value">0.450</output><span class="cs-slice-scale"><i>0</i><i>1</i></span><output class="cs-slice-max-value">0.550</output></div>' +
+            '<div class="cs-slice-values"><output class="cs-slice-min-value">' + Number(SLICE_CONFIG.min).toFixed(3) + '</output><span class="cs-slice-scale"><i>0</i><i>1</i></span><output class="cs-slice-max-value">' + Number(SLICE_CONFIG.max).toFixed(3) + '</output></div>' +
             '<div class="cs-slice-actions"><span>Drag either handle, or drag the highlighted interval to move both bounds.</span><button type="button" class="cs-slice-reset">Full range</button></div>';
-        overlayLayer.appendChild(popover);
-        document.body.appendChild(overlayLayer);
+
+        overlay.appendChild(popover);
+        document.body.appendChild(overlay);
 
         const axisParts = popover.querySelectorAll(".cs-slice-axis > *");
         sliceUI = {
-            layer: overlayLayer,
+            overlay: overlay,
             popover: popover,
             head: popover.querySelector(".cs-slice-popover-head"),
             title: popover.querySelector(".cs-slice-title"),
@@ -806,29 +849,35 @@
             buttons: {},
         };
 
-        positionSlicePopover();
-
         sliceUI.buttons.image = createSliceToggleButton("image");
         sliceUI.buttons.lattice = createSliceToggleButton("lattice");
 
         sliceUI.head.addEventListener("pointerdown", function (event) {
-            if (event.button !== 0 || event.target.closest("button")) return;
+            if (event.button !== 0 || event.target.closest("button") || !activeSliceKind) return;
             const rect = sliceUI.popover.getBoundingClientRect();
             event.preventDefault();
             slicePopoverDrag = {
                 pointerId: event.pointerId,
                 offsetX: event.clientX - rect.left,
                 offsetY: event.clientY - rect.top,
+                kind: activeSliceKind,
             };
-            slicePopoverPosition.userPlaced = true;
             sliceUI.head.setPointerCapture(event.pointerId);
             sliceUI.popover.classList.add("is-dragging");
         });
 
         sliceUI.head.addEventListener("pointermove", function (event) {
             if (!slicePopoverDrag || event.pointerId !== slicePopoverDrag.pointerId) return;
-            slicePopoverPosition.x = event.clientX - slicePopoverDrag.offsetX;
-            slicePopoverPosition.y = event.clientY - slicePopoverDrag.offsetY;
+            const kind = slicePopoverDrag.kind;
+            const panelRect = sliceUI.popover.getBoundingClientRect();
+            const anchor = getSliceAnchorPosition(kind, panelRect.width, panelRect.height);
+            if (!anchor) return;
+
+            const desiredLeft = event.clientX - slicePopoverDrag.offsetX;
+            const desiredTop = event.clientY - slicePopoverDrag.offsetY;
+            slicePopoverOffsets[kind].x = desiredLeft - anchor.left;
+            slicePopoverOffsets[kind].y = desiredTop - anchor.top;
+            slicePopoverOffsets[kind].userPlaced = true;
             positionSlicePopover();
         });
 
@@ -843,8 +892,8 @@
 
         sliceUI.head.addEventListener("pointerup", endSlicePopoverDrag);
         sliceUI.head.addEventListener("pointercancel", endSlicePopoverDrag);
-
         sliceUI.close.addEventListener("click", closeSlicePanel);
+
         sliceUI.reset.addEventListener("click", function () {
             if (activeSliceKind) setSliceRange(activeSliceKind, 0, 1);
         });
@@ -854,6 +903,7 @@
             const max = sharedSliceRange.max;
             setSliceRange(activeSliceKind, Math.min(Number(sliceUI.minInput.value), max), max);
         });
+
         sliceUI.maxInput.addEventListener("input", function () {
             if (!activeSliceKind) return;
             const min = sharedSliceRange.min;
@@ -908,15 +958,17 @@
         document.addEventListener("keydown", function (event) {
             if (event.key === "Escape" && activeSliceKind) closeSlicePanel();
         });
-
         window.addEventListener("scroll", scheduleSlicePopoverPosition, { passive: true });
         window.addEventListener("resize", scheduleSlicePopoverPosition);
-        const sliceBoundary = document.querySelector("#gallery .cs-four-column");
-        if (sliceBoundary && typeof ResizeObserver === "function") {
-            sliceBoundaryObserver = new ResizeObserver(scheduleSlicePopoverPosition);
-            sliceBoundaryObserver.observe(sliceBoundary);
+
+        if (typeof ResizeObserver === "function") {
+            const stageObserver = new ResizeObserver(scheduleSlicePopoverPosition);
+            stageObserver.observe(getSliceStage("image"));
+            stageObserver.observe(getSliceStage("lattice"));
         }
-        scheduleSlicePopoverPosition();
+
+        // The floating Slice window starts closed. The toggle buttons remain available.
+        closeSlicePanel();
     }
 
     function loadDefaultSourceImage(sourcePath) {
@@ -975,7 +1027,7 @@
     }
 
     function imageToSamplingCanvas(imageSource) {
-        const maxDimension = 1400;
+        const maxDimension = COLOR_CONFIG.maxSamplingDimension;
         const sourceWidth = imageSource.naturalWidth || imageSource.width;
         const sourceHeight = imageSource.naturalHeight || imageSource.height;
         const scale = Math.min(1, maxDimension / Math.max(sourceWidth, sourceHeight));
@@ -1276,7 +1328,7 @@
         state.imageName = name || state.imageName;
         state.imageRGB = sampleCanvasRGB(canvas, state.imageBudget);
         state.imageLinearColors = ColorSpaces.toLinearDisplayBuffer(state.imageRGB);
-        elements.imageMeta.textContent = state.imageName + " · " + canvas.width + "×" + canvas.height;
+        elements.imageMeta.textContent = canvas.width + "×" + canvas.height;
         drawPreview(canvas);
         scheduleRender("Image updated");
     }
@@ -1656,84 +1708,32 @@
         function loadImageFromFile(src, name) {
             if (isLoading) return;
             isLoading = true;
-            let progress = 0;
-            
-            showLoadingState(true, progress);
-            
-            fetch(src)
-                .then(response => {
-                    if (!response.ok) {
-                        throw new Error("Network response was not ok");
-                    }
-                    
-                    const contentLength = response.headers.get("content-length");
-                    const total = contentLength ? parseInt(contentLength, 10) : null;
-                    
-                    let loaded = 0;
-                    const reader = response.body.getReader();
-                    const chunks = [];
-                    
-                    return new ReadableStream({
-                        async start(controller) {
-                            while (true) {
-                                const { done, value } = await reader.read();
-                                
-                                if (done) break;
-                                
-                                chunks.push(value);
-                                loaded += value.length;
-                                
-                                if (total) {
-                                    progress = Math.round((loaded / total) * 100);
-                                    showLoadingState(true, progress);
-                                }
-                                
-                                controller.enqueue(value);
-                            }
-                            
-                            controller.close();
-                            return chunks;
-                        }
-                    });
-                })
-                .then(stream => new Response(stream))
-                .then(response => response.blob())
-                .then(blob => {
-                    const url = URL.createObjectURL(blob);
-                    const image = new Image();
-                    
-                    image.onload = function () {
-                        URL.revokeObjectURL(url);
-                        isLoading = false;
-                        showLoadingState(false);
-                        
-                        const canvas = document.createElement("canvas");
-                        canvas.width = 720;
-                        canvas.height = 480;
-                        const ctx = canvas.getContext("2d");
-                        ctx.drawImage(image, 0, 0, canvas.width, canvas.height);
-                        rebuildImageSamples(canvas, name);
-                    };
-                    
-                    image.onerror = function () {
-                        URL.revokeObjectURL(url);
-                        isLoading = false;
-                        showLoadingState(false);
-                        
-                        const canvas = createDefaultImage("structured");
-                        rebuildImageSamples(canvas, "Error loading image: " + name);
-                    };
-                    
-                    image.src = url;
-                })
-                .catch(error => {
-                    isLoading = false;
-                    showLoadingState(false);
-                    console.error("Error loading image:", error);
-                    
-                    const canvas = createDefaultImage("structured");
-                    rebuildImageSamples(canvas, "Error loading image: " + name);
-                });
+            showLoadingState(true, 0);
+
+            const image = new Image();
+            image.decoding = "async";
+            image.onload = async function () {
+                try {
+                    if (typeof image.decode === "function") await image.decode();
+                } catch (_) {}
+
+                isLoading = false;
+                showLoadingState(false);
+
+                const canvas = document.createElement("canvas");
+                canvas.width = COLOR_CONFIG.loadedCanvasWidth;
+                canvas.height = COLOR_CONFIG.loadedCanvasHeight;
+                const ctx = canvas.getContext("2d");
+                ctx.drawImage(image, 0, 0, canvas.width, canvas.height);
+                rebuildImageSamples(canvas, name);
+            };
+            image.onerror = function () {
+                isLoading = false;
+                showLoadingState(false);
+                const canvas = createDefaultImage("structured");
+                rebuildImageSamples(canvas, "Error loading image: " + name);
+            };
+            image.src = src;
         }
 
         function loadRandomExampleImage() {
@@ -1759,7 +1759,7 @@
                 state.latticeResolution +
                 " samples per axis · " +
                 new Intl.NumberFormat("en-US").format(latticeCount) +
-                " points";
+                " pts.";
             rebuildLattice();
         });
 
@@ -1944,8 +1944,8 @@
             return;
         }
 
-        imageViewer.setPointSize(3);
-        latticeViewer.setPointSize(3);
+        imageViewer.setPointSize(COLOR_CONFIG.pointSize);
+        latticeViewer.setPointSize(COLOR_CONFIG.pointSize);
         imageViewer.setTheme(document.documentElement.getAttribute("data-theme") === "dark");
         latticeViewer.setTheme(document.documentElement.getAttribute("data-theme") === "dark");
         imageViewer.setHelpers(elements.showFrame.checked, elements.showAxes.checked);
@@ -1965,13 +1965,10 @@
             state.latticeResolution +
             " samples per axis · " +
             new Intl.NumberFormat("en-US").format(state.latticeResolution ** 3) +
-            " points";
+            " pts.";
         elements.patternMode.value = DEFAULT_SOURCE_MODE;
         updateRerandomButton();
         loadDefaultSourceImage(DEFAULT_SOURCE_IMAGE);
-        requestAnimationFrame(function () {
-            openSlicePanel("image");
-        });
         
         setTimeout(function () {
             isInitializing = false;

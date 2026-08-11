@@ -22,6 +22,7 @@
   <link href="https://cdn.jsdelivr.net/gh/jpswalsh/academicons@1/css/academicons.min.css" rel="stylesheet" />
   <link href="figures/AdaLAB.ico" rel="icon" type="image/x-icon" />
   <link href="figures/AdaLAB.ico" rel="shortcut icon" type="image/x-icon" />
+  <link as="image" fetchpriority="high" href="figures/main/Introduction.png" rel="preload" type="image/png" />
   <link href="assets/css/base.css" rel="stylesheet" />
   <link href="assets/css/arena.css" rel="stylesheet" />
   <link href="assets/css/utilities.css" rel="stylesheet" />
@@ -29,6 +30,7 @@
   <link href="assets/css/gallery.css" rel="stylesheet" />
   <link href="assets/css/interaction.css" rel="stylesheet" />
   <script defer="" src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/js/all.min.js"></script>
+  <script src="assets/js/config.js"></script>
   <script defer="" src="assets/js/core/common-ui.js"></script>
   <script src="assets/js/app.js" type="module"></script>
 </head>
@@ -118,87 +120,72 @@
   <div class="wrap">
 
     <!-- TL;DR -->
-    <div class="tldr animate-on-scroll">
-      <h2>TL;DR</h2>
-      <p>
-        An <strong>adaptive color transform</strong> reorganize color space and prevents <strong>embedded color bias</strong> from interfering with the enhancement pipeline,
-        delivering up to <strong>+2.21dB</strong> PSNR
-        gain with only <strong>0.07M extra Params. and less than 0.01G FLOPs</strong> .
-      </p>
+    <div class="section-tone-group tone-single" data-tone-group="intro">
+      <div class="tldr animate-on-scroll">
+        <h2>TL;DR</h2>
+        <p>
+          An <strong>adaptive color transform</strong> reorganize color space and prevents <strong>embedded color
+            bias</strong> from interfering with the enhancement pipeline,
+          delivering a <strong>~2.5 dB</strong> PSNR gain with only <strong>0.07M extra Params. and less than 0.01G
+            FLOPs</strong> .
+        </p>
+      </div>
+
+      <!-- Teaser -->
+      <section class="teaser animate-on-scroll teaser-compact">
+        <figure>
+          <div class="img-container">
+            <img
+              alt="Our motivation. Direct brightening makes color shifts more visible. Baseline enhancement improves brightness but leaves color bias and saturation abnormalities. Our CAGE delivers more faithful color restoration."
+              data-placeholder-file="Introduction.png"
+              data-placeholder-label="Our motivation. Direct brightening makes color shifts more visible. Baseline enhancement improves brightness but leaves color bias and saturation abnormalities. Our CAGE delivers more faithful color restoration."
+              data-src="figures/main/Introduction.png" decoding="async" fetchpriority="high" loading="eager" />
+            <div class="img-placeholder is-hidden">
+              <div class="icon">
+                <svg fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.6"
+                  viewbox="0 0 24 24">
+                  <rect height="18" rx="2" width="18" x="3" y="3"></rect>
+                  <circle cx="9" cy="9" r="2"></circle>
+                  <path d="M21 15l-5-5L5 21"></path>
+                </svg>
+              </div>
+              <div class="filename"></div>
+              <div class="label"></div>
+            </div>
+          </div>
+          <figcaption>
+            <strong>Our motivation.</strong>
+            <em>(a→b)</em> Direct brightening makes color shifts more visible.
+            <em>(a→c)</em> Baseline enhancement improves brightness but leaves color bias and saturation
+            abnormalities.
+            <em>(a→d)</em> Our CAGE delivers more faithful color restoration.
+          </figcaption>
+        </figure>
+      </section>
+
     </div>
 
-    <!-- Teaser -->
-    <section class="teaser animate-on-scroll teaser-compact">
-      <figure>
-        <div class="img-container">
-          <img
-            alt="Our motivation. Direct brightening makes color shifts more visible. Baseline enhancement improves brightness but leaves color bias and saturation abnormalities. Our CAGE delivers more faithful color restoration."
-            class="lazy-media" data-placeholder-file="Introduction.png"
-            data-placeholder-label="Our motivation. Direct brightening makes color shifts more visible. Baseline enhancement improves brightness but leaves color bias and saturation abnormalities. Our CAGE delivers more faithful color restoration."
-            data-src="figures/main/Introduction.png" decoding="async" loading="lazy" />
-          <div class="img-placeholder is-hidden">
-            <div class="icon">
-              <svg fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.6"
-                viewbox="0 0 24 24">
-                <rect height="18" rx="2" width="18" x="3" y="3"></rect>
-                <circle cx="9" cy="9" r="2"></circle>
-                <path d="M21 15l-5-5L5 21"></path>
-              </svg>
-            </div>
-            <div class="filename"></div>
-            <div class="label"></div>
-          </div>
-        </div>
-        <figcaption>
-          <strong>Our motivation.</strong>
-          <em>(a→b)</em> Direct brightening makes color shifts more visible.
-          <em>(a→c)</em> Baseline enhancement improves brightness but leaves color bias and saturation
-          abnormalities.
-          <em>(a→d)</em> Our CAGE delivers more faithful color restoration.
-        </figcaption>
-      </figure>
-    </section>
-
     <!-- Gallery -->
-    <section id="gallery">
+    <section class="tone-double" id="gallery">
       <h2>Gallery</h2>
       <div class="gallery-shell">
-        <div class="gallery-feature-heading gallery-feature-heading-arena animate-on-scroll">
-          <div class="gallery-feature-title">
-            <span aria-hidden="true" class="gallery-feature-number">01</span>
-            <h3>Image Arena</h3>
+        <div class="gallery-feature-card gallery-feature-card-arena animate-on-scroll">
+          <div class="gallery-feature-heading gallery-feature-heading-arena">
+            <div class="gallery-feature-title">
+              <span aria-hidden="true" class="gallery-feature-number">01</span>
+              <h3>Image Arena</h3>
+            </div>
+            <p>Compare enhanced candidates, inspect paired details, and choose the result with the most faithful color
+              restoration.</p>
           </div>
-          <p>Choose the result that looks perceptually natural and restores color most faithfully.</p>
-        </div>
-        <div class="gallery-panel gallery-section animate-on-scroll" data-feature="arena" id="galleryArena">
-          <div class="arena-container">
-            <div class="arena-main-panel">
-              <div class="arena-input-section">
-                <div class="arena-label">Low-light / GT-mean Enlightened Input</div>
-                <div class="arena-image-box" id="arena-input-box">
-                  <img alt="input" id="arena-input-img" />
-                  <div class="img-placeholder is-hidden" id="arena-input-placeholder">
-                    <div class="icon">
-                      <svg fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"
-                        stroke-width="1.6" viewbox="0 0 24 24">
-                        <rect height="18" rx="2" width="18" x="3" y="3"></rect>
-                        <circle cx="9" cy="9" r="2"></circle>
-                        <path d="M21 15l-5-5L5 21"></path>
-                      </svg>
-                    </div>
-                    <div class="filename">input.png</div>
-                    <div class="label">Low-light image</div>
-                  </div>
-                </div>
-              </div>
-              <div class="arena-divider"></div>
-              <div class="arena-output-section">
-                <div class="arena-label">Enhanced Results</div>
-                <div class="arena-grid" id="arena-grid">
-                  <div class="arena-card" data-index="0">
-                    <div class="arena-card-index">A</div>
-                    <img class="arena-img" data-index="0" />
-                    <div class="img-placeholder is-hidden">
+          <div class="gallery-panel gallery-section" data-feature="arena" id="galleryArena">
+            <div class="arena-container">
+              <div class="arena-main-panel">
+                <div class="arena-input-section">
+                  <div class="arena-label">Low-light / GT-mean Enlightened Input</div>
+                  <div class="arena-image-box" id="arena-input-box">
+                    <img alt="input" id="arena-input-img" />
+                    <div class="img-placeholder is-hidden" id="arena-input-placeholder">
                       <div class="icon">
                         <svg fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"
                           stroke-width="1.6" viewbox="0 0 24 24">
@@ -207,408 +194,435 @@
                           <path d="M21 15l-5-5L5 21"></path>
                         </svg>
                       </div>
-                      <div class="filename">output_A.png</div>
-                      <div class="label">Enhanced image A</div>
-                    </div>
-                  </div>
-                  <div class="arena-card" data-index="1">
-                    <div class="arena-card-index">B</div>
-                    <img class="arena-img" data-index="1" />
-                    <div class="img-placeholder is-hidden">
-                      <div class="icon">
-                        <svg fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"
-                          stroke-width="1.6" viewbox="0 0 24 24">
-                          <rect height="18" rx="2" width="18" x="3" y="3"></rect>
-                          <circle cx="9" cy="9" r="2"></circle>
-                          <path d="M21 15l-5-5L5 21"></path>
-                        </svg>
-                      </div>
-                      <div class="filename">output_B.png</div>
-                      <div class="label">Enhanced image B</div>
-                    </div>
-                  </div>
-                  <div class="arena-card" data-index="2">
-                    <div class="arena-card-index">C</div>
-                    <img class="arena-img" data-index="2" />
-                    <div class="img-placeholder is-hidden">
-                      <div class="icon">
-                        <svg fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"
-                          stroke-width="1.6" viewbox="0 0 24 24">
-                          <rect height="18" rx="2" width="18" x="3" y="3"></rect>
-                          <circle cx="9" cy="9" r="2"></circle>
-                          <path d="M21 15l-5-5L5 21"></path>
-                        </svg>
-                      </div>
-                      <div class="filename">output_C.png</div>
-                      <div class="label">Enhanced image C</div>
+                      <div class="filename">input.png</div>
+                      <div class="label">Low-light image</div>
                     </div>
                   </div>
                 </div>
-              </div>
-            </div>
-            <div class="arena-tip arena-tip-muted">
-              <span>
-                <svg aria-label="Left mouse button" class="mouse-icon" role="img" viewbox="0 0 16 16">
-                  <rect class="mouse-body fill" height="14" rx="5" width="12" x="2" y="1"></rect>
-                  <defs>
-                    <clippath id="mini-left-clip">
-                      <rect height="14" rx="5" width="12" x="2" y="1"></rect>
-                    </clippath>
-                  </defs>
-                  <g clip-path="url(#mini-left-clip)">
-                    <path class="mouse-button active" d="M2 1H8V7H2Z"></path>
-                  </g>
-                  <rect class="mouse-wheel" height="6" rx="1.5" width="3" x="6.5" y="2"></rect>
-                  <rect class="mouse-body" height="14" rx="5" width="12" x="2" y="1"></rect>
-                </svg>
-                Left click to <strong>select</strong>
-              </span>
-              <span>
-                <svg aria-label="Right mouse button" class="mouse-icon" role="img" viewbox="0 0 16 16">
-                  <rect class="mouse-body fill" height="14" rx="5" width="12" x="2" y="1"></rect>
-                  <defs>
-                    <clippath id="mini-right-clip">
-                      <rect height="14" rx="5" width="12" x="2" y="1"></rect>
-                    </clippath>
-                  </defs>
-                  <g clip-path="url(#mini-right-clip)">
-                    <path class="mouse-button active" d="M8 1H14V7H8Z"></path>
-                  </g>
-                  <rect class="mouse-wheel" height="6" rx="1.5" width="3" x="6.5" y="2"></rect>
-                  <rect class="mouse-body" height="14" rx="5" width="12" x="2" y="1"></rect>
-                </svg>
-                Right click to <strong>compare</strong>
-              </span>
-              <span>
-                <svg aria-label="Middle mouse button" class="mouse-icon" role="img" viewbox="0 0 16 16">
-                  <rect class="mouse-body fill" height="14" rx="5" width="12" x="2" y="1"></rect>
-                  <rect class="mouse-wheel active" height="6" rx="1.5" width="3" x="6.5" y="2"></rect>
-                  <rect class="mouse-body" height="14" rx="5" width="12" x="2" y="1"></rect>
-                </svg>
-                Middle click to <strong>enlarge</strong>
-              </span>
-            </div>
-            <div class="arena-feedback-row">
-              <div class="arena-feedback" id="arena-feedback"></div>
-              <button class="arena-next-btn is-hidden" data-action="next-arena-round" id="arena-next-btn">
-                Next
-                <svg fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                  viewbox="0 0 24 24">
-                  <path d="m9 18 6-6-6-6"></path>
-                </svg>
-              </button>
-            </div>
-            <div class="arena-vote-chart is-hidden" id="arena-vote-chart">
-              <div class="vote-chart-title">Vote Statistics</div>
-              <div class="vote-chart-legend">
-                <span class="legend-item">
-                  <span class="legend-color cage"></span>
-                  <span class="legend-text">Ours</span>
-                </span>
-                <span class="legend-item">
-                  <span class="legend-color"></span>
-                  <span class="legend-text">Others</span>
-                </span>
-              </div>
-              <div class="vote-chart-bars" id="vote-chart-bars"></div>
-            </div>
-          </div>
-        </div>
-        <div class="gallery-feature-heading gallery-feature-heading-color animate-on-scroll">
-          <div class="gallery-feature-title">
-            <span aria-hidden="true" class="gallery-feature-number">02</span>
-            <h3>Color Space Visualization</h3>
-          </div>
-          <p>
-            Upload an image and interactive with its 3D mapping and the gamut 3D mapping.
-          </p>
-        </div>
-        <div class="gallery-panel gallery-section animate-on-scroll" data-feature="color-space" id="galleryColorSpace">
-          <div aria-label="Interactive color space visualization" class="cs-atlas">
-            <div aria-label="Color space" class="cs-segmented cs-space-tabs-top" id="spaceTabs" role="tablist">
-              <button aria-selected="true" class="cs-seg-button is-active" data-space="RGB" role="tab"
-                type="button">RGB</button>
-              <button aria-selected="false" class="cs-seg-button" data-space="YUV" role="tab" type="button">YUV</button>
-              <button aria-selected="false" class="cs-seg-button" data-space="HSV" role="tab" type="button">HSV</button>
-              <button aria-selected="false" class="cs-seg-button" data-space="HVI" role="tab" type="button">HVI</button>
-              <button aria-selected="false" class="cs-seg-button" data-space="OKLAB" role="tab"
-                type="button">LAB</button>
-            </div>
-            <div class="cs-four-column">
-              <div class="cs-visual-column">
-                <article class="cs-panel cs-combined-panel">
-                  <div class="cs-point-cloud-col">
-                    <div class="cs-panel-head">
-                      <div>
-                        <h3>
-                          Input Image
-                        </h3>
+                <div class="arena-divider"></div>
+                <div class="arena-output-section">
+                  <div class="arena-label">Enhanced Results</div>
+                  <div class="arena-grid" id="arena-grid">
+                    <div class="arena-card" data-index="0">
+                      <div class="arena-card-index">A</div>
+                      <img class="arena-img" data-index="0" />
+                      <div class="img-placeholder is-hidden">
+                        <div class="icon">
+                          <svg fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"
+                            stroke-width="1.6" viewbox="0 0 24 24">
+                            <rect height="18" rx="2" width="18" x="3" y="3"></rect>
+                            <circle cx="9" cy="9" r="2"></circle>
+                            <path d="M21 15l-5-5L5 21"></path>
+                          </svg>
+                        </div>
+                        <div class="filename">output_A.png</div>
+                        <div class="label">Enhanced image A</div>
                       </div>
-                      <span class="cs-pill" id="imageMeta">Image</span>
                     </div>
-                    <p class="cs-panel-note">
-                      Upload an image to visualize its 3D mapping and the corresponding color
-                      space voxels 3D mapping.
-                    </p>
-                    <label class="cs-drop-zone" for="imageInput" id="dropZone">
-                      <canvas aria-label="Input image preview" height="420" id="previewCanvas" width="640"></canvas>
-                      <span class="cs-drop-overlay">
-                        <strong>
-                          Choose or drop an image
-                        </strong>
-                        <small>
-                          PNG, JPEG, WebP, BMP, or GIF
-                        </small>
-                      </span>
-                    </label>
-                    <input accept="image/*" class="cs-visually-hidden" id="imageInput" type="file" />
+                    <div class="arena-card" data-index="1">
+                      <div class="arena-card-index">B</div>
+                      <img class="arena-img" data-index="1" />
+                      <div class="img-placeholder is-hidden">
+                        <div class="icon">
+                          <svg fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"
+                            stroke-width="1.6" viewbox="0 0 24 24">
+                            <rect height="18" rx="2" width="18" x="3" y="3"></rect>
+                            <circle cx="9" cy="9" r="2"></circle>
+                            <path d="M21 15l-5-5L5 21"></path>
+                          </svg>
+                        </div>
+                        <div class="filename">output_B.png</div>
+                        <div class="label">Enhanced image B</div>
+                      </div>
+                    </div>
+                    <div class="arena-card" data-index="2">
+                      <div class="arena-card-index">C</div>
+                      <!-- <span class="compare-corner-label compare-corner-label-right">C</span> -->
+                      <img class="arena-img" data-index="2" />
+                      <div class="img-placeholder is-hidden">
+                        <div class="icon">
+                          <svg fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"
+                            stroke-width="1.6" viewbox="0 0 24 24">
+                            <rect height="18" rx="2" width="18" x="3" y="3"></rect>
+                            <circle cx="9" cy="9" r="2"></circle>
+                            <path d="M21 15l-5-5L5 21"></path>
+                          </svg>
+                        </div>
+                        <div class="filename">output_C.png</div>
+                        <div class="label">Enhanced image C</div>
+                      </div>
+                    </div>
                   </div>
-                  <div class="cs-point-cloud-row">
+                </div>
+              </div>
+              <div class="arena-tip arena-tip-muted">
+                <span>
+                  <svg aria-label="Left mouse button" class="mouse-icon" role="img" viewbox="0 0 16 16">
+                    <rect class="mouse-body fill" height="14" rx="5" width="12" x="2" y="1"></rect>
+                    <defs>
+                      <clippath id="mini-left-clip">
+                        <rect height="14" rx="5" width="12" x="2" y="1"></rect>
+                      </clippath>
+                    </defs>
+                    <g clip-path="url(#mini-left-clip)">
+                      <path class="mouse-button active" d="M2 1H8V7H2Z"></path>
+                    </g>
+                    <rect class="mouse-wheel" height="6" rx="1.5" width="3" x="6.5" y="2"></rect>
+                    <rect class="mouse-body" height="14" rx="5" width="12" x="2" y="1"></rect>
+                  </svg>
+                  Left click to <strong>select</strong>
+                </span>
+                <span>
+                  <svg aria-label="Right mouse button" class="mouse-icon" role="img" viewbox="0 0 16 16">
+                    <rect class="mouse-body fill" height="14" rx="5" width="12" x="2" y="1"></rect>
+                    <defs>
+                      <clippath id="mini-right-clip">
+                        <rect height="14" rx="5" width="12" x="2" y="1"></rect>
+                      </clippath>
+                    </defs>
+                    <g clip-path="url(#mini-right-clip)">
+                      <path class="mouse-button active" d="M8 1H14V7H8Z"></path>
+                    </g>
+                    <rect class="mouse-wheel" height="6" rx="1.5" width="3" x="6.5" y="2"></rect>
+                    <rect class="mouse-body" height="14" rx="5" width="12" x="2" y="1"></rect>
+                  </svg>
+                  Right click to <strong>compare</strong>
+                </span>
+                <span>
+                  <svg aria-label="Middle mouse button" class="mouse-icon" role="img" viewbox="0 0 16 16">
+                    <rect class="mouse-body fill" height="14" rx="5" width="12" x="2" y="1"></rect>
+                    <rect class="mouse-wheel active" height="6" rx="1.5" width="3" x="6.5" y="2"></rect>
+                    <rect class="mouse-body" height="14" rx="5" width="12" x="2" y="1"></rect>
+                  </svg>
+                  Middle click to <strong>enlarge</strong>
+                </span>
+              </div>
+              <div class="arena-feedback-row">
+                <div class="arena-feedback" id="arena-feedback"></div>
+                <button class="arena-next-btn is-hidden" data-action="next-arena-round" id="arena-next-btn">
+                  Next
+                  <svg fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                    viewbox="0 0 24 24">
+                    <path d="m9 18 6-6-6-6"></path>
+                  </svg>
+                </button>
+              </div>
+              <div class="arena-vote-chart is-hidden" id="arena-vote-chart">
+                <div class="vote-chart-title">Vote Statistics</div>
+                <div class="vote-chart-legend">
+                  <span class="legend-item">
+                    <span class="legend-color cage"></span>
+                    <span class="legend-text">Ours</span>
+                  </span>
+                  <span class="legend-item">
+                    <span class="legend-color"></span>
+                    <span class="legend-text">Others</span>
+                  </span>
+                </div>
+                <div class="vote-chart-bars" id="vote-chart-bars"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="gallery-feature-card gallery-feature-card-color animate-on-scroll">
+          <div class="gallery-feature-heading gallery-feature-heading-color">
+            <div class="gallery-feature-title">
+              <span aria-hidden="true" class="gallery-feature-number">02</span>
+              <h3>Color Space Visualization</h3>
+            </div>
+            <p>Inspect an image and the full color gamut in synchronized 3D mappings, with brightness-slice previews
+              across color spaces.</p>
+          </div>
+          <div class="gallery-panel gallery-section" data-feature="color-space" id="galleryColorSpace">
+            <div aria-label="Interactive color space visualization" class="cs-atlas">
+              <div aria-label="Color space" class="cs-segmented cs-space-tabs-top" id="spaceTabs" role="tablist">
+                <button aria-selected="true" class="cs-seg-button is-active" data-space="RGB" role="tab"
+                  type="button">RGB</button>
+                <button aria-selected="false" class="cs-seg-button" data-space="YUV" role="tab"
+                  type="button">YUV</button>
+                <button aria-selected="false" class="cs-seg-button" data-space="HSV" role="tab"
+                  type="button">HSV</button>
+                <button aria-selected="false" class="cs-seg-button" data-space="HVI" role="tab"
+                  type="button">HVI</button>
+                <button aria-selected="false" class="cs-seg-button" data-space="OKLAB" role="tab"
+                  type="button">LAB</button>
+              </div>
+              <div class="cs-four-column">
+                <div class="cs-visual-column">
+                  <article class="cs-panel cs-combined-panel">
                     <div class="cs-point-cloud-col">
                       <div class="cs-panel-head">
                         <div>
                           <h3>
-                            Image 3D Mapping
+                            Input Image
                           </h3>
                         </div>
-                        <span class="cs-pill" id="imagePointCount">0 points</span>
+                        <span class="cs-pill" id="imageMeta">Image</span>
                       </div>
                       <p class="cs-panel-note">
-                        Each sampled pixel becomes a 3D point colored by its source RGB value.
+                        Upload an image to visualize its 3D mapping and the corresponding color
+                        space voxels 3D mapping.
                       </p>
-                      <div aria-label="Interactive image 3D Mapping" class="cs-viewer-stage" id="imageViewer"
-                        tabindex="0">
-                        <div aria-hidden="true" class="cs-axis-gizmo" id="imageAxisGizmo">
-                          <svg viewbox="0 0 64 64">
-                            <g class="gizmo-axes">
-                              <line class="axis-line axis-x" data-axis="x" x1="45" x2="45" y1="45" y2="45"></line>
-                              <line class="axis-line axis-y" data-axis="y" x1="45" x2="45" y1="45" y2="45"></line>
-                              <line class="axis-line axis-z" data-axis="z" x1="45" x2="45" y1="45" y2="45"></line>
-                              <circle class="axis-dot axis-x" cx="45" cy="45" data-axis="x" data-dir="positive">
-                              </circle>
-                              <circle class="axis-dot axis-x" cx="45" cy="45" data-axis="x" data-dir="negative">
-                              </circle>
-                              <circle class="axis-dot axis-y" cx="45" cy="45" data-axis="y" data-dir="positive">
-                              </circle>
-                              <circle class="axis-dot axis-y" cx="45" cy="45" data-axis="y" data-dir="negative">
-                              </circle>
-                              <circle class="axis-dot axis-z" cx="45" cy="45" data-axis="z" data-dir="positive">
-                              </circle>
-                              <circle class="axis-dot axis-z" cx="45" cy="45" data-axis="z" data-dir="negative">
-                              </circle>
-                              <text class="axis-label axis-x" data-axis="x" data-dir="positive"
-                                dominant-baseline="middle" text-anchor="middle" x="45" y="45"></text>
-                              <text class="axis-label axis-y" data-axis="y" data-dir="positive"
-                                dominant-baseline="middle" text-anchor="middle" x="45" y="45"></text>
-                              <text class="axis-label axis-z" data-axis="z" data-dir="positive"
-                                dominant-baseline="middle" text-anchor="middle" x="45" y="45"></text>
-                            </g>
-                          </svg>
+                      <label class="cs-drop-zone" for="imageInput" id="dropZone">
+                        <canvas aria-label="Input image preview" height="420" id="previewCanvas" width="640"></canvas>
+                        <span class="cs-drop-overlay">
+                          <strong>
+                            Choose or drop an image
+                          </strong>
+                          <small>
+                            PNG, JPEG, WebP, BMP, or GIF
+                          </small>
+                        </span>
+                      </label>
+                      <input accept="image/*" class="cs-visually-hidden" id="imageInput" type="file" />
+                    </div>
+                    <div class="cs-point-cloud-row">
+                      <div class="cs-point-cloud-col">
+                        <div class="cs-panel-head">
+                          <div>
+                            <h3>
+                              Image 3D Mapping
+                            </h3>
+                          </div>
+                          <span class="cs-pill" id="imagePointCount">0 points</span>
+                        </div>
+                        <p class="cs-panel-note">
+                          Each sampled pixel becomes a 3D point colored by its source RGB value.
+                        </p>
+                        <div aria-label="Interactive image 3D Mapping" class="cs-viewer-stage" id="imageViewer"
+                          tabindex="0">
+                          <div aria-hidden="true" class="cs-axis-gizmo" id="imageAxisGizmo">
+                            <svg viewbox="0 0 64 64">
+                              <g class="gizmo-axes">
+                                <line class="axis-line axis-x" data-axis="x" x1="45" x2="45" y1="45" y2="45"></line>
+                                <line class="axis-line axis-y" data-axis="y" x1="45" x2="45" y1="45" y2="45"></line>
+                                <line class="axis-line axis-z" data-axis="z" x1="45" x2="45" y1="45" y2="45"></line>
+                                <circle class="axis-dot axis-x" cx="45" cy="45" data-axis="x" data-dir="positive">
+                                </circle>
+                                <circle class="axis-dot axis-x" cx="45" cy="45" data-axis="x" data-dir="negative">
+                                </circle>
+                                <circle class="axis-dot axis-y" cx="45" cy="45" data-axis="y" data-dir="positive">
+                                </circle>
+                                <circle class="axis-dot axis-y" cx="45" cy="45" data-axis="y" data-dir="negative">
+                                </circle>
+                                <circle class="axis-dot axis-z" cx="45" cy="45" data-axis="z" data-dir="positive">
+                                </circle>
+                                <circle class="axis-dot axis-z" cx="45" cy="45" data-axis="z" data-dir="negative">
+                                </circle>
+                                <text class="axis-label axis-x" data-axis="x" data-dir="positive"
+                                  dominant-baseline="middle" text-anchor="middle" x="45" y="45"></text>
+                                <text class="axis-label axis-y" data-axis="y" data-dir="positive"
+                                  dominant-baseline="middle" text-anchor="middle" x="45" y="45"></text>
+                                <text class="axis-label axis-z" data-axis="z" data-dir="positive"
+                                  dominant-baseline="middle" text-anchor="middle" x="45" y="45"></text>
+                              </g>
+                            </svg>
+                          </div>
+                        </div>
+                      </div>
+                      <div class="cs-point-cloud-col">
+                        <div class="cs-panel-head">
+                          <div>
+                            <h3>Gamut 3D Mapping</h3>
+                          </div>
+                          <span class="cs-pill" id="latticePointCount">0 points</span>
+                        </div>
+                        <p class="cs-panel-note">A uniformly sampled RGB gamut is mapped into the
+                          selected space.</p>
+                        <div aria-label="Interactive color gamut 3D mapping" class="cs-viewer-stage" id="latticeViewer"
+                          tabindex="0">
+                          <div aria-hidden="true" class="cs-axis-gizmo" id="latticeAxisGizmo">
+                            <svg viewbox="0 0 64 64">
+                              <g class="gizmo-axes">
+                                <line class="axis-line axis-x" data-axis="x" x1="45" x2="45" y1="45" y2="45"></line>
+                                <line class="axis-line axis-y" data-axis="y" x1="45" x2="45" y1="45" y2="45"></line>
+                                <line class="axis-line axis-z" data-axis="z" x1="45" x2="45" y1="45" y2="45"></line>
+                                <circle class="axis-dot axis-x" cx="45" cy="45" data-axis="x" data-dir="positive">
+                                </circle>
+                                <circle class="axis-dot axis-x" cx="45" cy="45" data-axis="x" data-dir="negative">
+                                </circle>
+                                <circle class="axis-dot axis-y" cx="45" cy="45" data-axis="y" data-dir="positive">
+                                </circle>
+                                <circle class="axis-dot axis-y" cx="45" cy="45" data-axis="y" data-dir="negative">
+                                </circle>
+                                <circle class="axis-dot axis-z" cx="45" cy="45" data-axis="z" data-dir="positive">
+                                </circle>
+                                <circle class="axis-dot axis-z" cx="45" cy="45" data-axis="z" data-dir="negative">
+                                </circle>
+                                <text class="axis-label axis-x" data-axis="x" data-dir="positive"
+                                  dominant-baseline="middle" text-anchor="middle" x="45" y="45"></text>
+                                <text class="axis-label axis-y" data-axis="y" data-dir="positive"
+                                  dominant-baseline="middle" text-anchor="middle" x="45" y="45"></text>
+                                <text class="axis-label axis-z" data-axis="z" data-dir="positive"
+                                  dominant-baseline="middle" text-anchor="middle" x="45" y="45"></text>
+                              </g>
+                            </svg>
+                          </div>
                         </div>
                       </div>
                     </div>
-                    <div class="cs-point-cloud-col">
-                      <div class="cs-panel-head">
-                        <div>
-                          <h3>Gamut 3D Mapping</h3>
-                        </div>
-                        <span class="cs-pill" id="latticePointCount">0 points</span>
-                      </div>
-                      <p class="cs-panel-note">A uniformly sampled RGB gamut is mapped into the
-                        selected space.</p>
-                      <div aria-label="Interactive color gamut 3D mapping" class="cs-viewer-stage" id="latticeViewer"
-                        tabindex="0">
-                        <div aria-hidden="true" class="cs-axis-gizmo" id="latticeAxisGizmo">
-                          <svg viewbox="0 0 64 64">
-                            <g class="gizmo-axes">
-                              <line class="axis-line axis-x" data-axis="x" x1="45" x2="45" y1="45" y2="45"></line>
-                              <line class="axis-line axis-y" data-axis="y" x1="45" x2="45" y1="45" y2="45"></line>
-                              <line class="axis-line axis-z" data-axis="z" x1="45" x2="45" y1="45" y2="45"></line>
-                              <circle class="axis-dot axis-x" cx="45" cy="45" data-axis="x" data-dir="positive">
-                              </circle>
-                              <circle class="axis-dot axis-x" cx="45" cy="45" data-axis="x" data-dir="negative">
-                              </circle>
-                              <circle class="axis-dot axis-y" cx="45" cy="45" data-axis="y" data-dir="positive">
-                              </circle>
-                              <circle class="axis-dot axis-y" cx="45" cy="45" data-axis="y" data-dir="negative">
-                              </circle>
-                              <circle class="axis-dot axis-z" cx="45" cy="45" data-axis="z" data-dir="positive">
-                              </circle>
-                              <circle class="axis-dot axis-z" cx="45" cy="45" data-axis="z" data-dir="negative">
-                              </circle>
-                              <text class="axis-label axis-x" data-axis="x" data-dir="positive"
-                                dominant-baseline="middle" text-anchor="middle" x="45" y="45"></text>
-                              <text class="axis-label axis-y" data-axis="y" data-dir="positive"
-                                dominant-baseline="middle" text-anchor="middle" x="45" y="45"></text>
-                              <text class="axis-label axis-z" data-axis="z" data-dir="positive"
-                                dominant-baseline="middle" text-anchor="middle" x="45" y="45"></text>
-                            </g>
-                          </svg>
-                        </div>
-                      </div>
+                  </article>
+                </div>
+                <aside class="cs-panel cs-mapping-panel">
+                  <div class="cs-panel-head">
+                    <div>
+                      <h3>Settings</h3>
                     </div>
                   </div>
-                </article>
-              </div>
-              <aside class="cs-panel cs-mapping-panel">
-                <div class="cs-panel-head">
-                  <div>
-                    <h3>Settings</h3>
-                  </div>
-                </div>
-                <div class="cs-summary">
-                  <h4 id="spaceTitle">Info Card</h4>
-                  <div class="cs-axis-chips" id="axisChips">
-                    <span>R ∈ [0, 1]</span>
-                    <span>G ∈ [0, 1]</span>
-                    <span>B ∈ [0, 1]</span>
-                  </div>
-                  <p class="text" id="spaceDescription">RGB coordinates retain their native channel range.</p>
-                  <div aria-label="Color space conversion equations" class="cs-conversion-grid cs-is-collapsed"
-                    id="conversionGrid">
-                    <section class="cs-conversion-block">
-                      <div class="cs-conversion-head">
-                        <span>Forward conversion</span>
-                        <b>
-                          RGB → <span id="forwardSpaceName">RGB</span>
-                        </b>
-                      </div>
-                      <div class="cs-formula-box" id="spaceFormulaForward"></div>
-                    </section>
-                    <section class="cs-conversion-block">
-                      <div class="cs-conversion-head">
-                        <span>Inverse conversion</span>
-                        <b>
-                          <span id="inverseSpaceName">RGB</span>→ RGB</b>
-                      </div>
-                      <div class="cs-formula-box" id="spaceFormulaInverse"></div>
-                    </section>
-                  </div>
-                  <button aria-expanded="false" class="cs-formula-toggle" id="formulaToggle" type="button">
-                    <svg class="cs-toggle-icon" height="12" viewbox="0 0 12 12" width="12">
-                      <path d="M2 4L6 8L10 4" fill="none" stroke="currentColor" stroke-linecap="round"
-                        stroke-linejoin="round" stroke-width="1.5">
-                      </path>
-                    </svg>
-                  </button>
-                </div>
-                <p class="cs-control-label">Sampling and geometry</p>
-                <div class="cs-settings-stack">
-                  <label class="cs-field">
-                    <span>Input Prefabs</span>
-                    <select class="cs-grouped-select" id="patternMode">
-                      <optgroup label="Image">
-                        <option value="low-light">Low-light</option>
-                        <option value="normal-light">Normal-light</option>
-                        <option value="gt-mean">GT-Mean Enlightened</option>
-                        <option value="image-random">Random</option>
-                      </optgroup>
-                      <optgroup label="Pattern">
-                        <option value="structured">Structured</option>
-                        <option value="low-discrepancy">Grid 3D</option>
-                        <option value="grid">Grid 2D</option>
-                        <option value="rainbow">Rainbow</option>
-                        <option value="gradient">Gradient</option>
-                        <option value="bijection">Bijection</option>
-                      </optgroup>
-                      <optgroup label="Noise">
-                        <option value="uniform">Uniform</option>
-                        <option value="gaussian">Gaussian</option>
-                        <option value="perlin">Perlin</option>
-                        <option value="fractal">Fractal</option>
-                        <option value="turbulence">Turbulence</option>
-                        <option value="voronoi">Voronoi</option>
-                        <option selected="" value="mosaic">Mosaic</option>
-                      </optgroup>
-                    </select>
-                    <button class="cs-rerandom-btn" id="rerandomBtn" type="button" style="display: none;">
-                      <i class="fas fa-shuffle"></i> Re-random
+                  <div class="cs-summary">
+                    <h4 id="spaceTitle">Info Card</h4>
+                    <div class="cs-axis-chips" id="axisChips">
+                      <span>R ∈ [0, 1]</span>
+                      <span>G ∈ [0, 1]</span>
+                      <span>B ∈ [0, 1]</span>
+                    </div>
+                    <p class="text" id="spaceDescription">RGB coordinates retain their native channel range.</p>
+                    <div aria-label="Color space conversion equations" class="cs-conversion-grid cs-is-collapsed"
+                      id="conversionGrid">
+                      <section class="cs-conversion-block">
+                        <div class="cs-conversion-head">
+                          <span>Forward conversion</span>
+                          <b>
+                            RGB → <span id="forwardSpaceName">RGB</span>
+                          </b>
+                        </div>
+                        <div class="cs-formula-box" id="spaceFormulaForward"></div>
+                      </section>
+                      <section class="cs-conversion-block">
+                        <div class="cs-conversion-head">
+                          <span>Inverse conversion</span>
+                          <b>
+                            <span id="inverseSpaceName">RGB</span>→ RGB</b>
+                        </div>
+                        <div class="cs-formula-box" id="spaceFormulaInverse"></div>
+                      </section>
+                    </div>
+                    <button aria-expanded="false" class="cs-formula-toggle" id="formulaToggle" type="button">
+                      <svg class="cs-toggle-icon" height="12" viewbox="0 0 12 12" width="12">
+                        <path d="M2 4L6 8L10 4" fill="none" stroke="currentColor" stroke-linecap="round"
+                          stroke-linejoin="round" stroke-width="1.5">
+                        </path>
+                      </svg>
                     </button>
-                  </label>
-                  <label class="cs-field">
-                    <span>Image point budget</span>
-                    <select id="imageBudget">
-                      <option value="1000">1,000</option>
-                      <option value="2000">2,000</option>
-                      <option value="4000">4,000</option>
-                      <option value="8000">8,000</option>
-                      <option value="16000">16,000</option>
-                      <option selected="" value="32000">32,000</option>
-                      <option value="64000">64,000</option>
-                      <option value="128000">128,000</option>
-                      <option value="256000">256,000</option>
-                      <option value="all">All</option>
-                    </select>
-                  </label>
-                  <label class="cs-field">
-                    <span>RGB lattice resolution</span>
-                    <select aria-describedby="latticeResolutionHint" id="latticeResolution">
-                      <option value="2">2 × 2 × 2</option>
-                      <option value="3">3 × 3 × 3</option>
-                      <option value="4">4 × 4 × 4</option>
-                      <option value="6">6 × 6 × 6</option>
-                      <option value="8">8 × 8 × 8</option>
-                      <option value="10">10 × 10 × 10</option>
-                      <option value="12">12 × 12 × 12</option>
-                      <option value="14">14 × 14 × 14</option>
-                      <option value="16">16 × 16 × 16</option>
-                      <option value="18">18 × 18 × 18</option>
-                      <option value="20">20 × 20 × 20</option>
-                      <option value="24">24 × 24 × 24</option>
-                      <option value="28">28 × 28 × 28</option>
-                      <option selected="" value="32">32 × 32 × 32</option>
-                      <option value="40">40 × 40 × 40</option>
-                      <option value="48">48 × 48 × 48</option>
-                      <option value="56">56 × 56 × 56</option>
-                      <option value="64">64 × 64 × 64</option>
-                      <option value="128">128 × 128 × 128</option>
-                    </select>
-                    <small class="cs-field-hint" id="latticeResolutionHint">32 samples per axis ·
-                      32,768 points</small>
-                  </label>
-                  <label class="cs-field cs-is-hidden" id="hsvProjectionField">
-                    <span>HSV coordinates</span>
-                    <select id="hsvProjection">
-                      <option selected="" value="cylindrical">Cylindrical</option>
-                      <option value="raw">Cartecian</option>
-                    </select>
-                  </label>
-                  <label class="cs-field cs-is-hidden" id="hviDensityField">
-                    <span>HVI density k</span>
-                    <div class="cs-range-row">
-                      <input id="hviDensity" max="1.2" min="0.05" step="0.05" type="range" value="0.2" />
-                      <output for="hviDensity" id="hviDensityValue">0.20</output>
-                    </div>
-                  </label>
-                  <label class="cs-field cs-is-hidden" id="labProjectionField">
-                    <span>LAB coordinates</span>
-                    <select id="labProjection">
-                      <option selected="" value="cylindrical">Cylindrical</option>
-                      <option value="cartesian">Cartesian</option>
-                    </select>
-                  </label>
-                </div>
-                <p class="cs-control-label">View options</p>
-                <div class="cs-toggle-grid">
-                  <label class="cs-toggle">
-                    <input checked="" id="normalizeRange" type="checkbox" />
-                    <span>Normalize 0–1</span>
-                  </label>
-                  <label class="cs-toggle">
-                    <input checked="" id="autoRotate" type="checkbox" />
-                    <span>Auto rotate</span>
-                  </label>
-                  <label class="cs-toggle">
-                    <input checked="" id="showFrame" type="checkbox" />
-                    <span>Show frame</span>
-                  </label>
-                  <label class="cs-toggle">
-                    <input id="showAxes" type="checkbox" />
-                    <span>Show axes</span>
-                  </label>
-                </div>
-                <div class="cs-button-grid"></div>
-              </aside>
+                  </div>
+                  <p class="cs-control-label">Sampling and geometry</p>
+                  <div class="cs-settings-stack">
+                    <label class="cs-field">
+                      <span>Input Prefabs</span>
+                      <select class="cs-grouped-select" id="patternMode">
+                        <optgroup label="Image">
+                          <option value="low-light">Low-light</option>
+                          <option value="normal-light">Normal-light</option>
+                          <option value="gt-mean">GT-Mean Enlightened</option>
+                          <option value="image-random">Random</option>
+                        </optgroup>
+                        <optgroup label="Pattern">
+                          <option value="structured">Structured</option>
+                          <option value="low-discrepancy">Grid 3D</option>
+                          <option value="grid">Grid 2D</option>
+                          <option value="rainbow">Rainbow</option>
+                          <option value="gradient">Gradient</option>
+                          <option value="bijection">Bijection</option>
+                        </optgroup>
+                        <optgroup label="Noise">
+                          <option value="uniform">Uniform</option>
+                          <option value="gaussian">Gaussian</option>
+                          <option value="perlin">Perlin</option>
+                          <option value="fractal">Fractal</option>
+                          <option value="turbulence">Turbulence</option>
+                          <option value="voronoi">Voronoi</option>
+                          <option selected="" value="mosaic">Mosaic</option>
+                        </optgroup>
+                      </select>
+                      <button class="cs-rerandom-btn" id="rerandomBtn" type="button" style="display: none;">
+                        <i class="fas fa-shuffle"></i> Re-random
+                      </button>
+                    </label>
+                    <label class="cs-field">
+                      <span>Image point budget</span>
+                      <select id="imageBudget">
+                        <option value="1000">1,000</option>
+                        <option value="2000">2,000</option>
+                        <option value="4000">4,000</option>
+                        <option value="8000">8,000</option>
+                        <option value="16000">16,000</option>
+                        <option selected="" value="32000">32,000</option>
+                        <option value="64000">64,000</option>
+                        <option value="128000">128,000</option>
+                        <option value="256000">256,000</option>
+                        <option value="all">All</option>
+                      </select>
+                    </label>
+                    <label class="cs-field">
+                      <span>RGB lattice resolution</span>
+                      <select aria-describedby="latticeResolutionHint" id="latticeResolution">
+                        <option value="2">2 × 2 × 2</option>
+                        <option value="3">3 × 3 × 3</option>
+                        <option value="4">4 × 4 × 4</option>
+                        <option value="6">6 × 6 × 6</option>
+                        <option value="8">8 × 8 × 8</option>
+                        <option value="10">10 × 10 × 10</option>
+                        <option value="12">12 × 12 × 12</option>
+                        <option value="14">14 × 14 × 14</option>
+                        <option value="16">16 × 16 × 16</option>
+                        <option value="18">18 × 18 × 18</option>
+                        <option value="20">20 × 20 × 20</option>
+                        <option value="24">24 × 24 × 24</option>
+                        <option value="28">28 × 28 × 28</option>
+                        <option selected="" value="32">32 × 32 × 32</option>
+                        <option value="40">40 × 40 × 40</option>
+                        <option value="48">48 × 48 × 48</option>
+                        <option value="56">56 × 56 × 56</option>
+                        <option value="64">64 × 64 × 64</option>
+                        <option value="128">128 × 128 × 128</option>
+                      </select>
+                      <small class="cs-field-hint" id="latticeResolutionHint">32 samples per axis ·
+                        32,768 points</small>
+                    </label>
+                    <label class="cs-field cs-is-hidden" id="hsvProjectionField">
+                      <span>HSV coordinates</span>
+                      <select id="hsvProjection">
+                        <option selected="" value="cylindrical">Cylindrical</option>
+                        <option value="raw">Cartecian</option>
+                      </select>
+                    </label>
+                    <label class="cs-field cs-is-hidden" id="hviDensityField">
+                      <span>HVI density k</span>
+                      <div class="cs-range-row">
+                        <input id="hviDensity" max="1.2" min="0.05" step="0.05" type="range" value="0.2" />
+                        <output for="hviDensity" id="hviDensityValue">0.20</output>
+                      </div>
+                    </label>
+                    <label class="cs-field cs-is-hidden" id="labProjectionField">
+                      <span>LAB coordinates</span>
+                      <select id="labProjection">
+                        <option selected="" value="cylindrical">Cylindrical</option>
+                        <option value="cartesian">Cartesian</option>
+                      </select>
+                    </label>
+                  </div>
+                  <p class="cs-control-label">View options</p>
+                  <div class="cs-toggle-grid">
+                    <label class="cs-toggle">
+                      <input checked="" id="normalizeRange" type="checkbox" />
+                      <span>Normalize 0–1</span>
+                    </label>
+                    <label class="cs-toggle">
+                      <input checked="" id="autoRotate" type="checkbox" />
+                      <span>Auto rotate</span>
+                    </label>
+                    <label class="cs-toggle">
+                      <input checked="" id="showFrame" type="checkbox" />
+                      <span>Show frame</span>
+                    </label>
+                    <label class="cs-toggle">
+                      <input id="showAxes" type="checkbox" />
+                      <span>Show axes</span>
+                    </label>
+                  </div>
+                  <div class="cs-button-grid"></div>
+                </aside>
+              </div>
             </div>
           </div>
         </div>
@@ -686,7 +700,7 @@
     <canvas class="fireworks-canvas" id="fireworks-canvas"></canvas>
 
     <!-- Problem -->
-    <section class="animate-on-scroll" id="problem">
+    <section class="animate-on-scroll tone-single" id="problem">
       <h2>The Problem</h2>
       <div class="problem-cards">
         <div class="problem-card">
@@ -720,7 +734,7 @@
     </section>
 
     <!-- Method Overview -->
-    <section class="animate-on-scroll" data-feature="method" id="method">
+    <section class="animate-on-scroll tone-double" data-feature="method" id="method">
       <h2>Method Overview</h2>
       <p class="method-lead">
         <strong>CAGE</strong>
@@ -943,7 +957,7 @@
     </section>
 
     <!-- Qualitative Results -->
-    <section class="animate-on-scroll" id="results">
+    <section class="animate-on-scroll tone-single" id="results">
       <h2>Qualitative Results</h2>
       <p>
         Qualitative comparisons on paired and unpaired datasets show reduced global color bias, more stable
@@ -1138,7 +1152,7 @@
     </section>
 
     <!-- Quantitative Results -->
-    <section class="animate-on-scroll" id="results">
+    <section class="animate-on-scroll tone-single" id="results">
       <h2>Quantitative Results</h2>
       <p>
         CAGE consistently improves all backbones with only 0.07M additional parameters across multiple
@@ -1619,7 +1633,8 @@
                     </tr>
                     <tr>
                       <td>
-                        <a href="https://www.ecva.net/papers/eccv_2024/papers_ECCV/papers/02740.pdf" target="_blank">MambaIR</a>
+                        <a href="https://www.ecva.net/papers/eccv_2024/papers_ECCV/papers/02740.pdf"
+                          target="_blank">MambaIR</a>
                       </td>
                       <td>
                         25.14 / 0.876
@@ -1802,7 +1817,7 @@
     </section>
 
     <!-- Summarys -->
-    <section class="animate-on-scroll" id="takeaways">
+    <section class="animate-on-scroll tone-double" id="takeaways">
       <h2>Key Takeaways</h2>
       <div class="takeaways-grid custom-width">
         <div class="takeaway">
@@ -1820,7 +1835,7 @@
           </div>
           <h3>Max Gain</h3>
           <p>
-            up to +2.21 dB PSNR
+            a ~2.5 dB PSNR gain
           </p>
         </div>
         <div class="takeaway">
@@ -1845,7 +1860,7 @@
     </section>
 
     <!-- BibTeX -->
-    <section class="animate-on-scroll" id="bibtex">
+    <section class="animate-on-scroll tone-double" id="bibtex">
       <h2>BibTeX</h2>
       <p>
         For the implementation and project materials, visit the
@@ -1867,7 +1882,7 @@
     </section>
 
     <!-- Acknowledgement -->
-    <section class="animate-on-scroll" id="acknowledgement">
+    <section class="animate-on-scroll tone-double" id="acknowledgement">
       <div class="collapsible-header" data-action="toggle-acknowledgement">
         <h2>Acknowledgement</h2>
         <span class="collapsible-icon">

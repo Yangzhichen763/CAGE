@@ -6,14 +6,6 @@ if (!window.__CAGE_METHOD_INITIALIZED__) {
         const methodRoot = document.getElementById("method");
         if (!methodRoot) return;
 
-        const methodImageObjectUrls = new Map();
-        window.addEventListener("beforeunload", function () {
-            methodImageObjectUrls.forEach(function (objectUrl) {
-                URL.revokeObjectURL(objectUrl);
-            });
-            methodImageObjectUrls.clear();
-        });
-
         const mainData = {
             input: {
                 tag: "Image",
@@ -293,84 +285,19 @@ if (!window.__CAGE_METHOD_INITIALIZED__) {
             }
 
             const placeholder = img.nextElementSibling;
-            const cachedUrl = methodImageObjectUrls.get(src);
-            if (cachedUrl) {
-                img.onload = function () {
-                    showMethodImage(img, placeholder);
-                };
-                img.onerror = function () {
-                    methodImageObjectUrls.delete(src);
-                    URL.revokeObjectURL(cachedUrl);
-                    showImageError(img);
-                };
-                img.src = cachedUrl;
-                if (img.complete && img.naturalWidth > 0) {
-                    showMethodImage(img, placeholder);
-                }
-                return;
-            }
-
             setMethodImageLoading(img, placeholder);
+            img.decoding = "async";
+            img.onload = function () {
+                showMethodImage(img, placeholder);
+            };
+            img.onerror = function () {
+                showImageError(img);
+            };
+            img.src = src;
 
-            fetch(src)
-                .then(response => {
-                    if (!response.ok) {
-                        throw new Error("Network response was not ok");
-                    }
-
-                    const contentLength = response.headers.get("content-length");
-                    const total = contentLength ? parseInt(contentLength, 10) : null;
-                    if (!response.body || !total) {
-                        return response.blob();
-                    }
-
-                    let loaded = 0;
-                    const reader = response.body.getReader();
-                    return new Response(
-                        new ReadableStream({
-                            async start(controller) {
-                                while (true) {
-                                    const { done, value } = await reader.read();
-                                    if (done) break;
-
-                                    loaded += value.length;
-                                    const progress = Math.round((loaded / total) * 100);
-                                    if (placeholder?.classList.contains("img-placeholder")) {
-                                        const label = placeholder.querySelector(".label");
-                                        if (label) label.textContent = progress + "%";
-                                    }
-                                    controller.enqueue(value);
-                                }
-                                controller.close();
-                            },
-                        }),
-                    ).blob();
-                })
-                .then(blob => {
-                    if (!blob) return;
-
-                    const objectUrl = URL.createObjectURL(blob);
-                    const previousUrl = methodImageObjectUrls.get(src);
-                    if (previousUrl && previousUrl !== objectUrl) {
-                        URL.revokeObjectURL(previousUrl);
-                    }
-                    methodImageObjectUrls.set(src, objectUrl);
-
-                    img.onload = function () {
-                        showMethodImage(img, placeholder);
-                    };
-                    img.onerror = function () {
-                        if (methodImageObjectUrls.get(src) === objectUrl) {
-                            methodImageObjectUrls.delete(src);
-                            URL.revokeObjectURL(objectUrl);
-                        }
-                        showImageError(img);
-                    };
-                    img.src = objectUrl;
-                })
-                .catch(() => {
-                    showImageError(img);
-                });
+            if (img.complete && img.naturalWidth > 0) {
+                showMethodImage(img, placeholder);
+            }
         }
 
         function showImageError(img) {
