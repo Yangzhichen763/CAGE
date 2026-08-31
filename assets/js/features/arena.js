@@ -1198,7 +1198,14 @@ function createComparisonView(beforeImageUrl, afterImageUrl, initialPercentage =
         `;
         const filename = placeholder.querySelector(".filename");
         if (filename) filename.textContent = "Loading...";
-        placeholder.style.display = isCached ? "none" : "flex";
+        // Always start visible. Even when the source URL is already in the
+        // cache map, the underlying <img> has not been assigned `src` yet (and
+        // has not fired `load`), so an opaque placeholder is required to keep
+        // the enlightened (background) image from bleeding through the
+        // low-light (foreground) area while it is still opacity:0. The
+        // placeholder is hidden by finishState()/failState() once the image
+        // actually reaches a terminal state.
+        placeholder.style.display = "flex";
         return placeholder;
     }
 
@@ -1479,59 +1486,113 @@ function createComparisonView(beforeImageUrl, afterImageUrl, initialPercentage =
         }
     }
 
+    // Direction-aware dragging: for touch pointers we wait until movement
+    // clearly favours the horizontal axis before capturing and updating the
+    // slider, so a vertical pan still scrolls the page (touch-action: pan-y).
+    // For mouse/pen we drag immediately, matching the original tap-to-move
+    // behaviour.
     let dragging = false;
+    let pendingDrag = false;
+    let startX = 0;
+    let startY = 0;
+    let dragTarget = null;
+    const DRAG_THRESHOLD = 6;
 
-    divider.addEventListener("pointerdown", function (e) {
-        if (e.button !== 0) return;
+    function beginDrag(target, e) {
         dragging = true;
-        divider.setPointerCapture(e.pointerId);
+        pendingDrag = false;
+        dragTarget = target;
+        try { target.setPointerCapture(e.pointerId); } catch (_) {}
         e.preventDefault();
         e.stopPropagation();
         updateSlider(e.clientX, e.clientY);
-    });
+    }
 
-    divider.addEventListener("pointermove", function (e) {
-        if (!dragging) return;
-        e.preventDefault();
-        updateSlider(e.clientX, e.clientY);
-    });
+    function onPointerDown(e) {
+        if (e.button !== 0 && e.pointerType !== "touch") return;
 
-    function stopDragging(e) {
-        if (!dragging) return;
-        dragging = false;
-
-        if (divider.hasPointerCapture(e.pointerId)) {
-            divider.releasePointerCapture(e.pointerId);
+        if (e.pointerType === "touch") {
+            // Defer capture/preventDefault so the browser is free to start a
+            // vertical pan if that is what the user intends.
+            pendingDrag = true;
+            dragging = false;
+            startX = e.clientX;
+            startY = e.clientY;
+            dragTarget = e.currentTarget;
+            return;
         }
 
+        beginDrag(e.currentTarget, e);
+    }
+
+    function onPointerMove(e) {
+        if (!pendingDrag && !dragging) return;
+
+        if (pendingDrag && !dragging) {
+            const dx = Math.abs(e.clientX - startX);
+            const dy = Math.abs(e.clientY - startY);
+
+            if (dx >= DRAG_THRESHOLD && dx >= dy) {
+                beginDrag(e.currentTarget, e);
+            } else if (dy > DRAG_THRESHOLD && dy > dx) {
+                // Vertical pan: release the gesture to the browser.
+                pendingDrag = false;
+                dragTarget = null;
+            }
+            return;
+        }
+
+        if (dragging) {
+            e.preventDefault();
+            updateSlider(e.clientX, e.clientY);
+        }
+    }
+
+    function endDragAnimation() {
         sliderButton.style.transition = "top 0.2s ease-out";
         sliderButton.style.top = "50%";
-
         setTimeout(function () {
             sliderButton.style.transition = "";
         }, 300);
     }
 
-    divider.addEventListener("pointerup", stopDragging);
-    divider.addEventListener("pointercancel", stopDragging);
+    function onPointerUp(e) {
+        pendingDrag = false;
 
-    sliderButton.addEventListener("pointerdown", function (e) {
-        if (e.button !== 0) return;
-        dragging = true;
-        sliderButton.setPointerCapture(e.pointerId);
-        e.preventDefault();
-        e.stopPropagation();
-        updateSlider(e.clientX, e.clientY);
-    });
+        if (!dragging) {
+            dragTarget = null;
+            return;
+        }
+        dragging = false;
 
-    sliderButton.addEventListener("pointermove", function (e) {
-        if (!dragging) return;
-        e.preventDefault();
-        updateSlider(e.clientX, e.clientY);
-    });
+        const target = dragTarget || e.currentTarget;
+        if (target && target.hasPointerCapture(e.pointerId)) {
+            target.releasePointerCapture(e.pointerId);
+        }
+        dragTarget = null;
+        endDragAnimation();
+    }
 
-    sliderButton.addEventListener("pointerup", stopDragging);
-    sliderButton.addEventListener("pointercancel", stopDragging);
+    function onPointerCancel(e) {
+        pendingDrag = false;
+        dragging = false;
+
+        const target = dragTarget || e.currentTarget;
+        if (target && target.hasPointerCapture(e.pointerId)) {
+            target.releasePointerCapture(e.pointerId);
+        }
+        dragTarget = null;
+    }
+
+    divider.addEventListener("pointerdown", onPointerDown);
+    divider.addEventListener("pointermove", onPointerMove);
+    divider.addEventListener("pointerup", onPointerUp);
+    divider.addEventListener("pointercancel", onPointerCancel);
+
+    sliderButton.addEventListener("pointerdown", onPointerDown);
+    sliderButton.addEventListener("pointermove", onPointerMove);
+    sliderButton.addEventListener("pointerup", onPointerUp);
+    sliderButton.addEventListener("pointercancel", onPointerCancel);
 
     return wrapper;
 }

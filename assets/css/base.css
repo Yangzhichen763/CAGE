@@ -683,9 +683,16 @@ figure .img-container {
     display: flex;
     align-items: center;
     justify-content: center;
+    /* Reserve space for the loading placeholder only; once the image has
+       loaded the container follows its natural height (important on narrow
+       screens where wide figures are shorter than 200px). */
     min-height: 200px;
     position: relative;
     overflow: hidden;
+}
+
+figure .img-container:has(> img.is-loaded) {
+    min-height: 0;
 }
 
 figure.fig .img-container img {

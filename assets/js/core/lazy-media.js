@@ -34,7 +34,7 @@ function updateLoadingPlaceholder(img, progress) {
     if (label) label.textContent = Number.isFinite(progress) ? Math.round(progress) + "%" : "Receiving image...";
 }
 
-async function revealImage(img) {
+function revealImage(img) {
     if (img.dataset.src) {
         const src = img.dataset.src;
         delete img.dataset.src;
@@ -44,21 +44,11 @@ async function revealImage(img) {
             return;
         }
 
+        // Native <img> loading: let the browser handle download, progressive
+        // rendering, and HTTP/memory cache. The load/error listeners registered
+        // in observeLazyMedia hide the placeholder once the image is ready.
         img.decoding = img.decoding || "async";
-        if (window.CAGEImageLoader?.load) {
-            try {
-                const resource = await window.CAGEImageLoader.load(src, {
-                    onProgress: function (progress) {
-                        updateLoadingPlaceholder(img, progress);
-                    },
-                });
-                img.src = resource.url;
-            } catch (_) {
-                showMediaFallback(img);
-            }
-        } else {
-            img.src = src;
-        }
+        img.src = src;
     }
 
     if (img.dataset.srcset) {

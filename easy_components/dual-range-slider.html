@@ -37,19 +37,17 @@
       }
     }
 
-    * {
-      box-sizing: border-box;
-    }
+    * { box-sizing: border-box; }
 
     html,
     body {
       margin: 0;
       min-width: 0;
       background: transparent;
-      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      font-family: "Noto Sans", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
     }
 
-    .dual-range-demo {
+    .dual-range-page {
       width: min(100%, 520px);
       margin: 0 auto;
       padding: 16px;
@@ -61,6 +59,7 @@
       --slice-max: 55%;
       --dual-range-thumb-size: 14px;
       --dual-range-handle-size: 16px;
+      position: relative;
       width: 100%;
     }
 
@@ -86,6 +85,7 @@
       height: 4px;
       border-radius: 999px;
       background: color-mix(in srgb, var(--line) 86%, var(--surface) 14%);
+      box-shadow: none;
       transform: translateY(-50%);
       pointer-events: none;
     }
@@ -131,9 +131,7 @@
       background: color-mix(in srgb, var(--accent) 28%, var(--surface) 72%);
     }
 
-    .dual-range-window.is-dragging {
-      cursor: grabbing;
-    }
+    .dual-range-window.is-dragging { cursor: grabbing; }
 
     .dual-range-window.is-dragging::before {
       border-color: color-mix(in srgb, var(--accent) 70%, var(--line) 30%);
@@ -203,6 +201,7 @@
     .dual-range-handle::after {
       width: 14px;
       height: 14px;
+      box-sizing: border-box;
       border: 2px solid var(--accent);
       border-radius: 50%;
       opacity: 0;
@@ -313,8 +312,11 @@
       min-width: 0;
     }
 
-    .dual-range-scale i {
-      font-style: normal;
+    .dual-range-scale i { font-style: normal; }
+
+    :where(.dual-range-input, .dual-range-window):focus-visible {
+      outline: 2px solid var(--accent);
+      outline-offset: 2px;
     }
 
     @media (prefers-reduced-motion: reduce) {
@@ -327,49 +329,35 @@
   </style>
 </head>
 <body>
-  <div class="dual-range-demo">
-    <div
-      class="dual-range-slider"
-      id="dualRangeSlider"
-      data-min-limit="0"
-      data-max-limit="1"
-      data-min="0.45"
-      data-max="0.55"
-      data-step="0.001"
-      data-window-step="0.01"
-      data-window-step-large="0.05"
-    >
-      <div class="dual-range-control">
-        <div class="dual-range-rail">
-          <div
-            class="dual-range-window"
-            role="slider"
-            tabindex="0"
-            aria-label="Move the complete range"
-            aria-valuemin="0"
-            aria-valuemax="1"
-          ></div>
-          <span class="dual-range-handle dual-range-handle-min" aria-hidden="true"></span>
-          <span class="dual-range-handle dual-range-handle-max" aria-hidden="true"></span>
-        </div>
-        <input class="dual-range-input dual-range-min" type="range" aria-label="Minimum value">
-        <input class="dual-range-input dual-range-max" type="range" aria-label="Maximum value">
-      </div>
-      <div class="dual-range-values">
-        <output class="dual-range-min-value"></output>
-        <span class="dual-range-scale"><i class="dual-range-limit-min"></i><i class="dual-range-limit-max"></i></span>
-        <output class="dual-range-max-value"></output>
-      </div>
-    </div>
-  </div>
+  <main class="dual-range-page">
+    <div id="dualRangeHost"></div>
+  </main>
 
   <script>
     (function () {
       "use strict";
 
-      function asNumber(value, fallback) {
-        const number = Number(value);
-        return Number.isFinite(number) ? number : fallback;
+      const TEMPLATE = `
+        <div class="dual-range-slider">
+          <div class="dual-range-control">
+            <div class="dual-range-rail">
+              <div class="dual-range-window" role="slider" tabindex="0" aria-label="Move the complete range"></div>
+              <span class="dual-range-handle dual-range-handle-min" aria-hidden="true"></span>
+              <span class="dual-range-handle dual-range-handle-max" aria-hidden="true"></span>
+            </div>
+            <input class="dual-range-input dual-range-min" type="range" aria-label="Minimum value">
+            <input class="dual-range-input dual-range-max" type="range" aria-label="Maximum value">
+          </div>
+          <div class="dual-range-values">
+            <output class="dual-range-min-value"></output>
+            <span class="dual-range-scale"><i class="dual-range-limit-min"></i><i class="dual-range-limit-max"></i></span>
+            <output class="dual-range-max-value"></output>
+          </div>
+        </div>`;
+
+      function numberOr(value, fallback) {
+        const parsed = Number(value);
+        return Number.isFinite(parsed) ? parsed : fallback;
       }
 
       function precisionFromStep(step) {
@@ -380,11 +368,10 @@
       }
 
       class DualRangeSlider {
-        constructor(root, options) {
+        constructor(root, options = {}) {
           if (!root) throw new Error("DualRangeSlider root is required.");
-
           this.root = root;
-          this.options = Object.assign({}, options || {});
+          this.options = options;
           this.rail = root.querySelector(".dual-range-rail");
           this.window = root.querySelector(".dual-range-window");
           this.minInput = root.querySelector(".dual-range-min");
@@ -394,24 +381,32 @@
           this.limitMin = root.querySelector(".dual-range-limit-min");
           this.limitMax = root.querySelector(".dual-range-limit-max");
 
-          this.minLimit = asNumber(this.options.minLimit ?? root.dataset.minLimit, 0);
-          this.maxLimit = asNumber(this.options.maxLimit ?? root.dataset.maxLimit, 1);
+          this.minLimit = numberOr(options.minLimit, 0);
+          this.maxLimit = numberOr(options.maxLimit, 1);
           if (this.maxLimit <= this.minLimit) this.maxLimit = this.minLimit + 1;
 
-          this.step = Math.max(1e-12, asNumber(this.options.step ?? root.dataset.step, 0.001));
-          this.windowStep = Math.max(this.step, asNumber(this.options.windowStep ?? root.dataset.windowStep, 0.01));
-          this.windowStepLarge = Math.max(this.windowStep, asNumber(this.options.windowStepLarge ?? root.dataset.windowStepLarge, 0.05));
+          this.step = Math.max(1e-12, numberOr(options.step, 0.001));
+          this.windowStep = Math.max(this.step, numberOr(options.windowStep, 0.01));
+          this.windowStepLarge = Math.max(this.windowStep, numberOr(options.windowStepLarge, 0.05));
           this.precision = Math.max(0, precisionFromStep(this.step));
-
-          const startMin = asNumber(this.options.min ?? root.dataset.min, this.minLimit);
-          const startMax = asNumber(this.options.max ?? root.dataset.max, this.maxLimit);
-          this.initialRange = { min: startMin, max: startMax };
-          this.range = { min: startMin, max: startMax };
+          this.initialRange = {
+            min: numberOr(options.min, 0.45),
+            max: numberOr(options.max, 0.55),
+          };
+          this.range = { ...this.initialRange };
           this.windowDrag = null;
+          this.destroyers = [];
 
           this.setupInputs();
           this.bind();
-          this.setRange(startMin, startMax, false);
+          this.setRange(this.initialRange.min, this.initialRange.max, false);
+        }
+
+        static mount(target, options = {}) {
+          const host = typeof target === "string" ? document.querySelector(target) : target;
+          if (!host) throw new Error("DualRangeSlider.mount target was not found.");
+          host.innerHTML = TEMPLATE;
+          return new DualRangeSlider(host.querySelector(".dual-range-slider"), options);
         }
 
         clamp(value) {
@@ -421,6 +416,12 @@
         snap(value) {
           const snapped = this.minLimit + Math.round((value - this.minLimit) / this.step) * this.step;
           return this.clamp(Number(snapped.toFixed(Math.max(this.precision + 2, 8))));
+        }
+
+        format(value) { return Number(value).toFixed(this.precision); }
+
+        percent(value) {
+          return ((value - this.minLimit) / (this.maxLimit - this.minLimit)) * 100;
         }
 
         setupInputs() {
@@ -435,25 +436,15 @@
           this.limitMax.textContent = this.format(this.maxLimit);
         }
 
-        format(value) {
-          return Number(value).toFixed(this.precision);
-        }
-
-        percent(value) {
-          return ((value - this.minLimit) / (this.maxLimit - this.minLimit)) * 100;
-        }
-
         setRange(minValue, maxValue, emit = true) {
           let min = this.snap(minValue);
           let max = this.snap(maxValue);
-
           if (min > max) {
-            const previousMinDistance = Math.abs(min - this.range.min);
-            const previousMaxDistance = Math.abs(max - this.range.max);
-            if (previousMinDistance > previousMaxDistance) min = max;
+            const minMoved = Math.abs(min - this.range.min);
+            const maxMoved = Math.abs(max - this.range.max);
+            if (minMoved > maxMoved) min = max;
             else max = min;
           }
-
           this.range.min = min;
           this.range.max = max;
           this.render();
@@ -461,39 +452,23 @@
           return this.getRange();
         }
 
-        getRange() {
-          return { min: this.range.min, max: this.range.max };
-        }
-
-        reset(emit = true) {
-          return this.setRange(this.initialRange.min, this.initialRange.max, emit);
-        }
-
-        setFullRange(emit = true) {
-          return this.setRange(this.minLimit, this.maxLimit, emit);
-        }
+        getRange() { return { min: this.range.min, max: this.range.max }; }
+        reset(emit = true) { return this.setRange(this.initialRange.min, this.initialRange.max, emit); }
+        setFullRange(emit = true) { return this.setRange(this.minLimit, this.maxLimit, emit); }
 
         render() {
           this.minInput.value = String(this.range.min);
           this.maxInput.value = String(this.range.max);
           this.minOutput.value = this.format(this.range.min);
           this.maxOutput.value = this.format(this.range.max);
-
           this.root.style.setProperty("--slice-min", this.percent(this.range.min).toFixed(3) + "%");
           this.root.style.setProperty("--slice-max", this.percent(this.range.max).toFixed(3) + "%");
-          this.window.setAttribute(
-            "aria-valuetext",
-            this.format(this.range.min) + " to " + this.format(this.range.max),
-          );
+          this.window.setAttribute("aria-valuetext", this.format(this.range.min) + " to " + this.format(this.range.max));
         }
 
         emitChange() {
           const detail = this.getRange();
-          this.root.dispatchEvent(new CustomEvent("dual-range-change", {
-            bubbles: true,
-            detail,
-          }));
-
+          this.root.dispatchEvent(new CustomEvent("dual-range-change", { bubbles: true, detail }));
           if (window.parent && window.parent !== window) {
             const targetOrigin = location.origin === "null" ? "*" : location.origin;
             window.parent.postMessage({ type: "dual-range-change", ...detail }, targetOrigin);
@@ -502,41 +477,36 @@
 
         setHandleActive(kind, active, focus) {
           this.root.classList.toggle("is-" + kind + "-active", active);
-          if (focus !== undefined) {
-            this.root.classList.toggle("is-" + kind + "-focus", focus);
-          }
+          if (focus !== undefined) this.root.classList.toggle("is-" + kind + "-focus", focus);
+        }
+
+        listen(node, type, handler, options) {
+          node.addEventListener(type, handler, options);
+          this.destroyers.push(() => node.removeEventListener(type, handler, options));
         }
 
         bindHandle(input, kind) {
-          input.addEventListener("input", () => {
-            if (kind === "min") {
-              this.setRange(Math.min(Number(input.value), this.range.max), this.range.max);
-            } else {
-              this.setRange(this.range.min, Math.max(Number(input.value), this.range.min));
-            }
+          this.listen(input, "input", () => {
+            if (kind === "min") this.setRange(Math.min(Number(input.value), this.range.max), this.range.max);
+            else this.setRange(this.range.min, Math.max(Number(input.value), this.range.min));
           });
-
-          input.addEventListener("pointerenter", () => this.setHandleActive(kind, true));
-          input.addEventListener("pointerleave", () => {
+          this.listen(input, "pointerenter", () => this.setHandleActive(kind, true));
+          this.listen(input, "pointerleave", () => {
             if (document.activeElement !== input) this.setHandleActive(kind, false);
           });
-          input.addEventListener("pointerdown", () => this.setHandleActive(kind, true));
-          input.addEventListener("pointerup", () => {
-            if (!input.matches(":hover") && document.activeElement !== input) {
-              this.setHandleActive(kind, false);
-            }
+          this.listen(input, "pointerdown", () => this.setHandleActive(kind, true));
+          this.listen(input, "pointerup", () => {
+            if (!input.matches(":hover") && document.activeElement !== input) this.setHandleActive(kind, false);
           });
-          input.addEventListener("focus", () => this.setHandleActive(kind, true, true));
-          input.addEventListener("blur", () => {
-            this.setHandleActive(kind, input.matches(":hover"), false);
-          });
+          this.listen(input, "focus", () => this.setHandleActive(kind, true, true));
+          this.listen(input, "blur", () => this.setHandleActive(kind, input.matches(":hover"), false));
         }
 
         bind() {
           this.bindHandle(this.minInput, "min");
           this.bindHandle(this.maxInput, "max");
 
-          this.window.addEventListener("pointerdown", (event) => {
+          this.listen(this.window, "pointerdown", (event) => {
             if (event.button !== 0) return;
             event.preventDefault();
             this.windowDrag = {
@@ -549,81 +519,66 @@
             this.window.classList.add("is-dragging");
           });
 
-          this.window.addEventListener("pointermove", (event) => {
+          this.listen(this.window, "pointermove", (event) => {
             if (!this.windowDrag || event.pointerId !== this.windowDrag.pointerId) return;
             const rect = this.rail.getBoundingClientRect();
             if (rect.width <= 1) return;
-
             const domain = this.maxLimit - this.minLimit;
             const delta = ((event.clientX - this.windowDrag.startX) / rect.width) * domain;
             const intervalWidth = this.windowDrag.startMax - this.windowDrag.startMin;
-            const min = Math.min(
-              this.maxLimit - intervalWidth,
-              Math.max(this.minLimit, this.windowDrag.startMin + delta),
-            );
+            const min = Math.min(this.maxLimit - intervalWidth, Math.max(this.minLimit, this.windowDrag.startMin + delta));
             this.setRange(min, min + intervalWidth);
           });
 
           const finishWindowDrag = (event) => {
             if (!this.windowDrag || event.pointerId !== this.windowDrag.pointerId) return;
             this.window.classList.remove("is-dragging");
-            if (this.window.hasPointerCapture(event.pointerId)) {
-              this.window.releasePointerCapture(event.pointerId);
-            }
+            if (this.window.hasPointerCapture(event.pointerId)) this.window.releasePointerCapture(event.pointerId);
             this.windowDrag = null;
           };
+          this.listen(this.window, "pointerup", finishWindowDrag);
+          this.listen(this.window, "pointercancel", finishWindowDrag);
 
-          this.window.addEventListener("pointerup", finishWindowDrag);
-          this.window.addEventListener("pointercancel", finishWindowDrag);
-
-          this.window.addEventListener("keydown", (event) => {
+          this.listen(this.window, "keydown", (event) => {
             if (event.key !== "ArrowLeft" && event.key !== "ArrowRight") return;
             event.preventDefault();
-
             const intervalWidth = this.range.max - this.range.min;
             const step = event.shiftKey ? this.windowStepLarge : this.windowStep;
             const direction = event.key === "ArrowLeft" ? -1 : 1;
-            const min = Math.min(
-              this.maxLimit - intervalWidth,
-              Math.max(this.minLimit, this.range.min + direction * step),
-            );
+            const min = Math.min(this.maxLimit - intervalWidth, Math.max(this.minLimit, this.range.min + direction * step));
             this.setRange(min, min + intervalWidth);
           });
         }
+
+        destroy() {
+          this.destroyers.splice(0).forEach((dispose) => dispose());
+          this.root.remove();
+        }
       }
 
-      function readQueryOptions() {
+      function queryOptions() {
         const query = new URLSearchParams(location.search);
         const options = {};
         ["min", "max", "step", "minLimit", "maxLimit", "windowStep", "windowStepLarge"].forEach((key) => {
           if (query.has(key)) options[key] = query.get(key);
         });
-
         const accent = query.get("accent");
         if (accent) document.documentElement.style.setProperty("--accent", accent);
-
         const theme = query.get("theme");
-        if (theme === "light" || theme === "dark") {
-          document.documentElement.setAttribute("data-theme", theme);
-        }
+        if (theme === "light" || theme === "dark") document.documentElement.setAttribute("data-theme", theme);
         return options;
       }
 
-      const root = document.getElementById("dualRangeSlider");
-      const instance = new DualRangeSlider(root, readQueryOptions());
-
       window.DualRangeSlider = DualRangeSlider;
+      const instance = DualRangeSlider.mount("#dualRangeHost", queryOptions());
       window.dualRangeSlider = instance;
 
       window.addEventListener("message", function (event) {
         const data = event.data || {};
-        if (data.type === "dual-range-set") {
-          instance.setRange(data.min, data.max);
-        } else if (data.type === "dual-range-reset") {
-          instance.reset();
-        } else if (data.type === "dual-range-full") {
-          instance.setFullRange();
-        } else if (data.type === "dual-range-get") {
+        if (data.type === "dual-range-set") instance.setRange(data.min, data.max);
+        else if (data.type === "dual-range-reset") instance.reset();
+        else if (data.type === "dual-range-full") instance.setFullRange();
+        else if (data.type === "dual-range-get") {
           const targetOrigin = event.origin && event.origin !== "null" ? event.origin : "*";
           event.source?.postMessage({ type: "dual-range-value", ...instance.getRange() }, targetOrigin);
         }

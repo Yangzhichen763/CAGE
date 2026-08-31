@@ -38,71 +38,71 @@
 
         while (readyEntries.length > MAX_CACHE_ENTRIES) {
             const [source, entry] = readyEntries.shift();
-            if (entry.objectUrl) URL.revokeObjectURL(entry.objectUrl);
+            if (entry.image) {
+                try { entry.image.src = ""; } catch (_) {}
+                entry.image = null;
+            }
             entries.delete(source);
         }
     }
 
+    // Native image loading: returns the original source URL once the browser has
+    // finished downloading and decoding the image. The browser's HTTP/memory cache
+    // handles caching, so subsequent assignments to <img>.src resolve instantly.
+    // This avoids XHR connection-pool exhaustion and ObjectURL revocation issues.
     function get(source) {
         const entry = entries.get(source);
-        if (!entry || entry.state !== "ready" || !entry.objectUrl) return "";
+        if (!entry || entry.state !== "ready") return "";
         touch(entry);
-        return entry.objectUrl;
+        return source;
     }
 
     function createRequest(source) {
         const entry = {
             source: source,
             state: "loading",
-            objectUrl: "",
             progress: null,
             listeners: new Set(),
             lastAccess: ++accessCounter,
             promise: null,
+            image: null,
         };
 
         entry.promise = new Promise(function (resolve, reject) {
-            const xhr = new XMLHttpRequest();
-            entry.xhr = xhr;
-            xhr.open("GET", source, true);
-            xhr.responseType = "blob";
+            const image = new Image();
+            entry.image = image;
+            image.decoding = "async";
+            image.fetchPriority = "auto";
 
-            xhr.onprogress = function (event) {
+            // Progress events on Image are supported in Chromium/Firefox but not
+            // universally. When available, surface real download progress; when
+            // not, the placeholder stays in its indeterminate state.
+            image.addEventListener("progress", function (event) {
                 if (event.lengthComputable && event.total > 0) {
                     notify(entry, Math.max(0, Math.min(100, (event.loaded / event.total) * 100)));
-                } else {
-                    notify(entry, null);
                 }
-            };
+            });
 
-            xhr.onload = function () {
-                const ok = (xhr.status >= 200 && xhr.status < 300) || (xhr.status === 0 && xhr.response);
-                if (!ok || !(xhr.response instanceof Blob)) {
-                    reject(new Error("Image request failed: " + source));
-                    return;
-                }
-
-                entry.objectUrl = URL.createObjectURL(xhr.response);
+            image.onload = function () {
                 entry.state = "ready";
+                entry.image = null;
                 touch(entry);
                 notify(entry, 100);
                 evictReadyEntries();
                 resolve({
                     source: source,
-                    url: entry.objectUrl,
+                    url: source,
                     fromCache: false,
                 });
             };
 
-            xhr.onerror = function () {
+            image.onerror = function () {
+                entry.image = null;
                 reject(new Error("Image request failed: " + source));
             };
-            xhr.onabort = function () {
-                reject(new Error("Image request aborted: " + source));
-            };
-            xhr.send();
+
+            image.src = source;
         }).catch(function (error) {
-            if (entry.objectUrl) URL.revokeObjectURL(entry.objectUrl);
             if (entries.get(source) === entry) entries.delete(source);
             throw error;
         });
@@ -116,14 +116,14 @@
         if (!source) return Promise.reject(new Error("Image source is empty"));
 
         let entry = entries.get(source);
-        if (entry && entry.state === "ready" && entry.objectUrl) {
+        if (entry && entry.state === "ready") {
             touch(entry);
             if (typeof opts.onProgress === "function") {
                 queueMicrotask(function () { opts.onProgress(100); });
             }
             return Promise.resolve({
                 source: source,
-                url: entry.objectUrl,
+                url: source,
                 fromCache: true,
             });
         }
@@ -150,10 +150,10 @@
 
     function clear() {
         entries.forEach(function (entry) {
-            if (entry.state === "loading" && entry.xhr) {
-                try { entry.xhr.abort(); } catch (_) {}
+            if (entry.image) {
+                try { entry.image.src = ""; } catch (_) {}
+                entry.image = null;
             }
-            if (entry.objectUrl) URL.revokeObjectURL(entry.objectUrl);
         });
         entries.clear();
     }

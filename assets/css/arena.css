@@ -983,7 +983,11 @@ pre {
     background: transparent;
     cursor: ew-resize;
     z-index: 99;
-    touch-action: none;
+    /* Allow vertical panning (page scroll) while we handle horizontal drags.
+       Combined with direction-aware pointer handlers in arena.js, this lets
+       mobile users scroll past the compare without the slider hijacking the
+       gesture. */
+    touch-action: pan-y;
 }
 
 .arena-compare-wrapper .compare-divider::before {
@@ -1048,6 +1052,9 @@ pre {
     justify-content: center;
     border: 2px solid white;
     box-shadow: 0 2px 4px rgba(59, 130, 246, 0.3);
+    /* See .compare-divider note. Allows page scroll on touch while we own
+       horizontal drags. */
+    touch-action: pan-y;
 }
 
 .arena-compare-wrapper .slider-button::before,

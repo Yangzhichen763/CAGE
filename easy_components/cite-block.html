@@ -1,0 +1,322 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Citation Block</title>
+  <style>
+    :root {
+      --accent: #1a56db;
+      --ink: #2c2c2c;
+      --muted: #666666;
+      --line: #e0e0e0;
+      --surface: #ffffff;
+      --shadow: rgba(0, 0, 0, 0.1);
+    }
+
+    [data-theme="dark"] {
+      --accent: #ff4d4f;
+      --ink: #e0e0e0;
+      --muted: #a0a0a0;
+      --line: #3a3a4a;
+      --surface: #2a2a32;
+      --shadow: rgba(0, 0, 0, 0.3);
+    }
+
+    @media (prefers-color-scheme: dark) {
+      :root:not([data-theme="light"]) {
+        --accent: #ff4d4f;
+        --ink: #e0e0e0;
+        --muted: #a0a0a0;
+        --line: #3a3a4a;
+        --surface: #2a2a32;
+        --shadow: rgba(0, 0, 0, 0.3);
+      }
+    }
+
+    * { box-sizing: border-box; }
+
+    html,
+    body {
+      margin: 0;
+      min-width: 0;
+      background: transparent;
+      font-family: "Noto Sans", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    }
+
+    .cite-page {
+      width: min(100%, 880px);
+      margin: 0 auto;
+      padding: 16px;
+      color: var(--ink);
+    }
+
+    .cite-block {
+      position: relative;
+      width: 100%;
+    }
+
+    .cite-block pre {
+      margin: 0;
+      padding: 20px;
+      overflow-x: auto;
+      border-radius: 10px;
+      background: #1a1a1a;
+      color: #f2f2f2;
+      font-family: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, monospace;
+      font-size: 0.86rem;
+      line-height: 1.55;
+      white-space: pre;
+      tab-size: 2;
+    }
+
+    .cite-copy-btn {
+      position: absolute;
+      top: 10px;
+      right: 10px;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      min-height: 36px;
+      padding: 8px 16px;
+      border: 0;
+      border-radius: 8px;
+      background: var(--accent);
+      color: #ffffff;
+      font: inherit;
+      font-size: 0.85rem;
+      font-weight: 500;
+      cursor: pointer;
+      transition: background-color 0.25s ease, transform 0.25s ease, box-shadow 0.25s ease;
+    }
+
+    .cite-block:hover .cite-copy-btn,
+    .cite-block:focus-within .cite-copy-btn {
+      display: inline-flex;
+    }
+
+    .cite-copy-btn:hover {
+      background: color-mix(in srgb, var(--accent) 90%, white);
+      transform: translateY(-1px);
+      box-shadow: 0 4px 12px color-mix(in srgb, var(--accent) 40%, transparent);
+    }
+
+    .cite-copy-btn:active {
+      transform: translateY(0);
+      box-shadow: 0 2px 8px color-mix(in srgb, var(--accent) 30%, transparent);
+    }
+
+    .cite-copy-btn.is-copied {
+      background: #10b981;
+      box-shadow: 0 2px 8px rgba(16, 185, 129, 0.3);
+    }
+
+    .cite-copy-btn:focus-visible {
+      outline: 2px solid var(--accent);
+      outline-offset: 2px;
+    }
+
+    .cite-copy-btn svg {
+      width: 14px;
+      height: 14px;
+      flex: 0 0 auto;
+      fill: none;
+      stroke: currentColor;
+      stroke-width: 1.8;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+    }
+
+    .cite-live {
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      padding: 0;
+      margin: -1px;
+      overflow: hidden;
+      clip: rect(0, 0, 0, 0);
+      white-space: nowrap;
+      border: 0;
+    }
+  </style>
+</head>
+<body>
+  <main class="cite-page">
+    <div id="citeHost"></div>
+  </main>
+
+  <script>
+    (function () {
+      "use strict";
+
+      const DEFAULT_CITATION = `@inproceedings{yang2026cage,
+  title     = {Towards color-faithful low-light image enhancement via adaptive color debiasing and saturation rectification},
+  author    = {Yang, Zhichen and Xu, Rui and Niu, Yuzhen and Li, Fusheng and Da, Hui and Cheng, Ri},
+  booktitle = {Proceedings of the ACM International Conference on Multimedia (ACMMM)},
+  year      = {2026}
+}`;
+
+      // The current index page displays DEFAULT_CITATION but its Copy handler
+      // writes the following hard-coded text. The standalone component keeps
+      // display text and copy text separate so the current index behavior can
+      // be reproduced exactly while still allowing reusable blocks to keep
+      // them identical when desired.
+      const DEFAULT_COPY_TEXT = `@article{yang2026cage,
+  title={Towards Color-faithful Low-light Image Enhancement via Adaptive Color Debiasing and Saturation Rectification},
+  author={Yang, Zhichen and Li, Fusheng and Xu, Rui and Da, Hui and Niu, Yuzhen and Cheng, Ri},
+  journal={Proceedings of the ACM International Conference on Multimedia},
+  year={2026}
+}`;
+
+      const COPY_ICON = `
+        <svg viewBox="0 0 24 24" aria-hidden="true">
+          <rect x="9" y="9" width="10" height="10" rx="2"></rect>
+          <path d="M15 9V7a2 2 0 0 0-2-2H7a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2h2"></path>
+        </svg>`;
+
+      const CHECK_ICON = `
+        <svg viewBox="0 0 24 24" aria-hidden="true">
+          <path d="m5 12 4 4L19 6"></path>
+        </svg>`;
+
+      async function copyText(text) {
+        if (navigator.clipboard && window.isSecureContext) {
+          await navigator.clipboard.writeText(text);
+          return;
+        }
+
+        const textarea = document.createElement("textarea");
+        textarea.value = text;
+        textarea.setAttribute("readonly", "");
+        textarea.style.position = "fixed";
+        textarea.style.left = "-9999px";
+        textarea.style.top = "0";
+        document.body.appendChild(textarea);
+        textarea.select();
+        textarea.setSelectionRange(0, textarea.value.length);
+        const ok = document.execCommand("copy");
+        textarea.remove();
+        if (!ok) throw new Error("Copy command failed.");
+      }
+
+      class CiteBlock {
+        constructor(root, options = {}) {
+          if (!root) throw new Error("CiteBlock root is required.");
+          this.root = root;
+          this.pre = root.querySelector("pre");
+          this.button = root.querySelector(".cite-copy-btn");
+          this.live = root.querySelector(".cite-live");
+          this.resetTimer = 0;
+          this.copyLabel = options.copyLabel || "Copy";
+          this.copiedLabel = options.copiedLabel || "Copied!";
+          this.copyText = options.copyText !== undefined ? String(options.copyText) : null;
+          this.copyHandler = () => this.copy();
+          this.button.addEventListener("click", this.copyHandler);
+          if (options.text !== undefined) this.setText(options.text);
+          this.renderButton(false);
+        }
+
+        static mount(target, options = {}) {
+          const host = typeof target === "string" ? document.querySelector(target) : target;
+          if (!host) throw new Error("CiteBlock.mount target was not found.");
+          const block = document.createElement("div");
+          block.className = "cite-block";
+          block.innerHTML = `
+            <pre tabindex="0"></pre>
+            <button class="cite-copy-btn" type="button" aria-label="Copy citation">${COPY_ICON}<span>Copy</span></button>
+            <span class="cite-live" aria-live="polite"></span>`;
+          host.replaceChildren(block);
+          return new CiteBlock(block, options);
+        }
+
+        getText() {
+          return this.pre.textContent.replace(/^\n|\n$/g, "");
+        }
+
+        setText(text, copyText) {
+          this.pre.textContent = String(text ?? "");
+          if (copyText !== undefined) this.copyText = String(copyText);
+          return this;
+        }
+
+        setCopyText(text) {
+          this.copyText = text === null || text === undefined ? null : String(text);
+          return this;
+        }
+
+        getCopyText() {
+          return this.copyText !== null ? this.copyText : this.getText();
+        }
+
+        renderButton(copied) {
+          this.button.classList.toggle("is-copied", copied);
+          this.button.innerHTML = (copied ? CHECK_ICON : COPY_ICON) + `<span>${copied ? this.copiedLabel : this.copyLabel}</span>`;
+          this.button.setAttribute("aria-label", copied ? this.copiedLabel : this.copyLabel + " citation");
+        }
+
+        async copy() {
+          const text = this.getCopyText();
+          try {
+            await copyText(text);
+            window.clearTimeout(this.resetTimer);
+            this.renderButton(true);
+            this.live.textContent = this.copiedLabel;
+            this.root.dispatchEvent(new CustomEvent("cite-block-copy", { bubbles: true, detail: { text } }));
+            if (window.parent && window.parent !== window) {
+              const targetOrigin = location.origin === "null" ? "*" : location.origin;
+              window.parent.postMessage({ type: "cite-block-copy", text }, targetOrigin);
+            }
+            this.resetTimer = window.setTimeout(() => {
+              this.renderButton(false);
+              this.live.textContent = "";
+            }, 2000);
+            return true;
+          } catch (error) {
+            console.error("Failed to copy citation:", error);
+            this.live.textContent = "Copy failed";
+            return false;
+          }
+        }
+
+        destroy() {
+          window.clearTimeout(this.resetTimer);
+          this.button.removeEventListener("click", this.copyHandler);
+          this.root.remove();
+        }
+      }
+
+      function readOptions() {
+        const query = new URLSearchParams(location.search);
+        const options = {};
+        if (query.has("text")) options.text = query.get("text");
+        if (query.has("copyText")) options.copyText = query.get("copyText");
+        if (query.has("copyLabel")) options.copyLabel = query.get("copyLabel");
+        if (query.has("copiedLabel")) options.copiedLabel = query.get("copiedLabel");
+        const accent = query.get("accent");
+        if (accent) document.documentElement.style.setProperty("--accent", accent);
+        const theme = query.get("theme");
+        if (theme === "light" || theme === "dark") document.documentElement.setAttribute("data-theme", theme);
+        return options;
+      }
+
+      window.CiteBlock = CiteBlock;
+      const options = readOptions();
+      if (options.text === undefined) options.text = DEFAULT_CITATION;
+      if (options.copyText === undefined) options.copyText = DEFAULT_COPY_TEXT;
+      const instance = CiteBlock.mount("#citeHost", options);
+      window.citeBlock = instance;
+
+      window.addEventListener("message", function (event) {
+        const data = event.data || {};
+        if (data.type === "cite-block-set") instance.setText(data.text, data.copyText);
+        else if (data.type === "cite-block-copy") instance.copy();
+        else if (data.type === "cite-block-get") {
+          const targetOrigin = event.origin && event.origin !== "null" ? event.origin : "*";
+          event.source?.postMessage({ type: "cite-block-value", text: instance.getText() }, targetOrigin);
+        }
+      });
+    })();
+  </script>
+</body>
+</html>

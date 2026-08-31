@@ -1,0 +1,1037 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <title>Portable Image Compare</title>
+    <style>
+        :root {
+            --accent: #1a56db;
+            --ink: #2c2c2c;
+            --muted: #666666;
+            --line: #e0e0e0;
+            --bg: #fafafa;
+            --surface: #ffffff;
+            --surface-2: rgba(0, 0, 0, 0.04);
+        }
+
+        [data-theme="dark"] {
+            --accent: #ff4d4f;
+            --ink: #e0e0e0;
+            --muted: #a0a0a0;
+            --line: #3a3a4a;
+            --bg: #222228;
+            --surface: #2a2a32;
+            --surface-2: rgba(255, 255, 255, 0.04);
+        }
+
+        @media (prefers-color-scheme: dark) {
+            :root:not([data-theme="light"]) {
+                --accent: #ff4d4f;
+                --ink: #e0e0e0;
+                --muted: #a0a0a0;
+                --line: #3a3a4a;
+                --bg: #222228;
+                --surface: #2a2a32;
+                --surface-2: rgba(255, 255, 255, 0.04);
+            }
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        html,
+        body {
+            margin: 0;
+            min-height: 100%;
+            color: var(--ink);
+            background: var(--bg);
+            font-family:
+                "Noto Sans",
+                -apple-system,
+                BlinkMacSystemFont,
+                "Segoe UI",
+                Roboto,
+                Helvetica,
+                Arial,
+                sans-serif;
+        }
+
+        body {
+            min-height: 100vh;
+            display: grid;
+            place-items: center;
+            padding: 24px;
+        }
+
+        .image-compare-demo {
+            width: min(900px, 100%);
+            aspect-ratio: var(--image-compare-aspect, 4 / 3);
+        }
+
+        /* Exact Image Arena compare geometry. */
+        .arena-compare-wrapper {
+            position: relative;
+            display: block;
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            border-radius: 10px;
+        }
+
+        .arena-compare-wrapper .slider-container {
+            position: relative;
+            width: 100%;
+            height: 100%;
+            background: var(--bg);
+            overflow: hidden;
+            border-radius: 6px;
+        }
+
+        .arena-compare-wrapper .img {
+            position: absolute;
+            inset: 0;
+            width: 100%;
+            height: 100%;
+            display: block;
+            object-fit: var(--image-compare-fit, cover);
+            object-position: var(--image-compare-position, center);
+            border-radius: 0;
+            user-select: none;
+            -webkit-user-drag: none;
+            transition: opacity 0.12s linear;
+        }
+
+        .arena-compare-wrapper .background-img {
+            z-index: 1;
+        }
+
+        .arena-compare-wrapper .foreground-img {
+            z-index: 3;
+            clip-path: inset(0 50% 0 0);
+        }
+
+        .arena-compare-wrapper .compare-divider {
+            position: absolute;
+            top: 0;
+            left: 50%;
+            width: 16px;
+            height: 100%;
+            transform: translateX(-50%);
+            background: transparent;
+            cursor: ew-resize;
+            z-index: 99;
+            touch-action: none;
+        }
+
+        .arena-compare-wrapper .compare-divider::before,
+        .arena-compare-wrapper .compare-divider::after {
+            content: none;
+        }
+
+        .arena-compare-wrapper .slider {
+            position: absolute;
+            inset: 0;
+            width: 100%;
+            height: 100%;
+            margin: 0;
+            opacity: 0;
+            pointer-events: none;
+            z-index: 11;
+        }
+
+        .arena-compare-wrapper .slider::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 0;
+            height: 0;
+            opacity: 0;
+            border: 0;
+            background: transparent;
+        }
+
+        .arena-compare-wrapper .slider::-moz-range-thumb {
+            width: 0;
+            height: 0;
+            opacity: 0;
+            border: 0;
+            background: transparent;
+        }
+
+        .arena-compare-wrapper .slider-button {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            background: var(--accent);
+            transform: translate(-50%, -50%);
+            cursor: move;
+            z-index: 100;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border: 2px solid white;
+            box-shadow: 0 2px 4px rgba(59, 130, 246, 0.3);
+            touch-action: none;
+        }
+
+        .arena-compare-wrapper .slider-button::before,
+        .arena-compare-wrapper .slider-button::after {
+            content: "";
+            width: 4px;
+            height: 4px;
+            border: solid white;
+            border-width: 0 2px 2px 0;
+            position: absolute;
+        }
+
+        .arena-compare-wrapper .slider-button::before {
+            transform: rotate(-45deg);
+            left: 10px;
+        }
+
+        .arena-compare-wrapper .slider-button::after {
+            transform: rotate(135deg);
+            right: 10px;
+        }
+
+        .arena-compare-wrapper .compare-corner-labels {
+            position: absolute;
+            inset: 0;
+            z-index: 120;
+            pointer-events: none;
+        }
+
+        .arena-compare-wrapper .compare-corner-label {
+            position: absolute;
+            top: 8px;
+            min-width: 26px;
+            height: 26px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            padding: 0 8px;
+            border: 1px solid rgba(255, 255, 255, 0.28);
+            border-radius: 8px;
+            color: #fff;
+            background: rgba(12, 14, 18, 0.62);
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
+            font-size: 0.72rem;
+            font-weight: 750;
+            line-height: 1;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.16);
+        }
+
+        .arena-compare-wrapper .compare-corner-label-left {
+            left: 8px;
+        }
+
+        .arena-compare-wrapper .compare-corner-label-right {
+            right: 8px;
+        }
+
+        /* Unified Loading surface copied from the current project. */
+        .cage-loading-surface {
+            --cage-loading-progress-width: min(180px, calc(100% - 40px));
+            --cage-loading-progress-height: 5px;
+            color: var(--muted);
+            background-color: var(--surface-2);
+            background-image: radial-gradient(
+                circle at 1px 1px,
+                color-mix(in srgb, var(--line) 86%, transparent) 1px,
+                transparent 1.15px
+            );
+            background-size: 16px 16px;
+        }
+
+        .cage-loading-surface .icon {
+            width: 30px;
+            height: 30px;
+            display: grid;
+            place-items: center;
+            margin: 0 0 1px;
+            padding: 0;
+            border: 0;
+            background: transparent;
+            color: var(--accent);
+        }
+
+        .cage-loading-spinner {
+            width: 18px;
+            height: 18px;
+            border: 2px solid color-mix(in srgb, var(--line) 82%, transparent);
+            border-top-color: var(--accent);
+            border-radius: 50%;
+            animation: cage-image-compare-spin 0.82s linear infinite;
+        }
+
+        @keyframes cage-image-compare-spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .cage-loading-surface .filename {
+            max-width: calc(100% - 24px);
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+            color: var(--ink);
+            font-size: 0.82rem;
+            font-weight: 600;
+            line-height: 1.2;
+            text-align: center;
+        }
+
+        .cage-loading-surface .progress-bar {
+            position: relative;
+            width: var(--cage-loading-progress-width);
+            height: var(--cage-loading-progress-height);
+            margin: 2px 0 0;
+            overflow: hidden;
+            flex: 0 0 auto;
+            border: 0;
+            border-radius: 999px;
+            background: color-mix(in srgb, var(--line) 78%, var(--surface));
+        }
+
+        .cage-loading-surface .progress-bar-fill {
+            width: 0%;
+            height: 100%;
+            border-radius: inherit;
+            background: var(--accent);
+            transition: width 0.14s linear;
+        }
+
+        .cage-loading-surface .progress-bar.is-indeterminate .progress-bar-fill {
+            width: 34% !important;
+            animation: cage-image-compare-indeterminate 1.15s ease-in-out infinite;
+        }
+
+        @keyframes cage-image-compare-indeterminate {
+            0% { transform: translateX(-115%); }
+            55% { transform: translateX(105%); }
+            100% { transform: translateX(295%); }
+        }
+
+        .cage-loading-surface .label,
+        .cage-loading-surface .progress-text {
+            color: var(--muted);
+            font-size: 0.74rem;
+            font-weight: 500;
+            line-height: 1.2;
+            text-align: center;
+        }
+
+        .arena-compare-wrapper .compare-loading {
+            position: absolute;
+            inset: 0;
+            z-index: 20;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 7px;
+        }
+
+        .arena-compare-wrapper .compare-image-placeholder {
+            position: absolute;
+            top: 0;
+            bottom: 0;
+            margin: 0;
+            min-width: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 7px;
+            border-radius: 6px;
+            pointer-events: none;
+            overflow: hidden;
+        }
+
+        .arena-compare-wrapper .compare-image-placeholder.background-placeholder {
+            z-index: 2;
+        }
+
+        .arena-compare-wrapper .compare-image-placeholder.foreground-placeholder {
+            z-index: 4;
+        }
+
+        .arena-compare-wrapper .compare-image-placeholder .filename,
+        .arena-compare-wrapper .compare-image-placeholder .label {
+            max-width: calc(100% - 14px);
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .cage-loading-error-icon {
+            width: 18px;
+            height: 18px;
+            color: var(--muted);
+        }
+
+        @media (max-width: 640px) {
+            body { padding: 12px; }
+            .arena-compare-wrapper .compare-corner-label {
+                top: 6px;
+                min-width: 24px;
+                height: 24px;
+                padding: 0 7px;
+                font-size: 0.68rem;
+            }
+            .arena-compare-wrapper .compare-corner-label-left { left: 6px; }
+            .arena-compare-wrapper .compare-corner-label-right { right: 6px; }
+        }
+    </style>
+</head>
+<body>
+    <!--
+        Standalone usage:
+
+        1) Open this file directly.
+        2) Edit the data-* values below.
+        3) Or embed this file with iframe query parameters:
+
+           image-compare.html?left=left.png&right=right.png&leftLabel=P&rightLabel=Q&split=50
+
+        loadingMode:
+          combined -> one Loading surface, same as Enhanced Results comparison.
+          split    -> left/right independent Loading, same as Low-light / Enlightened input.
+    -->
+    <div
+        class="image-compare-demo"
+        id="imageCompareHost"
+        data-image-compare
+        data-left=""
+        data-right=""
+        data-left-label="A"
+        data-right-label="B"
+        data-left-alt="Left comparison image"
+        data-right-alt="Right comparison image"
+        data-loading-mode="combined"
+        data-split="50"
+    ></div>
+
+    <script>
+        (function () {
+            "use strict";
+
+            const instances = new WeakMap();
+            const resourceCache = new Map();
+            let accessCounter = 0;
+            const MAX_CACHE_ENTRIES = 24;
+
+            const ERROR_ICON =
+                '<svg class="cage-loading-error-icon" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.6" viewBox="0 0 24 24" aria-hidden="true">' +
+                '<rect height="18" rx="2" width="18" x="3" y="3"></rect>' +
+                '<circle cx="9" cy="9" r="2"></circle>' +
+                '<path d="M21 15l-5-5L5 21"></path>' +
+                '</svg>';
+
+            function makeDemoImage(label, startColor, endColor) {
+                const svg =
+                    '<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="900" viewBox="0 0 1200 900">' +
+                    '<defs><linearGradient id="g" x1="0" y1="0" x2="1" y2="1">' +
+                    '<stop offset="0" stop-color="' + startColor + '"/><stop offset="1" stop-color="' + endColor + '"/>' +
+                    '</linearGradient></defs>' +
+                    '<rect width="1200" height="900" fill="url(#g)"/>' +
+                    '<circle cx="820" cy="290" r="190" fill="rgba(255,255,255,.22)"/>' +
+                    '<rect x="110" y="570" width="720" height="120" rx="34" fill="rgba(0,0,0,.18)"/>' +
+                    '<text x="150" y="650" fill="white" font-size="72" font-family="Arial,sans-serif" font-weight="700">' + label + '</text>' +
+                    '</svg>';
+                return 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(svg);
+            }
+
+            const DEMO_LEFT = makeDemoImage('Left image · P', '#10234d', '#1a56db');
+            const DEMO_RIGHT = makeDemoImage('Right image · Q', '#5c1820', '#ff4d4f');
+
+            function clamp(value, min, max) {
+                return Math.max(min, Math.min(max, Number(value)));
+            }
+
+            function normalizeProgress(value) {
+                return Number.isFinite(value) ? clamp(value, 0, 100) : null;
+            }
+
+            function makeSpinner() {
+                const spinner = document.createElement("span");
+                spinner.className = "cage-loading-spinner";
+                spinner.setAttribute("aria-hidden", "true");
+                return spinner;
+            }
+
+            function createLoadingSurface(className) {
+                const surface = document.createElement("div");
+                surface.className = className + " cage-loading-surface";
+                surface.innerHTML =
+                    '<div class="icon"></div>' +
+                    '<div class="filename">Loading...</div>' +
+                    '<div class="progress-bar"><div class="progress-bar-fill"></div></div>' +
+                    '<div class="label">Receiving image...</div>';
+                surface.querySelector(".icon").appendChild(makeSpinner());
+                return surface;
+            }
+
+            function setLoadingSurface(surface, progress) {
+                if (!surface) return;
+                const bounded = normalizeProgress(progress);
+                const icon = surface.querySelector(".icon");
+                if (icon && !icon.querySelector(".cage-loading-spinner")) {
+                    icon.innerHTML = "";
+                    icon.appendChild(makeSpinner());
+                }
+                const title = surface.querySelector(".filename");
+                if (title) title.textContent = "Loading...";
+                const progressBar = surface.querySelector(".progress-bar");
+                const fill = surface.querySelector(".progress-bar-fill");
+                const label = surface.querySelector(".label, .progress-text");
+                if (fill) fill.style.width = bounded === null ? "0%" : bounded + "%";
+                if (progressBar) progressBar.classList.toggle("is-indeterminate", bounded === null);
+                if (label) label.textContent = bounded === null ? "Receiving image..." : Math.round(bounded) + "%";
+            }
+
+            function setErrorSurface(surface, label) {
+                if (!surface) return;
+                const icon = surface.querySelector(".icon");
+                if (icon) icon.innerHTML = ERROR_ICON;
+                const title = surface.querySelector(".filename");
+                if (title) title.textContent = label || "Image unavailable";
+                const progressBar = surface.querySelector(".progress-bar");
+                if (progressBar) {
+                    progressBar.classList.remove("is-indeterminate");
+                    progressBar.style.display = "none";
+                }
+                const value = surface.querySelector(".label, .progress-text");
+                if (value) value.textContent = "Image unavailable";
+                surface.style.display = "flex";
+            }
+
+            function touchCache(entry) {
+                entry.lastAccess = ++accessCounter;
+            }
+
+            function evictCache() {
+                const ready = Array.from(resourceCache.entries())
+                    .filter(function (pair) { return pair[1].state === "ready"; })
+                    .sort(function (a, b) { return a[1].lastAccess - b[1].lastAccess; });
+                while (ready.length > MAX_CACHE_ENTRIES) {
+                    const pair = ready.shift();
+                    const entry = pair[1];
+                    if (entry.objectUrl) URL.revokeObjectURL(entry.objectUrl);
+                    resourceCache.delete(pair[0]);
+                }
+            }
+
+            function loadResource(source, onProgress) {
+                if (!source) return Promise.reject(new Error("Image source is empty"));
+                if (/^(data:|blob:)/i.test(source)) {
+                    if (onProgress) queueMicrotask(function () { onProgress(100); });
+                    return Promise.resolve({ url: source, fromCache: true });
+                }
+
+                let entry = resourceCache.get(source);
+                if (entry && entry.state === "ready" && entry.objectUrl) {
+                    touchCache(entry);
+                    queueMicrotask(function () { if (onProgress) onProgress(100); });
+                    return Promise.resolve({ url: entry.objectUrl, fromCache: true });
+                }
+
+                if (!entry) {
+                    entry = {
+                        state: "loading",
+                        objectUrl: "",
+                        progress: null,
+                        listeners: new Set(),
+                        lastAccess: ++accessCounter,
+                        promise: null,
+                    };
+                    resourceCache.set(source, entry);
+
+                    entry.promise = new Promise(function (resolve, reject) {
+                        const xhr = new XMLHttpRequest();
+                        entry.xhr = xhr;
+                        xhr.open("GET", source, true);
+                        xhr.responseType = "blob";
+
+                        xhr.onprogress = function (event) {
+                            const progress = event.lengthComputable && event.total > 0
+                                ? clamp((event.loaded / event.total) * 100, 0, 100)
+                                : null;
+                            entry.progress = progress;
+                            entry.listeners.forEach(function (listener) {
+                                try { listener(progress); } catch (_) {}
+                            });
+                        };
+
+                        xhr.onload = function () {
+                            const ok = (xhr.status >= 200 && xhr.status < 300) || (xhr.status === 0 && xhr.response);
+                            if (!ok || !(xhr.response instanceof Blob)) {
+                                reject(new Error("Image request failed"));
+                                return;
+                            }
+                            entry.objectUrl = URL.createObjectURL(xhr.response);
+                            entry.state = "ready";
+                            entry.progress = 100;
+                            touchCache(entry);
+                            entry.listeners.forEach(function (listener) {
+                                try { listener(100); } catch (_) {}
+                            });
+                            evictCache();
+                            resolve({ url: entry.objectUrl, fromCache: false });
+                        };
+
+                        xhr.onerror = function () { reject(new Error("Image request failed")); };
+                        xhr.onabort = function () { reject(new Error("Image request aborted")); };
+                        xhr.send();
+                    }).catch(function (error) {
+                        if (entry.objectUrl) URL.revokeObjectURL(entry.objectUrl);
+                        if (resourceCache.get(source) === entry) resourceCache.delete(source);
+                        throw error;
+                    });
+                }
+
+                touchCache(entry);
+                const listener = typeof onProgress === "function" ? onProgress : null;
+                if (listener) {
+                    entry.listeners.add(listener);
+                    if (entry.progress !== null) queueMicrotask(function () { listener(entry.progress); });
+                }
+
+                return entry.promise.finally(function () {
+                    if (listener) entry.listeners.delete(listener);
+                });
+            }
+
+            function decodeImage(image, objectUrl) {
+                return new Promise(function (resolve, reject) {
+                    let settled = false;
+                    function finish(ok) {
+                        if (settled) return;
+                        settled = true;
+                        image.onload = null;
+                        image.onerror = null;
+                        ok ? resolve() : reject(new Error("Image decode failed"));
+                    }
+                    image.onload = async function () {
+                        try {
+                            if (typeof image.decode === "function") await image.decode();
+                        } catch (_) {}
+                        finish(image.naturalWidth > 0);
+                    };
+                    image.onerror = function () { finish(false); };
+                    image.src = objectUrl;
+                    if (image.complete && image.naturalWidth > 0) queueMicrotask(function () { finish(true); });
+                });
+            }
+
+            class ImageCompareInstance {
+                constructor(host, options) {
+                    this.host = host;
+                    this.options = {};
+                    this.renderToken = 0;
+                    this.dragging = false;
+                    this.pointerId = null;
+                    this.destroyed = false;
+                    this.build();
+                    this.setOptions(options || {});
+                }
+
+                build() {
+                    this.host.innerHTML = "";
+                    this.host.classList.add("arena-compare-wrapper");
+
+                    const container = document.createElement("div");
+                    container.className = "slider-container";
+
+                    const rightImage = document.createElement("img");
+                    rightImage.className = "img compare-layer background-img";
+                    rightImage.draggable = false;
+                    rightImage.style.opacity = "0";
+
+                    const leftImage = document.createElement("img");
+                    leftImage.className = "img compare-layer foreground-img";
+                    leftImage.draggable = false;
+                    leftImage.style.opacity = "0";
+
+                    const divider = document.createElement("div");
+                    divider.className = "compare-divider";
+                    divider.setAttribute("role", "separator");
+                    divider.setAttribute("aria-orientation", "vertical");
+
+                    const slider = document.createElement("input");
+                    slider.type = "range";
+                    slider.min = "0";
+                    slider.max = "100";
+                    slider.className = "slider";
+                    slider.tabIndex = -1;
+                    slider.setAttribute("aria-hidden", "true");
+
+                    const button = document.createElement("div");
+                    button.className = "slider-button";
+                    button.setAttribute("aria-hidden", "true");
+
+                    const badges = document.createElement("div");
+                    badges.className = "compare-corner-labels";
+                    badges.setAttribute("aria-hidden", "true");
+                    const leftBadge = document.createElement("span");
+                    leftBadge.className = "compare-corner-label compare-corner-label-left";
+                    const rightBadge = document.createElement("span");
+                    rightBadge.className = "compare-corner-label compare-corner-label-right";
+                    badges.append(leftBadge, rightBadge);
+
+                    container.append(rightImage, leftImage, divider, slider, button, badges);
+                    this.host.appendChild(container);
+
+                    this.container = container;
+                    this.leftImage = leftImage;
+                    this.rightImage = rightImage;
+                    this.divider = divider;
+                    this.slider = slider;
+                    this.button = button;
+                    this.leftBadge = leftBadge;
+                    this.rightBadge = rightBadge;
+
+                    this.onPointerDown = this.onPointerDown.bind(this);
+                    this.onPointerMove = this.onPointerMove.bind(this);
+                    this.onPointerEnd = this.onPointerEnd.bind(this);
+                    [divider, button].forEach((element) => {
+                        element.addEventListener("pointerdown", this.onPointerDown);
+                        element.addEventListener("pointermove", this.onPointerMove);
+                        element.addEventListener("pointerup", this.onPointerEnd);
+                        element.addEventListener("pointercancel", this.onPointerEnd);
+                    });
+                }
+
+                setOptions(next) {
+                    const dataset = this.host.dataset;
+                    const options = Object.assign({
+                        leftSrc: dataset.left || dataset.before || DEMO_LEFT,
+                        rightSrc: dataset.right || dataset.after || DEMO_RIGHT,
+                        leftLabel: dataset.leftLabel || dataset.beforeLabel || "L",
+                        rightLabel: dataset.rightLabel || dataset.afterLabel || "R",
+                        leftAlt: dataset.leftAlt || "Left comparison image",
+                        rightAlt: dataset.rightAlt || "Right comparison image",
+                        loadingMode: dataset.loadingMode || "combined",
+                        split: Number(dataset.split || 50),
+                        fit: dataset.fit || "cover",
+                        objectPosition: dataset.objectPosition || "center",
+                    }, this.options, next || {});
+
+                    options.split = clamp(Number(options.split), 0, 100);
+                    options.loadingMode = options.loadingMode === "split" ? "split" : "combined";
+                    this.options = options;
+                    this.host.style.setProperty("--image-compare-fit", options.fit);
+                    this.host.style.setProperty("--image-compare-position", options.objectPosition);
+                    this.leftBadge.textContent = options.leftLabel || "L";
+                    this.rightBadge.textContent = options.rightLabel || "R";
+                    this.leftImage.alt = options.leftAlt;
+                    this.rightImage.alt = options.rightAlt;
+                    this.setSplit(options.split, false);
+                    this.loadImages();
+                    return this;
+                }
+
+                setImages(leftSrc, rightSrc, options) {
+                    return this.setOptions(Object.assign({}, options || {}, {
+                        leftSrc: leftSrc,
+                        rightSrc: rightSrc,
+                    }));
+                }
+
+                setLabels(leftLabel, rightLabel) {
+                    this.options.leftLabel = leftLabel;
+                    this.options.rightLabel = rightLabel;
+                    this.leftBadge.textContent = leftLabel || "L";
+                    this.rightBadge.textContent = rightLabel || "R";
+                    return this;
+                }
+
+                clearLoading() {
+                    this.container.querySelectorAll(".compare-loading, .compare-image-placeholder").forEach(function (node) {
+                        node.remove();
+                    });
+                }
+
+                makeSplitPlaceholder(side) {
+                    const placeholder = createLoadingSurface(
+                        "compare-image-placeholder " + side + "-placeholder",
+                    );
+                    placeholder.setAttribute("aria-label", side + " image loading state");
+                    return placeholder;
+                }
+
+                async loadImages() {
+                    const token = ++this.renderToken;
+                    this.clearLoading();
+                    this.leftImage.style.opacity = "0";
+                    this.rightImage.style.opacity = "0";
+                    this.leftImage.removeAttribute("src");
+                    this.rightImage.removeAttribute("src");
+
+                    const splitMode = this.options.loadingMode === "split";
+                    const combined = splitMode ? null : createLoadingSurface("compare-loading");
+                    const leftPlaceholder = splitMode ? this.makeSplitPlaceholder("foreground") : null;
+                    const rightPlaceholder = splitMode ? this.makeSplitPlaceholder("background") : null;
+
+                    if (combined) this.container.appendChild(combined);
+                    if (rightPlaceholder) this.container.insertBefore(rightPlaceholder, this.leftImage);
+                    if (leftPlaceholder) this.container.insertBefore(leftPlaceholder, this.divider);
+
+                    this.leftPlaceholder = leftPlaceholder;
+                    this.rightPlaceholder = rightPlaceholder;
+                    this.syncSplitGeometry();
+
+                    const progress = { left: null, right: null };
+                    const finished = { left: false, right: false };
+                    const failed = { left: false, right: false };
+
+                    const updateCombined = () => {
+                        if (!combined) return;
+                        const values = Object.values(progress).filter(Number.isFinite);
+                        const average = values.length
+                            ? values.reduce(function (sum, value) { return sum + value; }, 0) / values.length
+                            : null;
+                        setLoadingSurface(combined, average);
+                    };
+
+                    const finishCombinedIfReady = () => {
+                        if (!combined) return;
+                        if (!finished.left || !finished.right) return;
+                        if (failed.left && failed.right) {
+                            setErrorSurface(combined, "Image unavailable");
+                            return;
+                        }
+                        combined.remove();
+                    };
+
+                    const loadSide = async (side, image, source, placeholder, label) => {
+                        try {
+                            if (!source) throw new Error("Image source is empty");
+                            const resource = await loadResource(source, function (value) {
+                                if (token !== this.renderToken || this.destroyed) return;
+                                progress[side] = normalizeProgress(value);
+                                if (placeholder) setLoadingSurface(placeholder, progress[side]);
+                                updateCombined();
+                            }.bind(this));
+                            if (token !== this.renderToken || this.destroyed) return;
+                            await decodeImage(image, resource.url);
+                            if (token !== this.renderToken || this.destroyed) return;
+                            progress[side] = 100;
+                            finished[side] = true;
+                            image.style.opacity = "1";
+                            if (placeholder) placeholder.remove();
+                            updateCombined();
+                            finishCombinedIfReady();
+                            this.host.dispatchEvent(new CustomEvent("imagecompareloaded", {
+                                detail: { side: side, source: source },
+                            }));
+                        } catch (error) {
+                            if (token !== this.renderToken || this.destroyed) return;
+                            failed[side] = true;
+                            finished[side] = true;
+                            image.style.opacity = "0";
+                            if (placeholder) setErrorSurface(placeholder, label || "Image unavailable");
+                            finishCombinedIfReady();
+                            this.host.dispatchEvent(new CustomEvent("imagecompareerror", {
+                                detail: { side: side, source: source, error: error },
+                            }));
+                        }
+                    };
+
+                    loadSide("right", this.rightImage, this.options.rightSrc, rightPlaceholder, this.options.rightLabel);
+                    loadSide("left", this.leftImage, this.options.leftSrc, leftPlaceholder, this.options.leftLabel);
+                }
+
+                syncSplitGeometry() {
+                    const split = clamp(Number(this.slider.value || this.options.split || 50), 0, 100);
+                    this.leftImage.style.clipPath = "inset(0 " + (100 - split) + "% 0 0)";
+                    this.divider.style.left = split + "%";
+                    this.button.style.left = split + "%";
+                    if (this.leftPlaceholder) {
+                        this.leftPlaceholder.style.left = "0";
+                        this.leftPlaceholder.style.right = "auto";
+                        this.leftPlaceholder.style.width = split + "%";
+                    }
+                    if (this.rightPlaceholder) {
+                        this.rightPlaceholder.style.left = split + "%";
+                        this.rightPlaceholder.style.right = "0";
+                        this.rightPlaceholder.style.width = "auto";
+                    }
+                }
+
+                setSplit(value, emit) {
+                    const split = clamp(Number(value), 0, 100);
+                    this.options.split = split;
+                    this.slider.value = String(split);
+                    this.syncSplitGeometry();
+                    if (emit !== false) {
+                        const detail = { split: split };
+                        this.host.dispatchEvent(new CustomEvent("imagecomparechange", { detail: detail }));
+                        if (window.parent !== window) {
+                            window.parent.postMessage({ type: "image-compare-change", split: split }, "*");
+                        }
+                    }
+                    return this;
+                }
+
+                updateFromPointer(clientX, clientY) {
+                    const rect = this.container.getBoundingClientRect();
+                    if (!rect.width) return;
+                    const split = clamp(((clientX - rect.left) / rect.width) * 100, 0, 100);
+                    this.setSplit(split);
+                    if (clientY !== undefined) {
+                        const vertical = clamp(((clientY - rect.top) / rect.height) * 100, 0, 100);
+                        this.button.style.top = vertical + "%";
+                    }
+                }
+
+                onPointerDown(event) {
+                    if (event.button !== 0) return;
+                    this.dragging = true;
+                    this.pointerId = event.pointerId;
+                    event.currentTarget.setPointerCapture(event.pointerId);
+                    event.preventDefault();
+                    event.stopPropagation();
+                    this.updateFromPointer(event.clientX, event.clientY);
+                }
+
+                onPointerMove(event) {
+                    if (!this.dragging || event.pointerId !== this.pointerId) return;
+                    event.preventDefault();
+                    this.updateFromPointer(event.clientX, event.clientY);
+                }
+
+                onPointerEnd(event) {
+                    if (!this.dragging || event.pointerId !== this.pointerId) return;
+                    this.dragging = false;
+                    if (event.currentTarget.hasPointerCapture(event.pointerId)) {
+                        event.currentTarget.releasePointerCapture(event.pointerId);
+                    }
+                    this.button.style.transition = "top 0.2s ease-out";
+                    this.button.style.top = "50%";
+                    window.setTimeout(() => {
+                        if (!this.destroyed) this.button.style.transition = "";
+                    }, 300);
+                    this.pointerId = null;
+                }
+
+                getState() {
+                    return {
+                        leftSrc: this.options.leftSrc,
+                        rightSrc: this.options.rightSrc,
+                        leftLabel: this.options.leftLabel,
+                        rightLabel: this.options.rightLabel,
+                        loadingMode: this.options.loadingMode,
+                        split: Number(this.slider.value),
+                    };
+                }
+
+                destroy() {
+                    this.destroyed = true;
+                    this.renderToken++;
+                    [this.divider, this.button].forEach((element) => {
+                        element.removeEventListener("pointerdown", this.onPointerDown);
+                        element.removeEventListener("pointermove", this.onPointerMove);
+                        element.removeEventListener("pointerup", this.onPointerEnd);
+                        element.removeEventListener("pointercancel", this.onPointerEnd);
+                    });
+                    this.host.innerHTML = "";
+                    this.host.classList.remove("arena-compare-wrapper");
+                    instances.delete(this.host);
+                }
+            }
+
+            function mount(host, options) {
+                if (typeof host === "string") host = document.querySelector(host);
+                if (!host) throw new Error("ImageCompare host was not found");
+                const existing = instances.get(host);
+                if (existing) {
+                    if (options) existing.setOptions(options);
+                    return existing;
+                }
+                const instance = new ImageCompareInstance(host, options || {});
+                instances.set(host, instance);
+                return instance;
+            }
+
+            function get(host) {
+                if (typeof host === "string") host = document.querySelector(host);
+                return host ? instances.get(host) || null : null;
+            }
+
+            function parseQuery(host) {
+                const params = new URLSearchParams(window.location.search);
+                const options = {};
+                const left = params.get("left") || params.get("before");
+                const right = params.get("right") || params.get("after");
+                if (left) options.leftSrc = left;
+                if (right) options.rightSrc = right;
+                if (params.has("leftLabel")) options.leftLabel = params.get("leftLabel");
+                if (params.has("rightLabel")) options.rightLabel = params.get("rightLabel");
+                if (params.has("split")) options.split = Number(params.get("split"));
+                if (params.has("loadingMode")) options.loadingMode = params.get("loadingMode");
+                if (params.has("fit")) options.fit = params.get("fit");
+                if (params.has("position")) options.objectPosition = params.get("position");
+                const theme = params.get("theme");
+                if (theme === "dark" || theme === "light") document.documentElement.dataset.theme = theme;
+                const aspect = params.get("aspect");
+                if (aspect) host.style.setProperty("--image-compare-aspect", aspect.replace(":", " / "));
+                return options;
+            }
+
+            function autoInit() {
+                document.querySelectorAll("[data-image-compare]").forEach(function (host) {
+                    mount(host, parseQuery(host));
+                });
+            }
+
+            window.ImageCompare = {
+                mount: mount,
+                get: get,
+                autoInit: autoInit,
+                clearCache: function () {
+                    resourceCache.forEach(function (entry) {
+                        if (entry.xhr && entry.state === "loading") {
+                            try { entry.xhr.abort(); } catch (_) {}
+                        }
+                        if (entry.objectUrl) URL.revokeObjectURL(entry.objectUrl);
+                    });
+                    resourceCache.clear();
+                },
+            };
+
+            window.addEventListener("message", function (event) {
+                const host = document.querySelector("[data-image-compare]");
+                const instance = get(host);
+                if (!instance || !event.data || typeof event.data !== "object") return;
+                if (event.data.type === "image-compare-set") {
+                    instance.setOptions({
+                        leftSrc: event.data.leftSrc || event.data.left || instance.options.leftSrc,
+                        rightSrc: event.data.rightSrc || event.data.right || instance.options.rightSrc,
+                        leftLabel: event.data.leftLabel ?? instance.options.leftLabel,
+                        rightLabel: event.data.rightLabel ?? instance.options.rightLabel,
+                        loadingMode: event.data.loadingMode || instance.options.loadingMode,
+                        split: Number.isFinite(Number(event.data.split)) ? Number(event.data.split) : instance.options.split,
+                    });
+                } else if (event.data.type === "image-compare-split") {
+                    instance.setSplit(event.data.split);
+                } else if (event.data.type === "image-compare-theme") {
+                    if (event.data.theme === "dark" || event.data.theme === "light") {
+                        document.documentElement.dataset.theme = event.data.theme;
+                    }
+                }
+            });
+
+            if (document.readyState === "loading") {
+                document.addEventListener("DOMContentLoaded", autoInit, { once: true });
+            } else {
+                autoInit();
+            }
+        })();
+    </script>
+</body>
+</html>

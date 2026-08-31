@@ -685,12 +685,19 @@ kbd+kbd {
     max-width: 100%;
     margin: 8px auto 0px;
     overflow: hidden;
+    /* Reserve space for the loading placeholder only; once the image has
+       loaded the frame follows its natural height (important on narrow
+       screens where wide figures are shorter than 200px). */
     min-height: 200px;
     padding: 0;
     transition:
         border-color 0.18s ease,
         box-shadow 0.18s ease,
         transform 0.18s ease;
+}
+
+#method .mfig-frame:has(> img.is-loaded) {
+    min-height: 0;
 }
 
 #method .mfig-frame img {
