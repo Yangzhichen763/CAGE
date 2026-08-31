@@ -865,6 +865,19 @@ table.results tbody tr.mine td {
     font-weight: 700;
 }
 
+first {
+    text-decoration: underline;
+    text-decoration-style: double;
+    text-decoration-thickness: 0.5px;
+    text-underline-offset: 2px;
+}
+
+second {
+    text-decoration: underline;
+    text-decoration-thickness: 0.5px;
+    text-underline-offset: 2px;
+}
+
 table.results tbody tr.upper td {
     color: var(--muted);
 }

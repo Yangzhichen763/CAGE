@@ -125,11 +125,11 @@
       <div class="tldr animate-on-scroll">
         <h2>TL;DR</h2>
         <p>
-          We focus on color-faithful LLIE and introduce CAGE,
-          which <strong>suppresses embedded color bias</strong> before backbone enhancement
-          and rectifies post-enhancement saturation abnormality
+          We focus on color-faithful LLIE and introduce CAGE, 
+          which <strong>suppresses embedded color bias</strong> before backbone enhancement 
+          and rectifies post-enhancement saturation abnormality 
           through an <strong>adaptive cylindrical color transform</strong>,
-          delivering a <strong>~2.5 dB</strong> PSNR gain
+          delivering a <strong>~2.5 dB</strong> PSNR gain 
           with only <strong>0.07M extra Parameters and less than 0.01G FLOPs</strong> .
         </p>
       </div>
@@ -966,7 +966,7 @@
     </section>
 
     <!-- Qualitative Results -->
-    <section class="animate-on-scroll tone-single" id="results">
+    <section class="animate-on-scroll tone-single" id="qualitative-results">
       <h2>Qualitative Results</h2>
       <p>
         Qualitative comparisons on paired and unpaired datasets show reduced global color bias, more stable
@@ -1183,7 +1183,7 @@
                     Quantitative comparisons on LOLv1, LOLv2-real, and LOLv2-synthetic datasets.
                     <strong>CAGE</strong> consistently improves all backbones with only 0.07M additional parameters
                     and less than 0.01G FLOPs. Metrics: PSNR (dB) / SSIM.
-                    <strong>Bold</strong> = best result. Following
+                    <first>Double underline</first> = best result, <second>underline</second> = second best. Following
                     <a href="https://openaccess.thecvf.com/content/CVPR2025/papers/Yan_HVI_A_New_Color_Space_for_Low-light_Image_Enhancement_CVPR_2025_paper.pdf"
                       rel="noopener" target="_blank">HVI-CIDNet</a>
                     , we use GT-mean evaluation on LOLv1 dataset during testing. Since LOLv1 contains only 15
@@ -1195,7 +1195,7 @@
                       <th>Method</th>
                       <th>LOLv1</th>
                       <th>LOLv2-real</th>
-                      <th>LOLv2-synthetic</th>
+                      <th>LOLv2-syn.</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -1204,13 +1204,19 @@
                         <a href="http://bmvc2018.org/contents/papers/0451.pdf" target="_blank">RetinexNet</a>
                       </td>
                       <td>
-                        17.56 / 0.645
+                        17.56
+                        /
+                        0.645
                       </td>
                       <td>
-                        17.68 / 0.642
+                        17.68
+                        /
+                        0.642
                       </td>
                       <td>
-                        15.61 / 0.449
+                        15.61
+                        /
+                        0.449
                       </td>
                     </tr>
                     <tr>
@@ -1219,13 +1225,19 @@
                           target="_blank">KinD</a>
                       </td>
                       <td>
-                        17.64 / 0.777
+                        17.64
+                        /
+                        0.777
                       </td>
                       <td>
-                        20.59 / 0.818
+                        20.59
+                        /
+                        0.818
                       </td>
                       <td>
-                        16.26 / 0.591
+                        16.26
+                        /
+                        0.591
                       </td>
                     </tr>
                     <tr>
@@ -1234,13 +1246,19 @@
                           target="_blank">DRBN</a>
                       </td>
                       <td>
-                        20.13 / 0.830
+                        20.13
+                        /
+                        0.830
                       </td>
                       <td>
-                        20.29 / 0.831
+                        20.29
+                        /
+                        0.831
                       </td>
                       <td>
-                        23.22 / 0.927
+                        23.22
+                        /
+                        0.927
                       </td>
                     </tr>
                     <tr>
@@ -1249,13 +1267,19 @@
                           target="_blank">MIRNet</a>
                       </td>
                       <td>
-                        26.56 / 0.853
+                        26.56
+                        /
+                        0.853
                       </td>
                       <td>
-                        22.68 / 0.828
+                        22.68
+                        /
+                        0.828
                       </td>
                       <td>
-                        25.05 / 0.923
+                        25.05
+                        /
+                        0.923
                       </td>
                     </tr>
                     <tr>
@@ -1264,13 +1288,19 @@
                           target="_blank">ZeroDCE</a>
                       </td>
                       <td>
-                        21.88 / 0.640
+                        21.88
+                        /
+                        0.640
                       </td>
                       <td>
-                        16.06 / 0.580
+                        16.06
+                        /
+                        0.580
                       </td>
                       <td>
-                        17.71 / 0.815
+                        17.71
+                        /
+                        0.815
                       </td>
                     </tr>
                     <tr>
@@ -1278,13 +1308,19 @@
                         <a href="https://ieeexplore.ieee.org/document/9334429" target="_blank">EnlightenGAN</a>
                       </td>
                       <td>
-                        20.00 / 0.691
+                        20.00
+                        /
+                        0.691
                       </td>
                       <td>
-                        18.23 / 0.617
+                        18.23
+                        /
+                        0.617
                       </td>
                       <td>
-                        16.57 / 0.734
+                        16.57
+                        /
+                        0.734
                       </td>
                     </tr>
                     <tr>
@@ -1292,13 +1328,19 @@
                         <a href="https://ojs.aaai.org/index.php/AAAI/article/view/20162" target="_blank">LLFlow</a>
                       </td>
                       <td>
-                        25.53 / 0.870
+                        25.53
+                        /
+                        <second>0.870</second>
                       </td>
                       <td>
-                        17.43 / 0.831
+                        17.43
+                        /
+                        0.831
                       </td>
                       <td>
-                        23.43 / 0.933
+                        23.43
+                        /
+                        0.933
                       </td>
                     </tr>
                     <tr>
@@ -1306,13 +1348,19 @@
                         <a href="https://jiaya.me/file/papers/cvpr22_xiaogang.pdf" target="_blank">SNR-Net</a>
                       </td>
                       <td>
-                        26.81 / 0.855
+                        26.81
+                        /
+                        0.855
                       </td>
                       <td>
-                        21.48 / 0.849
+                        21.48
+                        /
+                        0.849
                       </td>
                       <td>
-                        24.14 / 0.927
+                        24.14
+                        /
+                        0.927
                       </td>
                     </tr>
                     <tr>
@@ -1320,13 +1368,19 @@
                         <a href="https://link.springer.com/article/10.1007/s11263-022-01680-5" target="_blank">BreaD</a>
                       </td>
                       <td>
-                        25.32 / 0.843
+                        25.32
+                        /
+                        0.843
                       </td>
                       <td>
-                        23.69 / 0.869
+                        23.69
+                        /
+                        0.869
                       </td>
                       <td>
-                        15.97 / 0.746
+                        15.97
+                        /
+                        0.746
                       </td>
                     </tr>
                     <tr>
@@ -1334,13 +1388,19 @@
                         <a href="https://dl.acm.org/doi/10.1609/aaai.v37i3.25364" target="_blank">LLFormer</a>
                       </td>
                       <td>
-                        26.12 / 0.827
+                        26.12
+                        /
+                        0.827
                       </td>
                       <td>
-                        21.65 / 0.816
+                        21.65
+                        /
+                        0.816
                       </td>
                       <td>
-                        25.26 / 0.923
+                        25.26
+                        /
+                        0.923
                       </td>
                     </tr>
                     <tr>
@@ -1349,13 +1409,19 @@
                           target="_blank">CWNet</a>
                       </td>
                       <td>
-                        26.38 / 0.864
+                        26.38
+                        /
+                        0.864
                       </td>
                       <td>
-                        21.65 / 0.860
+                        21.65
+                        /
+                        0.860
                       </td>
                       <td>
-                        25.50 / 0.937
+                        25.50
+                        /
+                        <second>0.937</second>
                       </td>
                     </tr>
                     <tr class="dashed-top">
@@ -1364,31 +1430,37 @@
                           target="_blank">Retinexformer</a>
                       </td>
                       <td>
-                        26.08 / 0.827
+                        26.08
+                        /
+                        0.827
                       </td>
                       <td>
-                        21.89 / 0.837
+                        21.89
+                        /
+                        0.837
                       </td>
                       <td>
-                        24.59 / 0.919
+                        24.59
+                        /
+                        0.919
                       </td>
                     </tr>
                     <tr class="mine">
                       <td>Retinexformer + Ours</td>
                       <td>
-                        <strong>27.09</strong>
+                        <second>27.09</second>
                         /
-                        <strong>0.871</strong>
+                        <first>0.871</first>
                       </td>
                       <td>
-                        <strong>24.10</strong>
+                        <second>24.10</second>
                         /
-                        <strong>0.847</strong>
+                        0.847
                       </td>
                       <td>
-                        <strong>26.33</strong>
+                        <first>26.33</first>
                         /
-                        <strong>0.939</strong>
+                        <first>0.939</first>
                       </td>
                     </tr>
                     <tr class="mine delta">
@@ -1415,25 +1487,37 @@
                           target="_blank">DarkIR</a>
                       </td>
                       <td>
-                        25.32 / 0.806
+                        25.32
+                        /
+                        0.806
                       </td>
                       <td>
-                        21.32 / 0.830
+                        21.32
+                        /
+                        0.830
                       </td>
                       <td>
-                        24.06 / 0.921
+                        24.06
+                        /
+                        0.921
                       </td>
                     </tr>
                     <tr class="mine">
                       <td>DarkIR + Ours</td>
                       <td>
-                        26.03 / 0.849
+                        26.03
+                        /
+                        0.849
                       </td>
                       <td>
-                        22.51 / 0.860
+                        22.51
+                        /
+                        0.860
                       </td>
                       <td>
-                        24.54 / 0.923
+                        24.54
+                        /
+                        0.923
                       </td>
                     </tr>
                     <tr class="mine delta">
@@ -1460,31 +1544,37 @@
                           target="_blank">HVI-CIDNet</a>
                       </td>
                       <td>
-                        26.03 / 0.832
+                        26.03
+                        /
+                        0.832
                       </td>
                       <td>
-                        23.94 / 0.870
+                        23.94
+                        /
+                        <second>0.870</second>
                       </td>
                       <td>
-                        25.32 / 0.929
+                        25.32
+                        /
+                        0.929
                       </td>
                     </tr>
                     <tr class="mine">
                       <td>HVI-CIDNet + Ours</td>
                       <td>
-                        <strong>27.25</strong>
+                        <first>27.25</first>
                         /
-                        <strong>0.857</strong>
+                        0.857
                       </td>
                       <td>
-                        <strong>24.24</strong>
+                        <first>24.24</first>
                         /
-                        <strong>0.875</strong>
+                        <first>0.875</first>
                       </td>
                       <td>
-                        <strong>25.52</strong>
+                        <second>25.52</second>
                         /
-                        <strong>0.930</strong>
+                        0.930
                       </td>
                     </tr>
                     <tr class="mine delta">
@@ -1527,7 +1617,7 @@
                     <strong>CAGE</strong>
                     achieves consistent improvement with PSNR gains up to 1.78 dB on SDSD-indoor. Metrics: PSNR
                     (dB) / SSIM.
-                    <strong>Bold</strong> = best result.
+                    <first>Double underline</first> = best result, <second>underline</second> = second best.
                   </caption>
                   <thead>
                     <tr>
@@ -1543,13 +1633,19 @@
                         <a href="https://www4.comp.polyu.edu.hk/~cslzhang/paper/PAMI_LUT.pdf" target="_blank">3DLUT</a>
                       </td>
                       <td>
-                        24.78 / 0.718
+                        24.78
+                        /
+                        0.718
                       </td>
                       <td>
-                        23.29 / 0.703
+                        23.29
+                        /
+                        0.703
                       </td>
                       <td>
-                        16.97 / 0.591
+                        16.97
+                        /
+                        0.591
                       </td>
                     </tr>
                     <tr>
@@ -1557,13 +1653,19 @@
                         <a href="https://jiaya.me/file/papers/cvpr22_xiaogang.pdf" target="_blank">SNR-Net</a>
                       </td>
                       <td>
-                        26.13 / 0.815
+                        26.13
+                        /
+                        0.815
                       </td>
                       <td>
-                        19.22 / 0.657
+                        19.22
+                        /
+                        0.657
                       </td>
                       <td>
-                        21.35 / 0.550
+                        21.35
+                        /
+                        0.550
                       </td>
                     </tr>
                     <tr>
@@ -1572,13 +1674,19 @@
                           target="_blank">LEDNet</a>
                       </td>
                       <td>
-                        27.29 / 0.876
+                        27.29
+                        /
+                        0.876
                       </td>
                       <td>
-                        26.66 / 0.850
+                        26.66
+                        /
+                        0.850
                       </td>
                       <td>
-                        21.47 / 0.638
+                        21.47
+                        /
+                        0.638
                       </td>
                     </tr>
                     <tr>
@@ -1586,13 +1694,19 @@
                         <a href="https://dl.acm.org/doi/epdf/10.1145/3581783.3611909" target="_blank">FourLLIE</a>
                       </td>
                       <td>
-                        24.74 / 0.826
+                        24.74
+                        /
+                        0.826
                       </td>
                       <td>
-                        24.67 / 0.787
+                        24.67
+                        /
+                        0.787
                       </td>
                       <td>
-                        18.42 / 0.513
+                        18.42
+                        /
+                        0.513
                       </td>
                     </tr>
                     <tr>
@@ -1601,13 +1715,19 @@
                           target="_blank">RetinexMamba</a>
                       </td>
                       <td>
-                        28.44 / 0.894
+                        28.44
+                        /
+                        0.894
                       </td>
                       <td>
-                        28.52 / 0.859
+                        28.52
+                        /
+                        0.859
                       </td>
                       <td>
-                        22.45 / 0.656
+                        22.45
+                        /
+                        0.656
                       </td>
                     </tr>
                     <tr>
@@ -1616,13 +1736,19 @@
                           target="_blank">MIRNet</a>
                       </td>
                       <td>
-                        28.64 / 0.888
+                        28.64
+                        /
+                        0.888
                       </td>
                       <td>
-                        28.99 / 0.869
+                        28.99
+                        /
+                        0.869
                       </td>
                       <td>
-                        21.36 / 0.632
+                        21.36
+                        /
+                        0.632
                       </td>
                     </tr>
                     <tr>
@@ -1631,13 +1757,19 @@
                           target="_blank">Restormer</a>
                       </td>
                       <td>
-                        28.49 / 0.892
+                        28.49
+                        /
+                        0.892
                       </td>
                       <td>
-                        27.99 / 0.868
+                        27.99
+                        /
+                        0.868
                       </td>
                       <td>
-                        22.01 / 0.645
+                        22.01
+                        /
+                        0.645
                       </td>
                     </tr>
                     <tr>
@@ -1646,13 +1778,19 @@
                           target="_blank">MambaIR</a>
                       </td>
                       <td>
-                        25.14 / 0.876
+                        25.14
+                        /
+                        0.876
                       </td>
                       <td>
-                        27.53 / 0.851
+                        27.53
+                        /
+                        0.851
                       </td>
                       <td>
-                        22.02 / 0.658
+                        22.02
+                        /
+                        <second>0.658</second>
                       </td>
                     </tr>
                     <tr>
@@ -1661,13 +1799,19 @@
                           target="_blank">CWNet</a>
                       </td>
                       <td>
-                        30.28 / 0.904
+                        <second>30.28</second>
+                        /
+                        <second>0.904</second>
                       </td>
                       <td>
-                        28.54 / 0.857
+                        28.54
+                        /
+                        0.857
                       </td>
                       <td>
-                        20.97 / 0.623
+                        20.97
+                        /
+                        0.623
                       </td>
                     </tr>
                     <tr class="dashed-top">
@@ -1676,31 +1820,37 @@
                           target="_blank">Retinexformer</a>
                       </td>
                       <td>
-                        28.20 / 0.877
+                        28.20
+                        /
+                        0.877
                       </td>
                       <td>
-                        29.57 / 0.874
+                        29.57
+                        /
+                        0.874
                       </td>
                       <td>
-                        22.05 / 0.636
+                        22.05
+                        /
+                        0.636
                       </td>
                     </tr>
                     <tr class="mine">
                       <td>Retinexformer + Ours</td>
                       <td>
-                        <strong>29.98</strong>
+                        29.98
                         /
-                        <strong>0.906</strong>
+                        <first>0.906</first>
                       </td>
                       <td>
-                        <strong>30.12</strong>
+                        <first>30.12</first>
                         /
-                        <strong>0.877</strong>
+                        <first>0.877</first>
                       </td>
                       <td>
-                        <strong>22.64</strong>
+                        <first>22.64</first>
                         /
-                        <strong>0.660</strong>
+                        <first>0.660</first>
                       </td>
                     </tr>
                     <tr class="mine delta">
@@ -1727,27 +1877,37 @@
                           target="_blank">DarkIR</a>
                       </td>
                       <td>
-                        29.94 / 0.897
+                        29.94
+                        /
+                        0.897
                       </td>
                       <td>
-                        28.81 / 0.848
+                        28.81
+                        /
+                        0.848
                       </td>
                       <td>
-                        21.50 / 0.588
+                        21.50
+                        /
+                        0.588
                       </td>
                     </tr>
                     <tr class="mine">
                       <td>DarkIR + Ours</td>
                       <td>
-                        <strong>30.36</strong>
+                        <first>30.36</first>
                         /
-                        <strong>0.899</strong>
+                        0.899
                       </td>
                       <td>
-                        29.36 / 0.858
+                        29.36
+                        /
+                        0.858
                       </td>
                       <td>
-                        22.33 / 0.639
+                        22.33
+                        /
+                        0.639
                       </td>
                     </tr>
                     <tr class="mine delta">
@@ -1774,28 +1934,37 @@
                           target="_blank">HVI-CIDNet</a>
                       </td>
                       <td>
-                        28.74 / 0.895
+                        28.74
+                        /
+                        0.895
                       </td>
                       <td>
-                        28.70 / 0.866
+                        28.70
+                        /
+                        0.866
                       </td>
                       <td>
-                        22.21 / 0.631
+                        22.21
+                        /
+                        0.631
                       </td>
                     </tr>
                     <tr class="mine">
                       <td>HVI-CIDNet + Ours</td>
                       <td>
-                        29.91 / 0.900
-                      </td>
-                      <td>
-                        <strong>29.80</strong>
+                        29.91
                         /
-                        <strong>0.877</strong>
+                        0.900
                       </td>
                       <td>
-                        <strong>22.46</strong>
-                        / 0.653
+                        <second>29.80</second>
+                        /
+                        <second>0.877</second>
+                      </td>
+                      <td>
+                        <second>22.46</second>
+                        /
+                        0.653
                       </td>
                     </tr>
                     <tr class="mine delta">

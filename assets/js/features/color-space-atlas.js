@@ -999,6 +999,12 @@
 
     async function loadImageFromFile(src, name) {
         const token = ++colorImageLoadToken;
+
+        // Immediately show a noise placeholder so the visualization is never
+        // blank or stale while the real image is being fetched. When the
+        // image arrives (or errors), rebuildImageSamples replaces it.
+        const noiseCanvas = createDefaultImage("uniform");
+        rebuildImageSamples(noiseCanvas, "Loading " + (name || "image") + "...");
         showColorImageLoadingState(true, null);
 
         try {
@@ -1023,14 +1029,16 @@
             const ctx = canvas.getContext("2d", { willReadFrequently: true });
             ctx.drawImage(image, 0, 0, canvas.width, canvas.height);
 
-                showColorImageLoadingState(false);
+            showColorImageLoadingState(false);
             rebuildImageSamples(canvas, name);
         } catch (error) {
             if (token !== colorImageLoadToken) return;
-                showColorImageLoadingState(false);
+            showColorImageLoadingState(false);
             console.error("Error loading image:", error);
-            const canvas = createDefaultImage("structured");
-            rebuildImageSamples(canvas, "Error loading image: " + name);
+            // Keep the noise placeholder on error — it's a better visual than
+            // the "structured" pattern, and the user can retry by selecting
+            // another image.
+            rebuildImageSamples(createDefaultImage("uniform"), "Failed to load: " + name);
         }
     }
 

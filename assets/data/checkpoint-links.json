@@ -1,0 +1,22 @@
+{
+    "Retinexformer + Ours|LOLv1": "",
+    "Retinexformer + Ours|LOLv2-real": "",
+    "Retinexformer + Ours|LOLv2-synthetic": "",
+    "Retinexformer + Ours|SDSD-indoor": "",
+    "Retinexformer + Ours|SDSD-outdoor": "",
+    "Retinexformer + Ours|SID": "",
+
+    "DarkIR + Ours|LOLv1": "#",
+    "DarkIR + Ours|LOLv2-real": "",
+    "DarkIR + Ours|LOLv2-synthetic": "",
+    "DarkIR + Ours|SDSD-indoor": "",
+    "DarkIR + Ours|SDSD-outdoor": "",
+    "DarkIR + Ours|SID": "",
+
+    "HVI-CIDNet + Ours|LOLv1": "",
+    "HVI-CIDNet + Ours|LOLv2-real": "",
+    "HVI-CIDNet + Ours|LOLv2-synthetic": "",
+    "HVI-CIDNet + Ours|SDSD-indoor": "",
+    "HVI-CIDNet + Ours|SDSD-outdoor": "",
+    "HVI-CIDNet + Ours|SID": ""
+}

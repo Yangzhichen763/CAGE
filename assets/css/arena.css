@@ -160,6 +160,7 @@ pre {
     object-fit: cover;
     border-radius: 10px;
     display: block;
+    transition: opacity 0.3s ease, filter 0.3s ease, transform 0.3s ease;
 }
 
 .arena-image-box .img-placeholder,
@@ -305,6 +306,7 @@ pre {
     object-fit: cover;
     border-radius: 10px;
     display: block;
+    transition: opacity 0.3s ease, filter 0.3s ease, transform 0.3s ease;
 }
 
 .arena-tip {
@@ -965,6 +967,7 @@ pre {
     border-radius: 0;
     user-select: none;
     -webkit-user-drag: none;
+    transition: opacity 0.3s ease, filter 0.3s ease, transform 0.3s ease;
 }
 
 .arena-compare-wrapper .foreground-img {
@@ -1158,13 +1161,21 @@ pre {
 }
 
 .arena-compare-wrapper .compare-image-placeholder {
+    position: absolute;
     top: 0;
+    left: 0;
+    right: 0;
     bottom: 0;
     margin: 0;
     min-width: 0;
+    width: 100%;
     border-radius: 6px;
     pointer-events: none;
     overflow: hidden;
+    /* Solid opaque background — this is critical. Without it the already-
+       loaded enlightened image bleeds through the still-loading low-light
+       placeholder. --bg is the user-visible page background color. */
+    background-color: var(--bg);
 }
 
 .arena-compare-wrapper .compare-image-placeholder.background-placeholder {
@@ -1258,10 +1269,33 @@ pre {
 
 /* Keep Arena Loading surfaces visually identical to the shared component even though Arena owns later CSS. */
 .arena-image-box .img-placeholder.cage-loading-surface,
-.arena-card .img-placeholder.cage-loading-surface,
-.arena-compare-wrapper .compare-image-placeholder.cage-loading-surface,
-.arena-compare-wrapper .compare-loading.cage-loading-surface {
+.arena-card .img-placeholder.cage-loading-surface {
     background-color: var(--surface-2) !important;
     background-image: radial-gradient(circle at 1px 1px, color-mix(in srgb, var(--line) 86%, transparent) 1px, transparent 1.15px) !important;
     background-size: 16px 16px !important;
+}
+
+/* Compare loading surfaces must be OPAQUE so a fully-loaded image (e.g.
+   GT-mean enlightened) does not bleed through the still-loading area
+   of its counterpart (e.g. low-light). --surface-2 is only ~4% opaque,
+   which is why the enlightened image was visible behind the low-light
+   placeholder. Use the solid --bg token instead.
+   Both with and without the cage-loading-surface class are covered so
+   the mask works even if the loading UI helper hasn't been called yet. */
+.arena-compare-wrapper .compare-image-placeholder,
+.arena-compare-wrapper .compare-image-placeholder.cage-loading-surface,
+.arena-compare-wrapper .compare-loading.cage-loading-surface {
+    background-color: var(--bg) !important;
+    background-image: radial-gradient(circle at 1px 1px, color-mix(in srgb, var(--line) 86%, transparent) 1px, transparent 1.15px) !important;
+    background-size: 16px 16px !important;
+}
+
+/* Low-quality preview image shown while the full-resolution image is still
+   downloading. Slightly blurred and dimmed so the user perceives it as a
+   placeholder, then cross-fades to full opacity once the real image arrives. */
+.arena-compare-wrapper .img.is-preview,
+.arena-card img.arena-img.is-preview,
+.arena-image-box img.is-preview {
+    filter: blur(3px);
+    transform: scale(1.03);
 }

@@ -249,6 +249,19 @@ async function loadArenaCardImage(card, img, source, generation) {
                     if (generation !== arenaImageGeneration || card.dataset.src !== source) return;
                     setArenaLoadingPlaceholder(card, progress);
                 },
+                onPreview: function (previewUrl) {
+                    if (generation !== arenaImageGeneration || card.dataset.src !== source) return;
+                    // Show the low-quality preview immediately while the
+                    // full-resolution image continues downloading.
+                    img.onload = null;
+                    img.onerror = null;
+                    img.src = previewUrl;
+                    img.classList.add("is-preview");
+                    img.style.display = "block";
+                    img.style.opacity = "0.7";
+                    const placeholder = card.querySelector(".img-placeholder");
+                    if (placeholder) placeholder.style.display = "none";
+                },
             });
             objectUrl = resource.url;
             sharedManaged = true;
@@ -275,6 +288,8 @@ async function loadArenaCardImage(card, img, source, generation) {
             setArenaCachedImageUrl(source, objectUrl);
             objectUrl = "";
         }
+        img.classList.remove("is-preview");
+        img.style.opacity = "1";
         img.dataset.loadedSource = source;
         setArenaCardLoadState(card, "ready");
         hideCardPlaceholder(img);
@@ -641,11 +656,11 @@ async function loadArenaData() {
         }
     }
     try {
-        const response = await fetch("datas/arena_data.json");
+        const response = await fetch("assets/data/arena_data.json");
         if (response.ok) {
             const data = await response.json();
             arenaData = cleanArenaPaths(data);
-            console.log("Loaded from datas/arena_data.json:", arenaData.length);
+            console.log("Loaded from assets/data/arena_data.json:", arenaData.length);
         } else {
             throw new Error("HTTP error " + response.status);
         }
@@ -1310,6 +1325,7 @@ function createComparisonView(beforeImageUrl, afterImageUrl, initialPercentage =
     function finishState(state) {
         if (state.finished) return;
         state.finished = true;
+        state.image.classList.remove("is-preview");
         state.image.style.opacity = "1";
         updateProgress(state, 100);
 
@@ -1331,6 +1347,7 @@ function createComparisonView(beforeImageUrl, afterImageUrl, initialPercentage =
         if (state.finished) return;
         state.finished = true;
         state.failed = true;
+        state.image.classList.remove("is-preview");
         state.image.style.opacity = "0";
         errorCount++;
         updateProgress(state, 100);
@@ -1387,6 +1404,17 @@ function createComparisonView(beforeImageUrl, afterImageUrl, initialPercentage =
                     if (generation === arenaImageGeneration && wrapper.isConnected) {
                         updateProgress(state, progress);
                     }
+                },
+                onPreview: function (previewUrl) {
+                    if (state.finished || generation !== arenaImageGeneration || !wrapper.isConnected) return;
+                    // Show the low-quality preview immediately; the full
+                    // image will replace it (and clear the preview class)
+                    // once assignImageSource fires its onload → finishState.
+                    state.image.onload = null;
+                    state.image.onerror = null;
+                    state.image.src = previewUrl;
+                    state.image.classList.add("is-preview");
+                    state.image.style.opacity = "0.7";
                 },
             }).then(function (resource) {
                 if (generation !== arenaImageGeneration || !wrapper.isConnected) return;
@@ -1447,16 +1475,18 @@ function createComparisonView(beforeImageUrl, afterImageUrl, initialPercentage =
     }
     wrapper.appendChild(sliderContainer);
 
+    // The foreground image (low-light) is clipped so only the LEFT portion
+    // (0..percentage%) of it is visible. Placeholders MUST use the SAME
+    // clip-path so their opaque --bg background perfectly masks the
+    // counterpart image that has already finished loading. Otherwise the
+    // GT-mean enlightened layer (z-index 1) bleeds through the gap where
+    // the old left/right/width positioning was slightly misaligned.
     beforeImage.style.clipPath = `inset(0 ${100 - percentage}% 0 0)`;
     if (beforePlaceholder) {
-        beforePlaceholder.style.left = "0";
-        beforePlaceholder.style.right = "auto";
-        beforePlaceholder.style.width = `${percentage}%`;
+        beforePlaceholder.style.clipPath = `inset(0 ${100 - percentage}% 0 0)`;
     }
     if (afterPlaceholder) {
-        afterPlaceholder.style.left = `${percentage}%`;
-        afterPlaceholder.style.right = "0";
-        afterPlaceholder.style.width = "auto";
+        afterPlaceholder.style.clipPath = `inset(0 0 0 ${percentage}%)`;
     }
     divider.style.left = `${percentage}%`;
     sliderButton.style.left = `${percentage}%`;
@@ -1472,10 +1502,10 @@ function createComparisonView(beforeImageUrl, afterImageUrl, initialPercentage =
         slider.value = String(nextPercentage);
         beforeImage.style.clipPath = `inset(0 ${100 - nextPercentage}% 0 0)`;
         if (beforePlaceholder) {
-            beforePlaceholder.style.width = `${nextPercentage}%`;
+            beforePlaceholder.style.clipPath = `inset(0 ${100 - nextPercentage}% 0 0)`;
         }
         if (afterPlaceholder) {
-            afterPlaceholder.style.left = `${nextPercentage}%`;
+            afterPlaceholder.style.clipPath = `inset(0 0 0 ${nextPercentage}%)`;
         }
         divider.style.left = `${nextPercentage}%`;
         sliderButton.style.left = `${nextPercentage}%`;

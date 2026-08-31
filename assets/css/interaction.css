@@ -309,6 +309,110 @@ figure .img-container img.is-error {
     font-weight: 700;
 }
 
+/* ── Quantitative Results: checkpoint download interaction ── */
+
+table.results tbody tr.mine:not(.delta) td:not(:first-child) {
+    position: relative;
+    overflow: hidden;
+}
+
+.ckpt-metric {
+    display: inline-block;
+    transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.25s ease;
+}
+
+.ckpt-icon {
+    position: absolute;
+    top: 3px;
+    right: 24px;
+    width: 11px;
+    height: 11px;
+    opacity: 0.4;
+    color: var(--accent);
+    pointer-events: none;
+    transition: opacity 0.2s ease;
+}
+
+.ckpt-icon svg {
+    width: 100%;
+    height: 100%;
+}
+
+.ckpt-btn {
+    position: absolute;
+
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
+
+    font-size: 0.9rem;
+    font-weight: 600;
+    letter-spacing: 0.01em;
+
+    color: #fff;
+    background: var(--accent);
+    border-radius: 8px;
+    padding: 0px 8px;
+    
+    margin: 2px 8px;
+    text-decoration: none;
+    white-space: nowrap;
+    cursor: pointer;
+
+    transform: translateY(100%);
+    opacity: 0;
+    
+    transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.25s ease;
+    -webkit-user-select: none;
+    user-select: none;
+}
+
+.ckpt-btn svg {
+    width: 15px;
+    height: 15px;
+    flex: none;
+}
+
+.ckpt-btn.ckpt-soon {
+    background: var(--surface-2, rgba(0, 0, 0, 0.06));
+    color: var(--muted);
+    cursor: default;
+}
+
+table.results tbody tr.mine:not(.delta) td:not(:first-child):hover .ckpt-metric {
+    transform: translateY(-120%);
+    opacity: 0;
+}
+
+table.results tbody tr.mine:not(.delta) td:not(:first-child):hover .ckpt-icon {
+    opacity: 0;
+}
+
+table.results tbody tr.mine:not(.delta) td:not(:first-child):hover .ckpt-btn {
+    transform: translateY(0);
+    opacity: 1;
+}
+
+@media (hover: none) {
+    .ckpt-icon {
+        opacity: 0.6;
+    }
+
+    .ckpt-btn {
+        transform: translateY(0);
+        opacity: 1;
+        position: static;
+        margin-top: 2px;
+    }
+
+    .ckpt-metric {
+        transform: none;
+        opacity: 1;
+    }
+}
+
 .nav-actions {
     display: flex;
     align-items: center;

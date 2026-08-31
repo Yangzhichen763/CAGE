@@ -6,6 +6,10 @@
     const entries = new Map();
     let accessCounter = 0;
 
+    // Preview support: probed once on first use. When the server doesn't
+    // support ?preview=1 (returns 404), we stop trying for subsequent images.
+    let previewSupported = null;
+
     function ensureSpinner(icon) {
         if (!icon) return;
         if (icon.dataset.cageSpinner === "true" && icon.querySelector(".fa-spinner")) return;
@@ -38,23 +42,80 @@
 
         while (readyEntries.length > MAX_CACHE_ENTRIES) {
             const [source, entry] = readyEntries.shift();
-            if (entry.image) {
-                try { entry.image.src = ""; } catch (_) {}
-                entry.image = null;
+            if (entry.objectUrl) {
+                URL.revokeObjectURL(entry.objectUrl);
             }
             entries.delete(source);
         }
     }
 
-    // Native image loading: returns the original source URL once the browser has
-    // finished downloading and decoding the image. The browser's HTTP/memory cache
-    // handles caching, so subsequent assignments to <img>.src resolve instantly.
-    // This avoids XHR connection-pool exhaustion and ObjectURL revocation issues.
+    // Fetch the image as a Blob with reliable streaming progress via the
+    // Fetch API's ReadableStream. Unlike Image() progress events (which are
+    // not supported on mobile Safari and many other browsers), this works
+    // universally and gives the user a real numeric percentage.
+    async function fetchImageBlob(source, onProgress) {
+        const response = await fetch(source, { cache: "force-cache" });
+        if (!response.ok) throw new Error("Image request failed: " + source);
+
+        const total = Number.parseInt(response.headers.get("content-length") || "0", 10);
+        if (!response.body || !Number.isFinite(total) || total <= 0) {
+            const blob = await response.blob();
+            onProgress?.(100);
+            return blob;
+        }
+
+        let loaded = 0;
+        const chunks = [];
+        const reader = response.body.getReader();
+        while (true) {
+            const result = await reader.read();
+            if (result.done) break;
+            chunks.push(result.value);
+            loaded += result.value.byteLength;
+            onProgress?.(Math.max(0, Math.min(100, (loaded / total) * 100)));
+        }
+        onProgress?.(100);
+        return new Blob(chunks, { type: response.headers.get("content-type") || "image/png" });
+    }
+
+    // Try to fetch a tiny low-quality JPEG preview (?preview=1) from the
+    // server. If the server doesn't support preview generation (returns 404),
+    // we cache that fact and stop probing. The preview is shown immediately
+    // via the onPreview callback while the full image continues downloading.
+    function tryLoadPreview(source, onPreview) {
+        if (previewSupported === false) return;
+
+        const separator = source.includes("?") ? "&" : "?";
+        const previewSrc = source + separator + "preview=1";
+
+        fetch(previewSrc, { cache: "force-cache" })
+            .then(function (res) {
+                if (res.status === 404) {
+                    previewSupported = false;
+                    return null;
+                }
+                if (!res.ok) return null;
+                previewSupported = true;
+                return res.blob();
+            })
+            .then(function (blob) {
+                if (!blob) return;
+                // Skip if the full image already arrived.
+                const entry = entries.get(source);
+                if (entry && entry.state === "ready") return;
+                const url = URL.createObjectURL(blob);
+                try { onPreview(url); } catch (_) {}
+            })
+            .catch(function () {
+                /* network error — leave previewSupported unknown and try next time */
+            });
+    }
+
     function get(source) {
         const entry = entries.get(source);
         if (!entry || entry.state !== "ready") return "";
         touch(entry);
-        return source;
+        return entry.objectUrl || "";
     }
 
     function createRequest(source) {
@@ -65,43 +126,22 @@
             listeners: new Set(),
             lastAccess: ++accessCounter,
             promise: null,
-            image: null,
+            objectUrl: "",
         };
 
-        entry.promise = new Promise(function (resolve, reject) {
-            const image = new Image();
-            entry.image = image;
-            image.decoding = "async";
-            image.fetchPriority = "auto";
-
-            // Progress events on Image are supported in Chromium/Firefox but not
-            // universally. When available, surface real download progress; when
-            // not, the placeholder stays in its indeterminate state.
-            image.addEventListener("progress", function (event) {
-                if (event.lengthComputable && event.total > 0) {
-                    notify(entry, Math.max(0, Math.min(100, (event.loaded / event.total) * 100)));
-                }
-            });
-
-            image.onload = function () {
-                entry.state = "ready";
-                entry.image = null;
-                touch(entry);
-                notify(entry, 100);
-                evictReadyEntries();
-                resolve({
-                    source: source,
-                    url: source,
-                    fromCache: false,
-                });
+        entry.promise = fetchImageBlob(source, function (progress) {
+            notify(entry, progress);
+        }).then(function (blob) {
+            entry.objectUrl = URL.createObjectURL(blob);
+            entry.state = "ready";
+            touch(entry);
+            notify(entry, 100);
+            evictReadyEntries();
+            return {
+                source: source,
+                url: entry.objectUrl,
+                fromCache: false,
             };
-
-            image.onerror = function () {
-                entry.image = null;
-                reject(new Error("Image request failed: " + source));
-            };
-
-            image.src = source;
         }).catch(function (error) {
             if (entries.get(source) === entry) entries.delete(source);
             throw error;
@@ -123,12 +163,19 @@
             }
             return Promise.resolve({
                 source: source,
-                url: source,
+                url: entry.objectUrl,
                 fromCache: true,
             });
         }
 
-        if (!entry) entry = createRequest(source);
+        if (!entry) {
+            entry = createRequest(source);
+
+            // Progressive loading: ask the server for a tiny preview first.
+            if (typeof opts.onPreview === "function") {
+                tryLoadPreview(source, opts.onPreview);
+            }
+        }
         touch(entry);
 
         const listener = typeof opts.onProgress === "function" ? opts.onProgress : null;
@@ -150,9 +197,8 @@
 
     function clear() {
         entries.forEach(function (entry) {
-            if (entry.image) {
-                try { entry.image.src = ""; } catch (_) {}
-                entry.image = null;
+            if (entry.objectUrl) {
+                URL.revokeObjectURL(entry.objectUrl);
             }
         });
         entries.clear();

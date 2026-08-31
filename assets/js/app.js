@@ -39,6 +39,12 @@ function initFeatureLoading() {
         window.CAGELazyMedia?.refresh(method);
     });
 
+    const results = document.querySelector('[data-feature="results"], #results');
+    whenNearViewport(results, async () => {
+        await loadScript("assets/js/features/quantitative-results.js");
+        window.CAGEQuantResults?.init();
+    });
+
     initColorSpace();
 }
 

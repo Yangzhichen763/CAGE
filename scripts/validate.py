@@ -21,7 +21,7 @@ for path in re.findall(r"(?:src|href)=[\"']((?:assets|datas)/[^\"']+)[\"']", ind
     if not (ROOT / path).exists():
         errors.append(f"missing local project file: {path}")
 
-with (ROOT / "datas/arena_data.json").open(encoding="utf-8") as handle:
+with (ROOT / "assets/data/arena_data.json").open(encoding="utf-8") as handle:
     json.load(handle)
 
 node = subprocess.run(["node", "--version"], capture_output=True, text=True)
